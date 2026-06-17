@@ -53,7 +53,7 @@ data model, security posture and feature set are unchanged.
   gradient on a stylised "S" with soft glow) replaces the legacy
   webidoo-logo.webp in the attract / welcome / kiosk-lock screens. The
   raster asset has been removed.
-- **Social preview:** `docs/social-preview.png` regenerated in the new
+- **Social preview:** `docs/socialpreview.png` regenerated in the new
   palette.
 - **Email/contact domains:** `@webidoo.com` → `@suaipe.app` (sender
   fallback, privacy-notice contact). SECURITY.md disclosure email

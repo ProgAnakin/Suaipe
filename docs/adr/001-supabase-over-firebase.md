@@ -32,6 +32,8 @@ Firebase and Supabase were both serious candidates.
 
 The decisive factor was **RLS + pgcrypto together**: we can enforce per-store data isolation and encrypt sensitive columns inside the same transactional boundary, without shipping encryption keys to the client or adding an application-level encryption layer.
 
+> **Update — partially superseded:** the `pgcrypto` column-encryption described above was implemented but never wired into the read paths and was **removed** in favour of access-control — see [ADR 003](./003-pii-encryption-at-rest.md) and [ADR 005](./005-synchronous-pii-encryption.md). RLS (per-store isolation) remains the load-bearing reason this decision still holds; column encryption is no longer part of it.
+
 A secondary factor was **Supabase migrations** — SQL files in `supabase/migrations/`, version-controlled, reviewed in PRs, runnable against a fresh project. Firebase schema is implicit and harder to audit.
 
 ## Consequences
