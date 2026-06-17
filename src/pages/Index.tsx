@@ -413,25 +413,28 @@ const Index = () => {
             onClick={handleDismiss}
           >
             <div
-              className="mx-6 rounded-2xl bg-white p-8 text-center shadow-2xl max-w-sm w-full"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t.inactivity.title}
+              className="mx-6 w-full max-w-sm rounded-2xl border border-border bg-card p-8 text-center shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mb-4 text-5xl">⏱️</div>
-              <h2 className="mb-2 text-xl font-bold text-gray-900">{t.inactivity.title}</h2>
-              <p className="mb-6 text-gray-500 text-sm">{t.inactivity.countdown}</p>
+              <h2 className="mb-2 text-xl font-bold text-foreground">{t.inactivity.title}</h2>
+              <p className="mb-6 text-sm text-muted-foreground">{t.inactivity.countdown}</p>
               <div className="mb-6 flex items-center justify-center">
                 <span className="text-6xl font-bold text-rose-500">{inactivitySecondsLeft}</span>
-                <span className="ml-2 text-2xl text-gray-400">s</span>
+                <span className="ml-2 text-2xl text-muted-foreground">s</span>
               </div>
               <button
                 onClick={handleDismiss}
-                className="w-full rounded-xl bg-primary px-6 py-3 font-semibold text-white active:opacity-90 mb-3"
+                className="mb-3 w-full rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground active:opacity-90"
               >
                 {t.inactivity.dismiss}
               </button>
               <button
                 onClick={handleRestart}
-                className="w-full rounded-xl bg-gray-100 px-6 py-3 font-semibold text-gray-600 active:bg-gray-200"
+                className="w-full rounded-xl border border-border bg-muted px-6 py-3 font-semibold text-muted-foreground active:bg-muted/70"
               >
                 {t.inactivity.restart}
               </button>

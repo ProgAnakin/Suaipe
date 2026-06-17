@@ -31,7 +31,7 @@
 
 **Built for:** physical retail with a curated catalog — tech, beauty, gifts, sporting goods, fragrance — where customers know roughly what they want but get overwhelmed by choice.
 
-**Status:** in production across multiple Suaipe locations on iPad.
+**Status:** in production across 4 Suaipe stores on iPad.
 
 ### What it delivers
 
@@ -46,7 +46,7 @@
 
 ## 📸 Demo
 
-> Live deployment running daily across multiple Suaipe locations on iPad.
+> Live deployment running daily across 4 Suaipe stores on iPad.
 
 <table align="center">
   <tr>
@@ -191,14 +191,14 @@ Suaipe was designed and validated in tech retail, but the model transfers cleanl
 |---|---|
 | **Authentication** | Supabase Auth · PIN + bcrypt fallback · in-memory IP-based lockout · MFA for stats |
 | **Authorisation** | Row-Level Security on every table · role-based access (`manager` / `consulente_responsabile` / `consulente`) · per-store data isolation |
-| **PII Protection** | Customer `nome`/`cognome`/`email` readable only by authenticated managers (all stores) and consulenti (own store) — no anon access · platform at-rest storage encryption · retention purge of old sessions |
+| **PII Protection** | Customer `nome`/`cognome`/`email` readable only by authenticated managers (all stores) and consulenti (own store) — no anon access · platform (disk-level) at-rest encryption, **not** column-level — protected by role-scoped RLS, see [ADR 003](./docs/adr/003-pii-encryption-at-rest.md) · retention purge of old sessions |
 | **Rate Limiting** | Server-side enforced 1-email-per-hour per address · cannot be bypassed from client |
 | **Injection Defence** | All search inputs escape `%` `_` `\` before PostgREST `.or()` interpolation · `escHtml()` in every email template field |
 | **CORS** | Strict origin allowlist · no wildcard fallback · silent rejection of unexpected origins |
 | **Webhooks** | DB webhooks gated by valid `store_id` allowlist · unknown stores silently dropped |
 | **Accessibility** | Kiosk-targeted tap targets (≥ 64 px on the PIN keypad and quiz buttons) · `focus-visible:ring-2` rings on interactive elements · `prefers-reduced-motion` respected via Framer Motion `MotionConfig` · informational copy bumped above the `/65` opacity threshold for in-store lighting |
 | **Internationalisation** | 5 fully translated languages, including the transactional emails sent to customers |
-| **Testing** | 95 unit tests (Vitest) · 11 E2E tests (Playwright, incl. visual-regression pixel diffs) · typecheck + lint + build on every push via GitHub Actions |
+| **Testing** | 127 unit tests (Vitest) · 16 E2E tests (Playwright, incl. visual-regression pixel diffs) · typecheck + lint + build on every push via GitHub Actions |
 | **Observability** | Sentry error tracking + session replay (live) · sourcemaps uploaded on build for readable production stack traces · tagged error logging in Edge Functions |
 | **Performance** | Manual chunk splitting · lazy-loaded admin routes · image auto-resize ≤ 1024px JPEG q=80 · PWA precaching · debounced search |
 | **iPad / Kiosk** | `interactive-widget=resizes-content` prevents URL bar on keyboard · `visualViewport` API for keyboard-aware layouts · iOS splash screens · wake lock · `100dvh` everywhere |
@@ -359,7 +359,7 @@ The CI workflow runs typecheck, lint, test and build on every push to `main`, ev
 | `admin_access_log` | PIN access tracking with IP + user-agent |
 | `app_settings` | Hashed application secrets (bcrypt PIN hash) |
 
-Every table is protected by Row-Level Security. Rate limiting is enforced at the database-function level. Customer PII in `quiz_sessions` is readable only by authenticated managers/consulenti (scoped by store, no anon access) and is encrypted at rest by the Supabase storage layer.
+Every table is protected by Row-Level Security. Rate limiting is enforced at the database-function level. Customer PII in `quiz_sessions` is readable only by authenticated managers/consulenti (scoped by store, no anon access). PII columns are plaintext, protected by role-scoped RLS plus the platform's disk-level at-rest encryption — **not** application-layer column encryption (deliberately dropped to keep partial-match search; see [ADR 003](./docs/adr/003-pii-encryption-at-rest.md)).
 
 ---
 

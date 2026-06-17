@@ -706,13 +706,22 @@ const MatchResult = ({
         <motion.button
           onClick={handleClaim}
           disabled={claiming || !isOnline}
-          className="gradient-primary shadow-glow w-full rounded-2xl px-8 py-5 text-xl font-bold text-primary-foreground active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+          aria-busy={claiming}
+          aria-label={t.result.cta}
+          className="gradient-primary shadow-glow flex w-full items-center justify-center rounded-2xl px-8 py-5 text-xl font-bold text-primary-foreground active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           whileTap={{ scale: claiming ? 1 : 0.97 }}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.4 }}
         >
-          {claiming ? "…" : t.result.cta}
+          {claiming ? (
+            <span
+              className="h-6 w-6 animate-spin rounded-full border-[3px] border-primary-foreground/40 border-t-primary-foreground"
+              aria-hidden="true"
+            />
+          ) : (
+            t.result.cta
+          )}
         </motion.button>
 
         {/* Claim error feedback — local validation OR backend error */}
