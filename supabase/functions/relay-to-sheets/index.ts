@@ -49,7 +49,14 @@ serve(async (req) => {
   if (!token) {
     return new Response(SILENT_OK, { headers: { ...CORS, "Content-Type": "application/json" } });
   }
-  if (SUPABASE_URL && SERVICE_KEY) {
+  // Fail closed: if we can't verify the caller because the auth env is unset,
+  // refuse rather than skip validation and relay anyway. (Prod always has these
+  // set; the primary on-session-created path relays to Sheets itself and never
+  // calls this function, so this guard only affects manual/browser invocations.)
+  if (!SUPABASE_URL || !SERVICE_KEY) {
+    return new Response(SILENT_OK, { headers: { ...CORS, "Content-Type": "application/json" } });
+  }
+  {
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
     const { error } = await admin.auth.getUser(token);
     if (error) {

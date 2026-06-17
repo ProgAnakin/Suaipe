@@ -10,6 +10,7 @@
 
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { genDiscountCode } from "../_shared/discountCode.ts";
 
 const BREVO_KEY        = Deno.env.get("BREVO_API_KEY") ?? "";
 const SUPABASE_URL     = Deno.env.get("SUPABASE_URL") ?? "";
@@ -84,14 +85,8 @@ function youtubeId(url: string): string | null {
   return m ? m[1] : null;
 }
 
-// Format: SUP-XXXXXXXX05 — last 2 digits encode the discount % for consultant readability.
-// 4 random bytes (2^32 space) makes enumeration attacks computationally impractical.
-function genDiscountCode(discountPct: number): string {
-  const bytes = new Uint8Array(4);
-  crypto.getRandomValues(bytes);
-  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
-  return `SUP-${hex}${String(discountPct).padStart(2, "0")}`;
-}
+// genDiscountCode lives in ../_shared/discountCode.ts — unit-tested from src via
+// Vitest (src/__tests__/discountCode.test.ts).
 
 // ⚠ Synced copy — kept in lockstep with src/lib/validators.ts. Tests in
 // src/__tests__/validators.test.ts cover both code paths.
@@ -705,6 +700,22 @@ serve(async (req) => {
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
+  // Idempotency guard — a Supabase webhook retry re-delivers the same INSERT
+  // payload (email_sent=false in that snapshot). If the email for this session
+  // already went out, skip: don't regenerate the code or re-send. Covers the
+  // common retry-after-success case without a schema change. (A fully race-proof
+  // atomic-claim variant is documented in docs/server-hardening.md.)
+  {
+    const { data: existing } = await supabase
+      .from("quiz_sessions")
+      .select("email_sent")
+      .eq("id", record.id)
+      .maybeSingle();
+    if (existing?.email_sent === true) {
+      return new Response(JSON.stringify({ ok: true, deduped: true }), { status: 200 });
+    }
+  }
+
   // Customer PII (nome / cognome / email) is stored in plaintext because the
   // manager dashboard must search and display it; it is protected by row-level
   // security (no anon read; managers/consulenti scoped by store), Supabase's
@@ -812,7 +823,9 @@ serve(async (req) => {
   if (!brevoRes.ok) {
     const errText = await brevoRes.text();
     console.error("[on-session-created] Brevo error:", errText);
-    return new Response(JSON.stringify({ ok: false, error: errText }), { status: 500 });
+    // Don't leak the provider's raw error body (may include internals / the
+    // recipient address) to the webhook caller — log it server-side only.
+    return new Response(JSON.stringify({ ok: false }), { status: 500 });
   }
 
   // Mark email as sent only after Brevo confirms delivery.
