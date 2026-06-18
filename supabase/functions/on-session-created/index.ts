@@ -10,7 +10,6 @@
 
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { genDiscountCode } from "../_shared/discountCode.ts";
 
 const BREVO_KEY        = Deno.env.get("BREVO_API_KEY") ?? "";
 const SUPABASE_URL     = Deno.env.get("SUPABASE_URL") ?? "";
@@ -85,8 +84,18 @@ function youtubeId(url: string): string | null {
   return m ? m[1] : null;
 }
 
-// genDiscountCode lives in ../_shared/discountCode.ts — unit-tested from src via
-// Vitest (src/__tests__/discountCode.test.ts).
+// Format: SUP-XXXXXXXX## — 8 uppercase hex chars (4 random bytes, 2^32 space, so
+// enumeration is impractical) + the 2-digit discount % for at-a-glance readability.
+// Kept INLINE so this Edge Function is a single self-contained file (easy to deploy
+// from the Supabase Dashboard). It is the tested reference in
+// supabase/functions/_shared/discountCode.ts (src/__tests__/discountCode.test.ts) —
+// keep the two in sync if you ever change the format.
+function genDiscountCode(discountPct: number): string {
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+  return `SUP-${hex}${String(discountPct).padStart(2, "0")}`;
+}
 
 // ⚠ Synced copy — kept in lockstep with src/lib/validators.ts. Tests in
 // src/__tests__/validators.test.ts cover both code paths.
