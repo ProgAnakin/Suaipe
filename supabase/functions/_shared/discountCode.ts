@@ -1,6 +1,7 @@
-// Shared, runtime-agnostic helper used by the on-session-created Edge Function
-// (Deno) and unit-tested from src via Vitest. Keep it free of Deno-specific
-// globals so both runtimes can import it.
+// Tested reference for the discount-code format, unit-tested from src via Vitest.
+// The on-session-created Edge Function keeps an INLINE copy of this function (so it
+// deploys as a single self-contained file from the Supabase Dashboard) — keep the
+// two in lockstep if the format ever changes. Runtime-agnostic (no Deno globals).
 //
 // Format: SUP-XXXXXXXX## — 8 uppercase hex chars (4 random bytes, 2^32 space, so
 // enumeration is impractical) followed by the 2-digit discount % for at-a-glance
