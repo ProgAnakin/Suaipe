@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { STORES, setStoredStoreId, getStoredStoreId } from "@/data/stores";
 import { useLang } from "@/i18n/LanguageContext";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useKioskMode } from "@/hooks/useKioskMode";
 import { useLockoutCountdown } from "@/hooks/useLockoutCountdown";
 import { verifyStaffPin } from "@/lib/verifyStaffPin";
@@ -29,6 +30,8 @@ const AdminPinOverlay = ({ onClose }: AdminPinOverlayProps) => {
   const [currentStoreId, setCurrentStoreId] = useState<string | null>(getStoredStoreId);
   const [savedStoreId, setSavedStoreId] = useState<string | null>(null); // for visual confirmation
   const navigate = useNavigate();
+  const pinDialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(pinDialogRef, onClose, step === "pin");
 
   const handleKey = useCallback(async (key: string) => {
     if (isLocked || verifying) return;
@@ -209,6 +212,10 @@ const AdminPinOverlay = ({ onClose }: AdminPinOverlayProps) => {
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <motion.div
+        ref={pinDialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="admin-pin-title"
         className="mx-6 w-full max-w-xs rounded-3xl border border-border bg-card p-8 shadow-2xl"
         initial={{ scale: 0.85, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -218,7 +225,7 @@ const AdminPinOverlay = ({ onClose }: AdminPinOverlayProps) => {
         {/* Header */}
         <div className="mb-6 text-center">
           <div className="mb-2 text-4xl">🔐</div>
-          <h2 className="text-lg font-bold text-foreground">{t.admin.pinStep.title}</h2>
+          <h2 id="admin-pin-title" className="text-lg font-bold text-foreground">{t.admin.pinStep.title}</h2>
           <p className="mt-1 text-xs text-muted-foreground">{t.admin.pinStep.subtitle}</p>
         </div>
 
