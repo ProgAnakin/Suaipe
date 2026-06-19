@@ -29,6 +29,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Audit production dependencies
+        # Fails only on a high/critical advisory in runtime deps. Dev-only
+        # advisories don't ship to users, so they don't block the build.
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Test
         run: npm test
 
