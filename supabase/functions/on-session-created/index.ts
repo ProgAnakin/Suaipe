@@ -84,8 +84,12 @@ function youtubeId(url: string): string | null {
   return m ? m[1] : null;
 }
 
-// Format: SUP-XXXXXXXX05 — last 2 digits encode the discount % for consultant readability.
-// 4 random bytes (2^32 space) makes enumeration attacks computationally impractical.
+// Format: SUP-XXXXXXXX## — 8 uppercase hex chars (4 random bytes, 2^32 space, so
+// enumeration is impractical) + the 2-digit discount % for at-a-glance readability.
+// Kept INLINE so this Edge Function is a single self-contained file (easy to deploy
+// from the Supabase Dashboard). It is the tested reference in
+// supabase/functions/_shared/discountCode.ts (src/__tests__/discountCode.test.ts) —
+// keep the two in sync if you ever change the format.
 function genDiscountCode(discountPct: number): string {
   const bytes = new Uint8Array(4);
   crypto.getRandomValues(bytes);
@@ -705,6 +709,22 @@ serve(async (req) => {
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
+  // Idempotency guard — a Supabase webhook retry re-delivers the same INSERT
+  // payload (email_sent=false in that snapshot). If the email for this session
+  // already went out, skip: don't regenerate the code or re-send. Covers the
+  // common retry-after-success case without a schema change. (A fully race-proof
+  // atomic-claim variant is documented in docs/server-hardening.md.)
+  {
+    const { data: existing } = await supabase
+      .from("quiz_sessions")
+      .select("email_sent")
+      .eq("id", record.id)
+      .maybeSingle();
+    if (existing?.email_sent === true) {
+      return new Response(JSON.stringify({ ok: true, deduped: true }), { status: 200 });
+    }
+  }
+
   // Customer PII (nome / cognome / email) is stored in plaintext because the
   // manager dashboard must search and display it; it is protected by row-level
   // security (no anon read; managers/consulenti scoped by store), Supabase's
@@ -812,7 +832,9 @@ serve(async (req) => {
   if (!brevoRes.ok) {
     const errText = await brevoRes.text();
     console.error("[on-session-created] Brevo error:", errText);
-    return new Response(JSON.stringify({ ok: false, error: errText }), { status: 500 });
+    // Don't leak the provider's raw error body (may include internals / the
+    // recipient address) to the webhook caller — log it server-side only.
+    return new Response(JSON.stringify({ ok: false }), { status: 500 });
   }
 
   // Mark email as sent only after Brevo confirms delivery.

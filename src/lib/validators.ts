@@ -24,3 +24,30 @@ export function youtubeId(url: string): string | null {
   const m = url.match(/(?:v=|youtu\.be\/|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/);
   return m ? m[1] : null;
 }
+
+// ── Lead-capture validation (kiosk Welcome form) ─────────────────────────────
+// The Edge Function `on-session-created` keeps its own copies (Deno can't import
+// from `src/`). Keep them in sync; `src/__tests__/welcomeValidators.test.ts`
+// locks the behaviour.
+
+/** Pragmatic email shape — one `@`, a dot-something TLD of ≥2 letters. */
+export const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+export function isValidEmail(value: string): boolean {
+  return EMAIL_RE.test(value.trim());
+}
+
+/** First/last name: 2–100 chars of any-script letters, spaces, apostrophes, hyphens. */
+export const NAME_RE = /^[\p{L}\s'-]{2,100}$/u;
+
+export function isValidName(value: string): boolean {
+  return NAME_RE.test(value.trim());
+}
+
+/** Strip anything that isn't a letter/space/'/-, collapse runs of spaces, cap at 100. */
+export function sanitizeName(value: string): string {
+  return value
+    .replace(/[^\p{L}\s'-]/gu, "")
+    .replace(/\s{2,}/g, " ")
+    .slice(0, 100);
+}

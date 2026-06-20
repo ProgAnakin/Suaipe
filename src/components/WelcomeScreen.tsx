@@ -11,6 +11,7 @@ import { LANGUAGES } from "@/i18n/translations";
 import { getStoredStoreId, getStoreById } from "@/data/stores";
 import { supabase } from "@/integrations/supabase/client";
 import { useViewportKeyboard } from "@/hooks/useViewportKeyboard";
+import { isValidEmail, isValidName, sanitizeName } from "@/lib/validators";
 import { COOLDOWN_BYPASS_EMAILS } from "@/config/staffEmails";
 
 export interface UserInfo {
@@ -28,15 +29,8 @@ interface WelcomeScreenProps {
   settingsLoadFailed?: boolean;
 }
 
-const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-const NAME_REGEX  = /^[\p{L}\s'-]{2,100}$/u;
-
-function sanitizeName(value: string): string {
-  return value
-    .replace(/[^\p{L}\s'-]/gu, "")
-    .replace(/\s{2,}/g, " ")
-    .slice(0, 100);
-}
+// Email/name validation + sanitize live in src/lib/validators.ts (shared with the
+// Edge Function copy, covered by src/__tests__/welcomeValidators.test.ts).
 
 // ─── Language Selector ───────────────────────────────────────────────────────────────────────
 const LanguageSelector = () => {
@@ -78,9 +72,9 @@ const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const { play } = useSound();
 
-  const isEmailValid   = EMAIL_REGEX.test(email.trim());
-  const isNomeValid    = NAME_REGEX.test(nome.trim());
-  const isCognomeValid = NAME_REGEX.test(cognome.trim());
+  const isEmailValid   = isValidEmail(email);
+  const isNomeValid    = isValidName(nome);
+  const isCognomeValid = isValidName(cognome);
   const isFormValid    = isNomeValid && isCognomeValid && isEmailValid;
 
   const showEmailError  = emailTouched && email.trim().length > 0 && !isEmailValid;

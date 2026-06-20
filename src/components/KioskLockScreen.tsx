@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SuaipeLogo } from "./SuaipeLogo";
 import { useLang } from "@/i18n/LanguageContext";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useLockoutCountdown } from "@/hooks/useLockoutCountdown";
 import { verifyStaffPin } from "@/lib/verifyStaffPin";
 
@@ -19,6 +20,8 @@ export const KioskLockScreen = ({ onStartQuiz, onDeactivate }: KioskLockScreenPr
   const [shake, setShake] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const { lockedSeconds, isLocked, setLockedSeconds } = useLockoutCountdown();
+  const pinDialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(pinDialogRef, () => { setShowPin(false); setPin(""); }, showPin);
 
   const handleKey = useCallback(async (key: string) => {
     if (isLocked || verifying) return;
@@ -49,6 +52,10 @@ export const KioskLockScreen = ({ onStartQuiz, onDeactivate }: KioskLockScreenPr
     return (
       <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background">
         <motion.div
+          ref={pinDialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="kiosk-pin-title"
           className="mx-6 w-full max-w-xs rounded-3xl border border-border bg-card p-8 shadow-2xl"
           initial={{ scale: 0.9, opacity: 0, y: 16 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -56,7 +63,7 @@ export const KioskLockScreen = ({ onStartQuiz, onDeactivate }: KioskLockScreenPr
         >
           <div className="mb-6 text-center">
             <div className="mb-2 text-4xl">🔑</div>
-            <h2 className="text-lg font-bold text-foreground">{t.admin.kioskLock.pinTitle}</h2>
+            <h2 id="kiosk-pin-title" className="text-lg font-bold text-foreground">{t.admin.kioskLock.pinTitle}</h2>
             <p className="mt-1 text-xs text-muted-foreground">{t.admin.kioskLock.pinSubtitle}</p>
           </div>
 
@@ -102,6 +109,7 @@ export const KioskLockScreen = ({ onStartQuiz, onDeactivate }: KioskLockScreenPr
                 <motion.button
                   key={i}
                   onClick={() => handleKey(key)}
+                  aria-label={key === "⌫" ? "Backspace" : `Digit ${key}`}
                   className={`flex h-16 items-center justify-center rounded-2xl text-xl font-semibold transition-colors ${
                     key === "⌫"
                       ? "bg-muted text-muted-foreground"

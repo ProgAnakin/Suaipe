@@ -83,6 +83,9 @@ const SwipeCard = ({ card, totalCards, onSwipe, exitDirection, index = 0 }: Swip
       <motion.div
         className="absolute flex h-full w-full cursor-grab flex-col overflow-hidden rounded-[28px] active:cursor-grabbing"
         style={{ x, rotate, boxShadow: cardShadow, zIndex: 1, background: cardBg, border: cardBorder }}
+        role="group"
+        aria-roledescription="quiz card"
+        aria-label={displayText}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.55}
