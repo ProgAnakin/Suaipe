@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { LoginForm } from "@/components/stats/LoginForm";
 import { MfaVerifyForm } from "@/components/stats/MfaVerifyForm";
+import { MfaSetupModal } from "@/components/stats/MfaSetupModal";
 import { Dashboard } from "@/components/stats/Dashboard";
 import type { AuthStep } from "@/components/stats/types";
 
@@ -24,6 +25,9 @@ const Stats = () => {
   const navigate = useNavigate();
   const [authStep, setAuthStep] = useState<AuthStep>("login");
   const [checking, setChecking] = useState(true);
+  // Set when 2FA enrolment succeeds, so the modal's onClose (which also fires on
+  // success) doesn't sign the user back out.
+  const enrolledRef = useRef(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data, error }) => {
@@ -35,10 +39,13 @@ const Stats = () => {
       }
       if (data.session) {
         const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-        if (aal?.nextLevel === "aal2" && aal?.currentLevel !== "aal2") {
+        if (aal?.currentLevel === "aal2") {
+          setAuthStep("dashboard");
+        } else if (aal?.nextLevel === "aal2") {
           setAuthStep("mfa");
         } else {
-          setAuthStep("dashboard");
+          // Enforce 2FA: an account with no TOTP factor must enrol before access.
+          setAuthStep("enroll");
         }
       } else {
         setAuthStep("login");
@@ -73,6 +80,7 @@ const Stats = () => {
           <LoginForm
             onLoginSuccess={() => setAuthStep("dashboard")}
             onMfaRequired={() => setAuthStep("mfa")}
+            onEnrollRequired={() => setAuthStep("enroll")}
           />
         </motion.div>
       )}
@@ -81,6 +89,20 @@ const Stats = () => {
           <MfaVerifyForm
             onVerified={() => setAuthStep("dashboard")}
             onCancel={async () => {
+              await supabase.auth.signOut();
+              setAuthStep("login");
+            }}
+          />
+        </motion.div>
+      )}
+      {authStep === "enroll" && (
+        <motion.div key="enroll" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <div className="min-h-screen bg-background" />
+          <MfaSetupModal
+            onEnabled={() => { enrolledRef.current = true; setAuthStep("dashboard"); }}
+            onClose={async () => {
+              // The modal fires onClose on success too — don't sign out then.
+              if (enrolledRef.current) { enrolledRef.current = false; return; }
               await supabase.auth.signOut();
               setAuthStep("login");
             }}

@@ -37,7 +37,7 @@ export interface FunnelCounts {
   claimed: number;
 }
 
-export type AuthStep = "login" | "mfa" | "dashboard";
+export type AuthStep = "login" | "mfa" | "enroll" | "dashboard";
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 

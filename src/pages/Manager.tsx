@@ -30,9 +30,11 @@ const Manager = () => {
         return;
       }
       if (data.session) {
-        // Enforce MFA (aal2) when the account has 2FA configured — same gate as /stats
+        // Enforce MFA (aal2). /manager delegates login + enrolment to /stats, so
+        // bounce there whenever the session isn't fully 2FA-verified — including
+        // accounts with no TOTP factor yet (which /stats now forces to enrol).
         const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-        if (aal?.nextLevel === "aal2" && aal?.currentLevel !== "aal2") {
+        if (aal?.currentLevel !== "aal2") {
           navigate("/stats", { replace: true });
           setChecking(false);
           return;

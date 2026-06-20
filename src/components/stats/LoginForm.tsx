@@ -6,6 +6,9 @@ import { useLockoutCountdown } from "@/hooks/useLockoutCountdown";
 interface LoginFormProps {
   onLoginSuccess: () => void;
   onMfaRequired: () => void;
+  /** Called after a password login when the account has NO 2FA factor enrolled.
+   *  When provided, the caller enforces enrolment before granting access. */
+  onEnrollRequired?: () => void;
   /** Header copy — defaults to the analytics dashboard. /consulente overrides it. */
   title?: string;
   subtitle?: string;
@@ -16,6 +19,7 @@ interface LoginFormProps {
 export const LoginForm = ({
   onLoginSuccess,
   onMfaRequired,
+  onEnrollRequired,
   title = "Analytics Dashboard",
   subtitle = "Restricted access",
   icon = "📊",
@@ -55,8 +59,13 @@ export const LoginForm = ({
       setError("Invalid credentials.");
     } else {
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (aal?.nextLevel === "aal2" && aal?.currentLevel !== "aal2") {
+      if (aal?.currentLevel === "aal2") {
+        onLoginSuccess();
+      } else if (aal?.nextLevel === "aal2") {
         onMfaRequired();
+      } else if (onEnrollRequired) {
+        // No TOTP factor enrolled — enforce enrolment before granting access.
+        onEnrollRequired();
       } else {
         onLoginSuccess();
       }
