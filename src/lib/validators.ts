@@ -51,3 +51,30 @@ export function sanitizeName(value: string): string {
     .replace(/\s{2,}/g, " ")
     .slice(0, 100);
 }
+
+// ── Asset URL resolution (product image in the match email) ──────────────────
+// The Edge Function `on-session-created` keeps a synced copy. Behaviour locked
+// by `src/__tests__/validators.test.ts`.
+
+/**
+ * Resolve a product-image reference to an absolute https URL for an email
+ * `<img src>`. Email clients have no document base, so a root-relative path
+ * like `/products/x.png` (the kiosk's bundled fallback assets) never loads — it
+ * must be made absolute against the deployed site origin.
+ *
+ * - absolute `https://` URLs (e.g. Supabase Storage) are returned unchanged
+ * - root-relative `/path` is resolved against `siteUrl`
+ * - everything else (empty, `http://`, `data:`, `blob:`, protocol-relative
+ *   `//host`) returns `null` so the email falls back to its placeholder
+ */
+export function toAbsoluteAssetUrl(
+  url: string | null | undefined,
+  siteUrl: string,
+): string | null {
+  const u = String(url ?? "").trim();
+  if (/^https:\/\//i.test(u)) return u;
+  // `^\/[^/]` matches a single leading slash followed by a non-slash, so it
+  // accepts `/products/x.png` but rejects protocol-relative `//evil.com/x.png`.
+  if (/^\/[^/]/.test(u)) return siteUrl.replace(/\/+$/, "") + u;
+  return null;
+}
