@@ -803,6 +803,34 @@ serve(async (req) => {
     }
   }
 
+  // Product image fallback — if the session snapshot carries no usable image
+  // (an older kiosk build stored null for a root-relative asset, or the column
+  // was never written), recover it from the catalog so the email still shows
+  // the product instead of the 📦 placeholder. Per-store override first, then
+  // the global custom_products row. safeUrl() (in buildEmail) absolutises any
+  // root-relative path against SITE_URL.
+  if (!safeUrl(String(record.product_image ?? "")) && record.matched_product_id) {
+    let img = "";
+    if (record.store_id) {
+      const { data: psImg } = await supabase
+        .from("product_settings")
+        .select("image_url")
+        .eq("product_id", record.matched_product_id)
+        .eq("store_id", record.store_id)
+        .maybeSingle();
+      img = String(psImg?.image_url ?? "").trim();
+    }
+    if (!img) {
+      const { data: cpImg } = await supabase
+        .from("custom_products")
+        .select("image_url")
+        .eq("id", String(record.matched_product_id))
+        .maybeSingle();
+      img = String(cpImg?.image_url ?? "").trim();
+    }
+    if (img) record.product_image = img;
+  }
+
   // Load the editable email template row for this session's language.
   // Each supported language has its own row in email_template (keyed by language column).
   const sessionLang = (String(record.language ?? "it")) as Lang;
