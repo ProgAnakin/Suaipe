@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { LoginForm } from "@/components/stats/LoginForm";
 import { MfaVerifyForm } from "@/components/stats/MfaVerifyForm";
+import { MfaSetupModal } from "@/components/stats/MfaSetupModal";
 import { ConsulenteDashboard } from "@/components/consulente/ConsulenteDashboard";
 
 // ─── Consulente — consultant training zone ────────────────────────────────────
@@ -13,7 +14,7 @@ import { ConsulenteDashboard } from "@/components/consulente/ConsulenteDashboard
 // or manager. The training content itself is read-only here; managers author it
 // from /manager.
 
-type Step = "login" | "mfa" | "checking" | "dashboard" | "denied" | "loaderror";
+type Step = "login" | "mfa" | "enroll" | "checking" | "dashboard" | "denied" | "loaderror";
 
 const ALLOWED_ROLES = ["consulente", "consulente_responsabile", "manager"];
 
@@ -30,6 +31,9 @@ const Consulente = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("checking");
   const [role, setRole] = useState<string | null>(null);
+  // Set when 2FA enrolment succeeds, so the modal's onClose (which also fires on
+  // success) doesn't sign the user back out.
+  const enrolledRef = useRef(false);
 
   // Verifies the signed-in user holds an allowed store_roles role.
   const resolveRole = async () => {
@@ -68,10 +72,13 @@ const Consulente = () => {
         return;
       }
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (aal?.nextLevel === "aal2" && aal?.currentLevel !== "aal2") {
+      if (aal?.currentLevel === "aal2") {
+        await resolveRole();
+      } else if (aal?.nextLevel === "aal2") {
         setStep("mfa");
       } else {
-        await resolveRole();
+        // Enforce 2FA: an account with no TOTP factor must enrol before access.
+        setStep("enroll");
       }
     }).catch((err) => {
       console.error("[suaipe] auth check threw:", err);
@@ -109,6 +116,7 @@ const Consulente = () => {
               subtitle="Sign in with your consultant account"
               onLoginSuccess={() => { setStep("checking"); resolveRole(); }}
               onMfaRequired={() => setStep("mfa")}
+              onEnrollRequired={() => setStep("enroll")}
             />
           </motion.div>
         )}
@@ -118,6 +126,21 @@ const Consulente = () => {
             <MfaVerifyForm
               onVerified={() => { setStep("checking"); resolveRole(); }}
               onCancel={async () => {
+                await supabase.auth.signOut();
+                setStep("login");
+              }}
+            />
+          </motion.div>
+        )}
+
+        {step === "enroll" && (
+          <motion.div key="enroll" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <div className="min-h-screen bg-background" />
+            <MfaSetupModal
+              onEnabled={() => { enrolledRef.current = true; setStep("checking"); resolveRole(); }}
+              onClose={async () => {
+                // The modal fires onClose on success too — don't sign out then.
+                if (enrolledRef.current) { enrolledRef.current = false; return; }
                 await supabase.auth.signOut();
                 setStep("login");
               }}
