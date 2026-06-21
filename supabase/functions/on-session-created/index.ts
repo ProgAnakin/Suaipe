@@ -21,6 +21,10 @@ const SHEETS_WEBHOOK   = Deno.env.get("GOOGLE_SHEETS_WEBHOOK_URL") ?? "";
 // Leave unset only for local development — production must always set this.
 const WEBHOOK_SECRET   = Deno.env.get("WEBHOOK_SECRET") ?? "";
 const EMAIL_SENDER     = Deno.env.get("EMAIL_SENDER") ?? "noreply@suaipe.app";
+// Deployed site origin used to absolutise root-relative product images
+// ("/products/x.png") for the email. Defaults to the production Vercel domain;
+// override with the SITE_URL secret if the deployment domain changes.
+const SITE_URL         = (Deno.env.get("SITE_URL") ?? "https://suaipe.vercel.app").replace(/\/+$/, "");
 
 if (!WEBHOOK_SECRET) {
   console.error("[on-session-created] WEBHOOK_SECRET is NOT set — the function will REJECT every request until it is configured.");
@@ -129,9 +133,16 @@ function escHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+// ⚠ Synced copy of toAbsoluteAssetUrl() from src/lib/validators.ts (Deno can't
+// import from src/). Accepts absolute https URLs as-is, resolves root-relative
+// "/products/x.png" against SITE_URL, rejects everything else. Defence-in-depth
+// for any relative image stored in custom_products.image_url — the kiosk now
+// also absolutises at claim time. Tests: src/__tests__/validators.test.ts.
 function safeUrl(url: string): string {
   const u = String(url).trim();
-  return /^https:\/\//i.test(u) ? u : "";
+  if (/^https:\/\//i.test(u)) return u;
+  if (/^\/[^/]/.test(u)) return SITE_URL + u;
+  return "";
 }
 
 function progressHtml(pct: number, color: string, muted: string, compatLabel = "COMPATIBILITÀ"): string {
@@ -790,6 +801,34 @@ serve(async (req) => {
         }
       }
     }
+  }
+
+  // Product image fallback — if the session snapshot carries no usable image
+  // (an older kiosk build stored null for a root-relative asset, or the column
+  // was never written), recover it from the catalog so the email still shows
+  // the product instead of the 📦 placeholder. Per-store override first, then
+  // the global custom_products row. safeUrl() (in buildEmail) absolutises any
+  // root-relative path against SITE_URL.
+  if (!safeUrl(String(record.product_image ?? "")) && record.matched_product_id) {
+    let img = "";
+    if (record.store_id) {
+      const { data: psImg } = await supabase
+        .from("product_settings")
+        .select("image_url")
+        .eq("product_id", record.matched_product_id)
+        .eq("store_id", record.store_id)
+        .maybeSingle();
+      img = String(psImg?.image_url ?? "").trim();
+    }
+    if (!img) {
+      const { data: cpImg } = await supabase
+        .from("custom_products")
+        .select("image_url")
+        .eq("id", String(record.matched_product_id))
+        .maybeSingle();
+      img = String(cpImg?.image_url ?? "").trim();
+    }
+    if (img) record.product_image = img;
   }
 
   // Load the editable email template row for this session's language.

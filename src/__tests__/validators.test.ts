@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isValidStoreId, youtubeId, STORE_ID_RE } from "@/lib/validators";
+import { isValidStoreId, youtubeId, STORE_ID_RE, toAbsoluteAssetUrl } from "@/lib/validators";
 
 describe("isValidStoreId", () => {
   it("accepts the current production store slugs", () => {
@@ -68,5 +68,44 @@ describe("youtubeId", () => {
     expect(youtubeId("")).toBeNull();
     expect(youtubeId("not-a-url")).toBeNull();
     expect(youtubeId("https://youtu.be/short")).toBeNull(); // ID too short
+  });
+});
+
+describe("toAbsoluteAssetUrl", () => {
+  const SITE = "https://suaipe.vercel.app";
+
+  it("resolves a root-relative bundled asset to an absolute URL", () => {
+    expect(toAbsoluteAssetUrl("/products/brevia-gopress.png", SITE)).toBe(
+      "https://suaipe.vercel.app/products/brevia-gopress.png",
+    );
+  });
+
+  it("passes through an absolute https URL unchanged (Supabase Storage)", () => {
+    const url = "https://abc.supabase.co/storage/v1/object/public/products/x.png";
+    expect(toAbsoluteAssetUrl(url, SITE)).toBe(url);
+  });
+
+  it("trims a trailing slash on the site URL before joining", () => {
+    expect(toAbsoluteAssetUrl("/products/x.png", "https://suaipe.vercel.app/")).toBe(
+      "https://suaipe.vercel.app/products/x.png",
+    );
+  });
+
+  it("returns null for empty / nullish input", () => {
+    expect(toAbsoluteAssetUrl("", SITE)).toBeNull();
+    expect(toAbsoluteAssetUrl(null, SITE)).toBeNull();
+    expect(toAbsoluteAssetUrl(undefined, SITE)).toBeNull();
+  });
+
+  it("rejects protocol-relative and non-https schemes (no SSRF / open-asset)", () => {
+    expect(toAbsoluteAssetUrl("//evil.com/x.png", SITE)).toBeNull();
+    expect(toAbsoluteAssetUrl("http://insecure.com/x.png", SITE)).toBeNull();
+    expect(toAbsoluteAssetUrl("data:image/png;base64,AAAA", SITE)).toBeNull();
+    expect(toAbsoluteAssetUrl("blob:abc", SITE)).toBeNull();
+    expect(toAbsoluteAssetUrl("javascript:alert(1)", SITE)).toBeNull();
+  });
+
+  it("rejects a bare relative path without a leading slash", () => {
+    expect(toAbsoluteAssetUrl("products/x.png", SITE)).toBeNull();
   });
 });

@@ -17,9 +17,11 @@ import { useLockBodyScroll } from "@/hooks/useLockBodyScroll";
 import { useLang } from "@/i18n/LanguageContext";
 import { getStoredStoreId } from "@/data/stores";
 import { RESULT_INACTIVITY_TIMEOUT_MS } from "@/config/timings";
+import { SITE_URL } from "@/config/siteUrl";
 import type { QuizCard } from "@/data/quiz-cards";
 import { buildTagMap } from "@/data/quiz-cards";
 import { readCache, writeCache } from "@/lib/startupCache";
+import { toAbsoluteAssetUrl } from "@/lib/validators";
 
 type Screen = "splash" | "welcome" | "loading_quiz" | "quiz" | "result" | "success";
 
@@ -304,7 +306,10 @@ const Index = () => {
       // override exists (custom products carry their own link).
       product_name:  matchedProduct.name,
       product_price: matchedProduct.price,
-      product_image: matchedProduct.image?.startsWith("https://") ? matchedProduct.image : null,
+      // Resolve to an absolute URL so the match email can render it. Bundled
+      // fallback assets are root-relative ("/products/x.png") and would never
+      // load in an email client; custom products carry absolute Storage URLs.
+      product_image: toAbsoluteAssetUrl(matchedProduct.image, SITE_URL),
       product_video: videoOverrides[matchedProduct.id]
         ?? (matchedProduct.videoUrl && matchedProduct.videoUrl !== "#" ? matchedProduct.videoUrl : null),
       discount_percent: discountOverrides[matchedProduct.id] ?? 5,

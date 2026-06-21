@@ -17,6 +17,7 @@ Generates a unique discount code, sends a personalised HTML email via Brevo in t
 | `BREVO_API_KEY` | ✅ | Brevo (Sendinblue) API key for transactional email |
 | `WEBHOOK_SECRET` | ✅ recommended | Shared secret verified against the `x-webhook-secret` header. Without it the function accepts any caller who knows the URL. Configure the matching header in Supabase Dashboard → Database → Webhooks → on-session-created |
 | `EMAIL_SENDER` | optional | Address used as the Brevo `sender` (DKIM-aligned with the verified domain). Falls back to `noreply@suaipe.app` if unset |
+| `SITE_URL` | optional | Deployed PWA origin used to turn root-relative product images (`/products/x.png`) into absolute URLs so they render in the email. Falls back to `https://suaipe.vercel.app`. Keep in sync with the front-end `VITE_SITE_URL` |
 | `GOOGLE_SHEETS_WEBHOOK_URL` | optional | Apps Script doPost URL — if set, relays session data to a Sheet |
 | `WHITELIST_EMAILS` | optional | Comma-separated emails that bypass the 1 email/hour rate limit |
 
