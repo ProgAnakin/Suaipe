@@ -8,7 +8,7 @@
 
 [![CI](https://github.com/ProgAnakin/Suaipe/actions/workflows/ci.yml/badge.svg)](https://github.com/ProgAnakin/Suaipe/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-2.0.1-3b82f6)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-127%20unit-22d3ee)](./src/__tests__)
+[![Tests](https://img.shields.io/badge/tests-145%20unit-22d3ee)](./src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-5%20languages-22d3ee)](./src/i18n/translations.ts)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
@@ -189,7 +189,7 @@ Suaipe was designed and validated in tech retail, but the model transfers cleanl
 
 | Category | Implementation |
 |---|---|
-| **Authentication** | Supabase Auth · PIN + bcrypt fallback · in-memory IP-based lockout · MFA for stats |
+| **Authentication** | Supabase Auth · PIN + bcrypt fallback · in-memory IP-based lockout · MFA (TOTP / `aal2`) enforced on every staff dashboard (`/stats`, `/manager`, `/consulente`) |
 | **Authorisation** | Row-Level Security on every table · role-based access (`manager` / `consulente_responsabile` / `consulente`) · per-store data isolation |
 | **PII Protection** | Customer `nome`/`cognome`/`email` readable only by authenticated managers (all stores) and consulenti (own store) — no anon access · platform (disk-level) at-rest encryption, **not** column-level — protected by role-scoped RLS, see [ADR 003](./docs/adr/003-pii-encryption-at-rest.md) · retention purge of old sessions |
 | **Rate Limiting** | Server-side enforced 1-email-per-hour per address · cannot be bypassed from client |
@@ -198,7 +198,7 @@ Suaipe was designed and validated in tech retail, but the model transfers cleanl
 | **Webhooks** | DB webhooks gated by valid `store_id` allowlist · unknown stores silently dropped |
 | **Accessibility** | Kiosk-targeted tap targets (≥ 64 px on the PIN keypad and quiz buttons) · `focus-visible:ring-2` rings on interactive elements · `prefers-reduced-motion` respected via Framer Motion `MotionConfig` · informational copy bumped above the `/65` opacity threshold for in-store lighting |
 | **Internationalisation** | 5 fully translated languages, including the transactional emails sent to customers |
-| **Testing** | 127 unit tests (Vitest) · 16 E2E tests (Playwright, incl. visual-regression pixel diffs) · typecheck + lint + build on every push via GitHub Actions |
+| **Testing** | 145 unit tests (Vitest) · 16 E2E tests (Playwright, incl. visual-regression pixel diffs) · typecheck + lint + build on every push via GitHub Actions |
 | **Observability** | Sentry error tracking + session replay (live) · sourcemaps uploaded on build for readable production stack traces · tagged error logging in Edge Functions |
 | **Performance** | Manual chunk splitting · lazy-loaded admin routes · image auto-resize ≤ 1024px JPEG q=80 · PWA precaching · debounced search |
 | **iPad / Kiosk** | `interactive-widget=resizes-content` prevents URL bar on keyboard · `visualViewport` API for keyboard-aware layouts · iOS splash screens · wake lock · `100dvh` everywhere |
@@ -231,6 +231,7 @@ Key architectural trade-offs are documented in [`docs/adr/`](./docs/adr/):
 | [003](./docs/adr/003-pii-encryption-at-rest.md) | PII protection — superseded: access-control over app-layer encryption (keeps search) |
 | [004](./docs/adr/004-swipe-quiz-over-form.md) | Tinder-style swipe quiz over a traditional form |
 | [005](./docs/adr/005-synchronous-pii-encryption.md) | Synchronous PII encryption before email dispatch — superseded (see ADR 003) |
+| [006](./docs/adr/006-english-only-staff-ui.md) | Staff dashboards are English-only (the customer kiosk stays multilingual) |
 
 ---
 
@@ -318,6 +319,7 @@ npm run dev
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 VITE_SENTRY_DSN=https://your-sentry-dsn (optional)
+VITE_SITE_URL=https://suaipe.vercel.app (optional — absolute base for product images in the match email; defaults to the production domain)
 ```
 
 ### Available Scripts
@@ -387,7 +389,7 @@ The current release is intentionally **zero-cost**: every component runs on free
 ### Security & data integrity
 
 - **App-layer PII encryption (optional, deferred by choice).** Customer `email`/`nome`/`cognome` are currently protected by access control (role-scoped RLS) + platform at-rest encryption rather than application-layer AES, because encrypting them would break the dashboard's partial-match search. A future release could encrypt them at rest with a server-side decrypt RPC (key in Supabase Vault) and switch email/name lookups to exact-match HMAC — accepted trade-off: no more partial search on those fields.
-- **Mandatory MFA for `consulente_responsabile`.** The SDK plumbing is already in `MfaVerifyForm`; the missing piece is a server-side enforcement check on login.
+- **RLS-level MFA enforcement.** Every staff dashboard now requires a TOTP-verified (`aal2`) session at the app layer. A future hardening step is to also gate the most sensitive RLS policies on `aal2`, so the requirement holds at the database layer and not only in the UI.
 
 ### Observability (free tier today, paid tier later)
 
