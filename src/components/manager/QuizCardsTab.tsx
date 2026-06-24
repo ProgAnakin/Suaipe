@@ -19,7 +19,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "@/integrations/supabase/client";
 import { resizeImagePng } from "@/lib/imageProcessing";
 import { toast } from "sonner";
-import type { QuizCard } from "@/data/quiz-cards";
+import { MAX_ACTIVE_QUIZ_CARDS, type QuizCard } from "@/data/quiz-cards";
 
 // Recommended source size for card images — square, transparent PNG. We resize
 // to this on upload, so larger uploads are fine; this is just the sweet spot.
@@ -135,14 +135,18 @@ function SortableCard({
   onSelect,
   onEdit,
   onToggle,
+  onDelete,
   togglingId,
+  deletingId,
 }: {
   card: QuizCard;
   selected: boolean;
   onSelect: (id: number, checked: boolean) => void;
   onEdit: (card: QuizCard) => void;
   onToggle: (card: QuizCard) => void;
+  onDelete: (card: QuizCard) => void;
   togglingId: number | null;
+  deletingId: number | null;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: card.id });
   const style = {
@@ -230,6 +234,14 @@ function SortableCard({
         >
           {card.active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
         </button>
+        <button
+          onClick={() => onDelete(card)}
+          disabled={deletingId === card.id}
+          title="Delete card"
+          className="rounded-xl p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive active:scale-95 disabled:opacity-50"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
       </div>
     </motion.div>
   );
@@ -249,6 +261,8 @@ export function QuizCardsTab() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [bulkWorking, setBulkWorking] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<QuizCard | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -354,14 +368,19 @@ export function QuizCardsTab() {
       toast.success("Card updated.");
     } else {
       const maxOrder = cards.reduce((m, c) => Math.max(m, c.sort_order), 0);
+      // New cards join the quiz only if there's room under the active cap;
+      // otherwise they're created hidden so the manager can swap them in later.
+      const atCap = cards.filter((c) => c.active).length >= MAX_ACTIVE_QUIZ_CARDS;
       const { data: inserted, error } = await supabase
         .from("quiz_cards")
-        .insert({ ...payload, sort_order: maxOrder + 1, active: true })
+        .insert({ ...payload, sort_order: maxOrder + 1, active: !atCap })
         .select("id")
         .single();
       if (error) { setFormError(error.message); setSaving(false); return; }
-      logAudit("quiz_card_add", inserted?.id ?? null, slug, true);
-      toast.success("Card added to quiz.");
+      logAudit("quiz_card_add", inserted?.id ?? null, slug, !atCap);
+      toast.success(atCap
+        ? `Card created — hidden, since ${MAX_ACTIVE_QUIZ_CARDS} cards are already active.`
+        : "Card added to quiz.");
     }
 
     await fetchCards();
@@ -370,6 +389,11 @@ export function QuizCardsTab() {
   };
 
   const toggleActive = async (card: QuizCard) => {
+    // Enforce the active cap: activating a 9th card is blocked; hiding is always allowed.
+    if (!card.active && cards.filter((c) => c.active).length >= MAX_ACTIVE_QUIZ_CARDS) {
+      toast.error(`Only ${MAX_ACTIVE_QUIZ_CARDS} cards can be active at once — deactivate one first.`);
+      return;
+    }
     setTogglingId(card.id);
     await supabase.from("quiz_cards").update({ active: !card.active, updated_at: new Date().toISOString() }).eq("id", card.id);
     logAudit("quiz_card_toggle", card.id, card.tag, !card.active);
@@ -414,6 +438,14 @@ export function QuizCardsTab() {
   };
 
   const bulkToggle = async (targetActive: boolean) => {
+    if (targetActive) {
+      const activeNow = cards.filter((c) => c.active).length;
+      const newlyActivated = cards.filter((c) => selected.has(c.id) && !c.active).length;
+      if (activeNow + newlyActivated > MAX_ACTIVE_QUIZ_CARDS) {
+        toast.error(`That would exceed ${MAX_ACTIVE_QUIZ_CARDS} active cards — deactivate some first or select fewer.`);
+        return;
+      }
+    }
     setBulkWorking(true);
     await Promise.all(
       [...selected].map((id) =>
@@ -426,6 +458,18 @@ export function QuizCardsTab() {
     setBulkWorking(false);
   };
 
+  const deleteCard = async (card: QuizCard) => {
+    setDeletingId(card.id);
+    const { error } = await supabase.from("quiz_cards").delete().eq("id", card.id);
+    if (error) { toast.error("Delete failed: " + error.message); setDeletingId(null); return; }
+    logAudit("quiz_card_delete", card.id, card.tag, false);
+    setCards((prev) => prev.filter((c) => c.id !== card.id));
+    setSelected((prev) => { const next = new Set(prev); next.delete(card.id); return next; });
+    toast.success("Card deleted.");
+    setDeletingId(null);
+    setConfirmDelete(null);
+  };
+
   const activeCount = cards.filter((c) => c.active).length;
   const allSelected = cards.length > 0 && selected.size === cards.length;
 
@@ -436,7 +480,9 @@ export function QuizCardsTab() {
         <div>
           <h2 className="text-sm font-semibold text-foreground">Quiz Cards</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {loading ? "Loading…" : `${activeCount} of ${cards.length} cards active in the quiz`}
+            {loading
+              ? "Loading…"
+              : `${activeCount} / ${MAX_ACTIVE_QUIZ_CARDS} active${cards.length > activeCount ? ` · ${cards.length} cards total` : ""}`}
           </p>
         </div>
         <button
@@ -449,7 +495,7 @@ export function QuizCardsTab() {
 
       {/* Info banner */}
       <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground leading-relaxed">
-        💡 Drag cards to reorder them. Use the checkboxes for bulk actions. Active cards appear in the quiz in the order shown.
+        💡 The quiz is a fixed {MAX_ACTIVE_QUIZ_CARDS}-swipe experience — up to {MAX_ACTIVE_QUIZ_CARDS} cards can be active at once. Create extra cards and swap them in by activating/deactivating. Drag to reorder; active cards appear in the quiz in the order shown.
       </div>
 
       {/* Add / Edit form */}
@@ -708,13 +754,69 @@ export function QuizCardsTab() {
                   onSelect={handleSelect}
                   onEdit={openEditForm}
                   onToggle={toggleActive}
+                  onDelete={setConfirmDelete}
                   togglingId={togglingId}
+                  deletingId={deletingId}
                 />
               ))}
             </SortableContext>
           </DndContext>
         </div>
       )}
+
+      {/* Confirm delete */}
+      <AnimatePresence>
+        {confirmDelete && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            onClick={() => deletingId === null && setConfirmDelete(null)}
+            role="dialog" aria-modal="true" aria-label="Delete card"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-sm space-y-4 rounded-2xl border border-border bg-card p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                  <Trash2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Delete this card?</h3>
+                  <p className="text-xs text-muted-foreground">This permanently removes it — it can't be undone.</p>
+                </div>
+              </div>
+              <div className="rounded-xl border border-border bg-muted/20 px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg leading-none">{confirmDelete.image_url ? "🖼️" : confirmDelete.emoji}</span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-mono text-muted-foreground">{confirmDelete.tag}</span>
+                  {confirmDelete.active && (
+                    <span className="rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-semibold text-green-400">active</span>
+                  )}
+                </div>
+                <p className="mt-1 truncate text-sm text-foreground">{confirmDelete.text_it}</p>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  disabled={deletingId !== null}
+                  className="rounded-xl border border-border bg-muted/20 px-4 py-2 text-xs text-muted-foreground active:scale-95 disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => deleteCard(confirmDelete)}
+                  disabled={deletingId !== null}
+                  className="rounded-xl bg-destructive px-4 py-2 text-xs font-semibold text-white active:scale-95 disabled:opacity-60"
+                >
+                  {deletingId === confirmDelete.id ? "Deleting…" : "Delete card"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Refresh */}
       <div className="flex justify-center">

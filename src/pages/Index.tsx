@@ -19,7 +19,7 @@ import { getStoredStoreId } from "@/data/stores";
 import { RESULT_INACTIVITY_TIMEOUT_MS } from "@/config/timings";
 import { SITE_URL } from "@/config/siteUrl";
 import type { QuizCard } from "@/data/quiz-cards";
-import { buildTagMap } from "@/data/quiz-cards";
+import { buildTagMap, MAX_ACTIVE_QUIZ_CARDS } from "@/data/quiz-cards";
 import { readCache, writeCache } from "@/lib/startupCache";
 import { toAbsoluteAssetUrl } from "@/lib/validators";
 
@@ -174,8 +174,11 @@ const Index = () => {
         setActiveProductIds(new Set(merged.map((p) => p.id)));
       }
       if (snap.cardsData.length > 0) {
-        setQuizCards(snap.cardsData);
-        setTagMap(buildTagMap(snap.cardsData));
+        // Defensive cap — never expose more than the fixed 8 swipes, even if a
+        // stale cache or a direct DB edit left more than 8 cards active.
+        const capped = snap.cardsData.slice(0, MAX_ACTIVE_QUIZ_CARDS);
+        setQuizCards(capped);
+        setTagMap(buildTagMap(capped));
       }
       // Cache hit + live refresh both mark loaded — idempotent via React state batching.
       setSettingsLoaded(true);
@@ -201,7 +204,8 @@ const Index = () => {
         .from("quiz_cards")
         .select("id, emoji, image_url, tag, sort_order, active, text_it, text_en, text_pt, text_es, text_fr")
         .eq("active", true)
-        .order("sort_order", { ascending: true }),
+        .order("sort_order", { ascending: true })
+        .limit(MAX_ACTIVE_QUIZ_CARDS),
     ]).then(([settingsRes, customRes, globalRes, cardsRes]) => {
       if (settingsRes.error) {
         console.error("[suaipe] product_settings fetch failed:", settingsRes.error);
