@@ -1,5 +1,11 @@
 import type { Question } from "@/data/questions";
 
+// The quiz is a fixed 8-swipe experience: 8 questions → the 8 matching tags in
+// products.ts. Managers may author MORE cards (e.g. seasonal variants) but only
+// this many can be ACTIVE/exposed at once — both the kiosk and the manager UI
+// enforce the cap so the swipe count and the tag map stay consistent.
+export const MAX_ACTIVE_QUIZ_CARDS = 8;
+
 export interface QuizCard {
   id: number;
   emoji: string;
