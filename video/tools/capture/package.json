@@ -1,0 +1,25 @@
+{
+  "name": "suaipe-video-capture",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Capture + asset pipeline for the Suaipe product film: drives the REAL kiosk in headless Chromium (Supabase mocked), saves optimised stills / swipe frames / typing crops / DOM layout, and builds the asset manifest. Isolated from the app and from the Remotion project.",
+  "scripts": {
+    "capture": "node capture.mjs",
+    "email": "node email.mjs",
+    "extra": "node extra-stills.mjs --install",
+    "products": "node products.mjs",
+    "manifest": "node manifest.mjs",
+    "all": "node capture.mjs && node email.mjs && node extra-stills.mjs --install && node products.mjs && node manifest.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@fontsource/noto-color-emoji": "5.3.2",
+    "@fontsource/space-grotesk": "5.3.0",
+    "esbuild": "0.28.2",
+    "playwright-core": "1.56.1",
+    "sharp": "0.35.5"
+  }
+}

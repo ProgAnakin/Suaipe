@@ -1,0 +1,3447 @@
+{
+  "generatedBy": "video/tools/capture/manifest.mjs",
+  "pathsRelativeTo": "video/public",
+  "capture": {
+    "viewportCss": {
+      "width": 1024,
+      "height": 1366
+    },
+    "deviceScaleFactor": 2,
+    "stillImagePx": {
+      "width": 2048,
+      "height": 2732
+    }
+  },
+  "totals": {
+    "files": 478,
+    "bytes": 18663243,
+    "megabytes": 17.8,
+    "groups": {
+      "data": {
+        "files": 1,
+        "bytes": 195995,
+        "megabytes": 0.19
+      },
+      "still": {
+        "files": 19,
+        "bytes": 1727258,
+        "megabytes": 1.65
+      },
+      "swipe": {
+        "files": 384,
+        "bytes": 15701474,
+        "megabytes": 14.97
+      },
+      "typing": {
+        "files": 64,
+        "bytes": 498862,
+        "megabytes": 0.48
+      },
+      "products": {
+        "files": 10,
+        "bytes": 539654,
+        "megabytes": 0.51
+      }
+    }
+  },
+  "notes": [
+    "only files produced by video/tools/capture are listed (e.g. a legacy products/brevia-gopress.png is not)",
+    "swipe frames: n = 1..8, 000 = card at rest, 047 = card off-screen; typing/manifest.json has the crop rectangles and frame lists; layout.json has all DOM geometry"
+  ],
+  "swipeFrames": {
+    "1": {
+      "count": 48,
+      "first": 0,
+      "last": 47
+    },
+    "2": {
+      "count": 48,
+      "first": 0,
+      "last": 47
+    },
+    "3": {
+      "count": 48,
+      "first": 0,
+      "last": 47
+    },
+    "4": {
+      "count": 48,
+      "first": 0,
+      "last": 47
+    },
+    "5": {
+      "count": 48,
+      "first": 0,
+      "last": 47
+    },
+    "6": {
+      "count": 48,
+      "first": 0,
+      "last": 47
+    },
+    "7": {
+      "count": 48,
+      "first": 0,
+      "last": 47
+    },
+    "8": {
+      "count": 48,
+      "first": 0,
+      "last": 47
+    }
+  },
+  "files": [
+    {
+      "group": "data",
+      "path": "app/layout.json",
+      "bytes": 195995
+    },
+    {
+      "group": "still",
+      "path": "app/still/attract.webp",
+      "bytes": 84878,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/card-1.webp",
+      "bytes": 55838,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/card-2.webp",
+      "bytes": 53818,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/card-3.webp",
+      "bytes": 61264,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/card-4.webp",
+      "bytes": 64576,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/card-5.webp",
+      "bytes": 63000,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/card-6.webp",
+      "bytes": 61990,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/card-7.webp",
+      "bytes": 60276,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/card-8.webp",
+      "bytes": 60138,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/email-full.webp",
+      "bytes": 372580,
+      "width": 1455,
+      "height": 7746
+    },
+    {
+      "group": "still",
+      "path": "app/still/quiz-tutorial-yes.webp",
+      "bytes": 49158,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/quiz-tutorial.webp",
+      "bytes": 49118,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/result-mid.webp",
+      "bytes": 110812,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/result-plate.webp",
+      "bytes": 102622,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/result.webp",
+      "bytes": 133952,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/success-mid.webp",
+      "bytes": 72572,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/success.webp",
+      "bytes": 98420,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/welcome-empty.webp",
+      "bytes": 82246,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "still",
+      "path": "app/still/welcome-filled.webp",
+      "bytes": 90000,
+      "width": 2048,
+      "height": 2732
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-000.webp",
+      "bytes": 34032,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-001.webp",
+      "bytes": 36116,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-002.webp",
+      "bytes": 36900,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-003.webp",
+      "bytes": 37970,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-004.webp",
+      "bytes": 38882,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-005.webp",
+      "bytes": 39856,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-006.webp",
+      "bytes": 40504,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-007.webp",
+      "bytes": 41358,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-008.webp",
+      "bytes": 41876,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-009.webp",
+      "bytes": 42396,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-010.webp",
+      "bytes": 42810,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-011.webp",
+      "bytes": 43210,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-012.webp",
+      "bytes": 43718,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-013.webp",
+      "bytes": 44170,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-014.webp",
+      "bytes": 44412,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-015.webp",
+      "bytes": 44776,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-016.webp",
+      "bytes": 45198,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-017.webp",
+      "bytes": 45576,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-018.webp",
+      "bytes": 45780,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-019.webp",
+      "bytes": 45648,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-020.webp",
+      "bytes": 45676,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-021.webp",
+      "bytes": 45694,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-022.webp",
+      "bytes": 45798,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-023.webp",
+      "bytes": 45354,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-024.webp",
+      "bytes": 44828,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-025.webp",
+      "bytes": 44624,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-026.webp",
+      "bytes": 43918,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-027.webp",
+      "bytes": 43414,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-028.webp",
+      "bytes": 42950,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-029.webp",
+      "bytes": 42424,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-030.webp",
+      "bytes": 42046,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-031.webp",
+      "bytes": 41628,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-032.webp",
+      "bytes": 41084,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-033.webp",
+      "bytes": 40072,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-034.webp",
+      "bytes": 38778,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-035.webp",
+      "bytes": 36622,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-036.webp",
+      "bytes": 34086,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-037.webp",
+      "bytes": 32572,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-038.webp",
+      "bytes": 31846,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-039.webp",
+      "bytes": 31082,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-040.webp",
+      "bytes": 30322,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-041.webp",
+      "bytes": 29272,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-042.webp",
+      "bytes": 28176,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-043.webp",
+      "bytes": 27162,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-044.webp",
+      "bytes": 26278,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-045.webp",
+      "bytes": 25684,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-046.webp",
+      "bytes": 25448,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-1-047.webp",
+      "bytes": 25330,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-000.webp",
+      "bytes": 32864,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-001.webp",
+      "bytes": 35010,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-002.webp",
+      "bytes": 35680,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-003.webp",
+      "bytes": 36722,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-004.webp",
+      "bytes": 37658,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-005.webp",
+      "bytes": 38342,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-006.webp",
+      "bytes": 39248,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-007.webp",
+      "bytes": 40126,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-008.webp",
+      "bytes": 40616,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-009.webp",
+      "bytes": 40898,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-010.webp",
+      "bytes": 41582,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-011.webp",
+      "bytes": 41782,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-012.webp",
+      "bytes": 42486,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-013.webp",
+      "bytes": 42814,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-014.webp",
+      "bytes": 43418,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-015.webp",
+      "bytes": 43696,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-016.webp",
+      "bytes": 44184,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-017.webp",
+      "bytes": 44272,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-018.webp",
+      "bytes": 44678,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-019.webp",
+      "bytes": 44334,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-020.webp",
+      "bytes": 44356,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-021.webp",
+      "bytes": 44632,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-022.webp",
+      "bytes": 44358,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-023.webp",
+      "bytes": 44126,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-024.webp",
+      "bytes": 43558,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-025.webp",
+      "bytes": 43342,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-026.webp",
+      "bytes": 42676,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-027.webp",
+      "bytes": 42212,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-028.webp",
+      "bytes": 41786,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-029.webp",
+      "bytes": 41476,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-030.webp",
+      "bytes": 40846,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-031.webp",
+      "bytes": 40534,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-032.webp",
+      "bytes": 39972,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-033.webp",
+      "bytes": 39160,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-034.webp",
+      "bytes": 37978,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-035.webp",
+      "bytes": 37176,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-036.webp",
+      "bytes": 36180,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-037.webp",
+      "bytes": 33932,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-038.webp",
+      "bytes": 32474,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-039.webp",
+      "bytes": 31434,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-040.webp",
+      "bytes": 30480,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-041.webp",
+      "bytes": 29526,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-042.webp",
+      "bytes": 28614,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-043.webp",
+      "bytes": 27590,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-044.webp",
+      "bytes": 26750,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-045.webp",
+      "bytes": 26008,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-046.webp",
+      "bytes": 25698,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-2-047.webp",
+      "bytes": 25686,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-000.webp",
+      "bytes": 37962,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-001.webp",
+      "bytes": 39050,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-002.webp",
+      "bytes": 40048,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-003.webp",
+      "bytes": 40926,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-004.webp",
+      "bytes": 42006,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-005.webp",
+      "bytes": 42936,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-006.webp",
+      "bytes": 43884,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-007.webp",
+      "bytes": 44346,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-008.webp",
+      "bytes": 45014,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-009.webp",
+      "bytes": 45616,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-010.webp",
+      "bytes": 45572,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-011.webp",
+      "bytes": 46220,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-012.webp",
+      "bytes": 46152,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-013.webp",
+      "bytes": 46730,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-014.webp",
+      "bytes": 46860,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-015.webp",
+      "bytes": 47402,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-016.webp",
+      "bytes": 47886,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-017.webp",
+      "bytes": 48302,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-018.webp",
+      "bytes": 47984,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-019.webp",
+      "bytes": 48060,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-020.webp",
+      "bytes": 48268,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-021.webp",
+      "bytes": 48102,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-022.webp",
+      "bytes": 48024,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-023.webp",
+      "bytes": 47664,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-024.webp",
+      "bytes": 47280,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-025.webp",
+      "bytes": 46848,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-026.webp",
+      "bytes": 46250,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-027.webp",
+      "bytes": 45838,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-028.webp",
+      "bytes": 45374,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-029.webp",
+      "bytes": 44828,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-030.webp",
+      "bytes": 44640,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-031.webp",
+      "bytes": 44148,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-032.webp",
+      "bytes": 43558,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-033.webp",
+      "bytes": 42418,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-034.webp",
+      "bytes": 40608,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-035.webp",
+      "bytes": 39062,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-036.webp",
+      "bytes": 36868,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-037.webp",
+      "bytes": 35036,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-038.webp",
+      "bytes": 33318,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-039.webp",
+      "bytes": 32230,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-040.webp",
+      "bytes": 31058,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-041.webp",
+      "bytes": 29704,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-042.webp",
+      "bytes": 28348,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-043.webp",
+      "bytes": 27452,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-044.webp",
+      "bytes": 26862,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-045.webp",
+      "bytes": 26486,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-046.webp",
+      "bytes": 26252,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-3-047.webp",
+      "bytes": 26088,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-000.webp",
+      "bytes": 39720,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-001.webp",
+      "bytes": 41268,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-002.webp",
+      "bytes": 41882,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-003.webp",
+      "bytes": 43022,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-004.webp",
+      "bytes": 43810,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-005.webp",
+      "bytes": 44770,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-006.webp",
+      "bytes": 45762,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-007.webp",
+      "bytes": 46086,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-008.webp",
+      "bytes": 46786,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-009.webp",
+      "bytes": 46960,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-010.webp",
+      "bytes": 47016,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-011.webp",
+      "bytes": 47184,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-012.webp",
+      "bytes": 47492,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-013.webp",
+      "bytes": 48074,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-014.webp",
+      "bytes": 48492,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-015.webp",
+      "bytes": 48490,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-016.webp",
+      "bytes": 49354,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-017.webp",
+      "bytes": 49626,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-018.webp",
+      "bytes": 49550,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-019.webp",
+      "bytes": 49732,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-020.webp",
+      "bytes": 49586,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-021.webp",
+      "bytes": 49858,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-022.webp",
+      "bytes": 49862,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-023.webp",
+      "bytes": 49008,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-024.webp",
+      "bytes": 48570,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-025.webp",
+      "bytes": 48424,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-026.webp",
+      "bytes": 48012,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-027.webp",
+      "bytes": 47542,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-028.webp",
+      "bytes": 46934,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-029.webp",
+      "bytes": 46562,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-030.webp",
+      "bytes": 46050,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-031.webp",
+      "bytes": 45938,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-032.webp",
+      "bytes": 45172,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-033.webp",
+      "bytes": 43388,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-034.webp",
+      "bytes": 41960,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-035.webp",
+      "bytes": 39726,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-036.webp",
+      "bytes": 37982,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-037.webp",
+      "bytes": 36086,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-038.webp",
+      "bytes": 34932,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-039.webp",
+      "bytes": 32948,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-040.webp",
+      "bytes": 31776,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-041.webp",
+      "bytes": 30630,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-042.webp",
+      "bytes": 29324,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-043.webp",
+      "bytes": 28022,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-044.webp",
+      "bytes": 27038,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-045.webp",
+      "bytes": 26588,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-046.webp",
+      "bytes": 26312,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-4-047.webp",
+      "bytes": 26236,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-000.webp",
+      "bytes": 38968,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-001.webp",
+      "bytes": 40398,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-002.webp",
+      "bytes": 41026,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-003.webp",
+      "bytes": 42108,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-004.webp",
+      "bytes": 42952,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-005.webp",
+      "bytes": 43646,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-006.webp",
+      "bytes": 44900,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-007.webp",
+      "bytes": 45046,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-008.webp",
+      "bytes": 45830,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-009.webp",
+      "bytes": 46066,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-010.webp",
+      "bytes": 46022,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-011.webp",
+      "bytes": 46382,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-012.webp",
+      "bytes": 46720,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-013.webp",
+      "bytes": 47730,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-014.webp",
+      "bytes": 48010,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-015.webp",
+      "bytes": 47914,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-016.webp",
+      "bytes": 48662,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-017.webp",
+      "bytes": 48962,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-018.webp",
+      "bytes": 48746,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-019.webp",
+      "bytes": 48824,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-020.webp",
+      "bytes": 48952,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-021.webp",
+      "bytes": 48708,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-022.webp",
+      "bytes": 48616,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-023.webp",
+      "bytes": 48356,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-024.webp",
+      "bytes": 47948,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-025.webp",
+      "bytes": 47514,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-026.webp",
+      "bytes": 46912,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-027.webp",
+      "bytes": 46446,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-028.webp",
+      "bytes": 46080,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-029.webp",
+      "bytes": 45814,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-030.webp",
+      "bytes": 45344,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-031.webp",
+      "bytes": 44884,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-032.webp",
+      "bytes": 43968,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-033.webp",
+      "bytes": 42796,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-034.webp",
+      "bytes": 40640,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-035.webp",
+      "bytes": 39258,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-036.webp",
+      "bytes": 37392,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-037.webp",
+      "bytes": 35480,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-038.webp",
+      "bytes": 34250,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-039.webp",
+      "bytes": 32292,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-040.webp",
+      "bytes": 31216,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-041.webp",
+      "bytes": 30134,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-042.webp",
+      "bytes": 28824,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-043.webp",
+      "bytes": 27480,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-044.webp",
+      "bytes": 26882,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-045.webp",
+      "bytes": 26498,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-046.webp",
+      "bytes": 26196,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-5-047.webp",
+      "bytes": 26174,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-000.webp",
+      "bytes": 38216,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-001.webp",
+      "bytes": 40284,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-002.webp",
+      "bytes": 40830,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-003.webp",
+      "bytes": 42186,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-004.webp",
+      "bytes": 42626,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-005.webp",
+      "bytes": 43802,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-006.webp",
+      "bytes": 44448,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-007.webp",
+      "bytes": 45628,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-008.webp",
+      "bytes": 45666,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-009.webp",
+      "bytes": 46276,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-010.webp",
+      "bytes": 46440,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-011.webp",
+      "bytes": 47150,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-012.webp",
+      "bytes": 47740,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-013.webp",
+      "bytes": 47910,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-014.webp",
+      "bytes": 48408,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-015.webp",
+      "bytes": 48562,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-016.webp",
+      "bytes": 49248,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-017.webp",
+      "bytes": 49128,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-018.webp",
+      "bytes": 49630,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-019.webp",
+      "bytes": 49522,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-020.webp",
+      "bytes": 49484,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-021.webp",
+      "bytes": 49272,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-022.webp",
+      "bytes": 49446,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-023.webp",
+      "bytes": 49244,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-024.webp",
+      "bytes": 48670,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-025.webp",
+      "bytes": 48344,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-026.webp",
+      "bytes": 47708,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-027.webp",
+      "bytes": 47120,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-028.webp",
+      "bytes": 46720,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-029.webp",
+      "bytes": 46320,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-030.webp",
+      "bytes": 45852,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-031.webp",
+      "bytes": 45480,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-032.webp",
+      "bytes": 45076,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-033.webp",
+      "bytes": 44052,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-034.webp",
+      "bytes": 42198,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-035.webp",
+      "bytes": 39716,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-036.webp",
+      "bytes": 37512,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-037.webp",
+      "bytes": 36224,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-038.webp",
+      "bytes": 34910,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-039.webp",
+      "bytes": 33746,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-040.webp",
+      "bytes": 31750,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-041.webp",
+      "bytes": 30306,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-042.webp",
+      "bytes": 28846,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-043.webp",
+      "bytes": 27572,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-044.webp",
+      "bytes": 27066,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-045.webp",
+      "bytes": 26356,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-046.webp",
+      "bytes": 26110,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-6-047.webp",
+      "bytes": 25942,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-000.webp",
+      "bytes": 37042,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-001.webp",
+      "bytes": 39040,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-002.webp",
+      "bytes": 39730,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-003.webp",
+      "bytes": 41004,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-004.webp",
+      "bytes": 41738,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-005.webp",
+      "bytes": 42740,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-006.webp",
+      "bytes": 43350,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-007.webp",
+      "bytes": 44068,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-008.webp",
+      "bytes": 44706,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-009.webp",
+      "bytes": 44990,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-010.webp",
+      "bytes": 45576,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-011.webp",
+      "bytes": 45814,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-012.webp",
+      "bytes": 46362,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-013.webp",
+      "bytes": 46902,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-014.webp",
+      "bytes": 46974,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-015.webp",
+      "bytes": 47026,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-016.webp",
+      "bytes": 47672,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-017.webp",
+      "bytes": 47978,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-018.webp",
+      "bytes": 48036,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-019.webp",
+      "bytes": 48034,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-020.webp",
+      "bytes": 47940,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-021.webp",
+      "bytes": 47978,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-022.webp",
+      "bytes": 47972,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-023.webp",
+      "bytes": 47924,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-024.webp",
+      "bytes": 47418,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-025.webp",
+      "bytes": 47016,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-026.webp",
+      "bytes": 46340,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-027.webp",
+      "bytes": 45944,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-028.webp",
+      "bytes": 45298,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-029.webp",
+      "bytes": 45018,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-030.webp",
+      "bytes": 44570,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-031.webp",
+      "bytes": 44056,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-032.webp",
+      "bytes": 43718,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-033.webp",
+      "bytes": 42694,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-034.webp",
+      "bytes": 41084,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-035.webp",
+      "bytes": 39224,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-036.webp",
+      "bytes": 37552,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-037.webp",
+      "bytes": 35810,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-038.webp",
+      "bytes": 34328,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-039.webp",
+      "bytes": 32366,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-040.webp",
+      "bytes": 31332,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-041.webp",
+      "bytes": 29874,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-042.webp",
+      "bytes": 28546,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-043.webp",
+      "bytes": 27678,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-044.webp",
+      "bytes": 26996,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-045.webp",
+      "bytes": 26460,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-046.webp",
+      "bytes": 26110,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-7-047.webp",
+      "bytes": 25922,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-000.webp",
+      "bytes": 37284,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-001.webp",
+      "bytes": 38880,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-002.webp",
+      "bytes": 39752,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-003.webp",
+      "bytes": 40616,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-004.webp",
+      "bytes": 41686,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-005.webp",
+      "bytes": 42240,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-006.webp",
+      "bytes": 43296,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-007.webp",
+      "bytes": 44578,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-008.webp",
+      "bytes": 44634,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-009.webp",
+      "bytes": 44916,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-010.webp",
+      "bytes": 45630,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-011.webp",
+      "bytes": 46004,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-012.webp",
+      "bytes": 46586,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-013.webp",
+      "bytes": 46796,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-014.webp",
+      "bytes": 47400,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-015.webp",
+      "bytes": 47446,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-016.webp",
+      "bytes": 47620,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-017.webp",
+      "bytes": 47936,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-018.webp",
+      "bytes": 48386,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-019.webp",
+      "bytes": 48128,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-020.webp",
+      "bytes": 48204,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-021.webp",
+      "bytes": 48020,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-022.webp",
+      "bytes": 48042,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-023.webp",
+      "bytes": 47934,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-024.webp",
+      "bytes": 47482,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-025.webp",
+      "bytes": 47060,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-026.webp",
+      "bytes": 46248,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-027.webp",
+      "bytes": 45848,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-028.webp",
+      "bytes": 45070,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-029.webp",
+      "bytes": 44822,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-030.webp",
+      "bytes": 44226,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-031.webp",
+      "bytes": 43824,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-032.webp",
+      "bytes": 43378,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-033.webp",
+      "bytes": 42428,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-034.webp",
+      "bytes": 41658,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-035.webp",
+      "bytes": 40092,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-036.webp",
+      "bytes": 38048,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-037.webp",
+      "bytes": 36408,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-038.webp",
+      "bytes": 34774,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-039.webp",
+      "bytes": 33564,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-040.webp",
+      "bytes": 31592,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-041.webp",
+      "bytes": 30342,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-042.webp",
+      "bytes": 28826,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-043.webp",
+      "bytes": 27796,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-044.webp",
+      "bytes": 27172,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-045.webp",
+      "bytes": 26510,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-046.webp",
+      "bytes": 26160,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "swipe",
+      "path": "app/swipe/swipe-8-047.webp",
+      "bytes": 26038,
+      "width": 1536,
+      "height": 2049
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/checkbox-checked.webp",
+      "bytes": 6398,
+      "width": 912,
+      "height": 64
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/checkbox-unchecked.webp",
+      "bytes": 6098,
+      "width": 912,
+      "height": 64
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-00.webp",
+      "bytes": 7258,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-01.webp",
+      "bytes": 6190,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-02.webp",
+      "bytes": 6474,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-03.webp",
+      "bytes": 6522,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-04.webp",
+      "bytes": 6698,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-05.webp",
+      "bytes": 6940,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-06.webp",
+      "bytes": 6518,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-07.webp",
+      "bytes": 6798,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-08.webp",
+      "bytes": 7204,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-09.webp",
+      "bytes": 7052,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-10.webp",
+      "bytes": 7340,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-11.webp",
+      "bytes": 7546,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-12.webp",
+      "bytes": 7830,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-13.webp",
+      "bytes": 7822,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-14.webp",
+      "bytes": 8146,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-15.webp",
+      "bytes": 8194,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-16.webp",
+      "bytes": 7996,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-17.webp",
+      "bytes": 8410,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-18.webp",
+      "bytes": 8632,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-19.webp",
+      "bytes": 8586,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-20.webp",
+      "bytes": 8728,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-21.webp",
+      "bytes": 8754,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-22.webp",
+      "bytes": 8770,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-23.webp",
+      "bytes": 9104,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-00.webp",
+      "bytes": 7258,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-01.webp",
+      "bytes": 5926,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-02.webp",
+      "bytes": 6042,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-03.webp",
+      "bytes": 6040,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-04.webp",
+      "bytes": 6554,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-05.webp",
+      "bytes": 6742,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-06.webp",
+      "bytes": 6078,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-07.webp",
+      "bytes": 6656,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-08.webp",
+      "bytes": 7142,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-09.webp",
+      "bytes": 6890,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-10.webp",
+      "bytes": 7120,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-11.webp",
+      "bytes": 7354,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-12.webp",
+      "bytes": 7606,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-13.webp",
+      "bytes": 7730,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-14.webp",
+      "bytes": 7922,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-15.webp",
+      "bytes": 8072,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-16.webp",
+      "bytes": 7768,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-17.webp",
+      "bytes": 8300,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-18.webp",
+      "bytes": 8326,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-19.webp",
+      "bytes": 8486,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-20.webp",
+      "bytes": 8654,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-21.webp",
+      "bytes": 8412,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-22.webp",
+      "bytes": 8770,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/email-calm-23.webp",
+      "bytes": 9104,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/first-00.webp",
+      "bytes": 6784,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/first-01.webp",
+      "bytes": 6470,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/first-02.webp",
+      "bytes": 7300,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/first-03.webp",
+      "bytes": 7362,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/first-04.webp",
+      "bytes": 7592,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/first-05.webp",
+      "bytes": 7860,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/last-00.webp",
+      "bytes": 8424,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/last-01.webp",
+      "bytes": 7604,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/last-02.webp",
+      "bytes": 7262,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/last-03.webp",
+      "bytes": 7480,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/last-04.webp",
+      "bytes": 7516,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/last-05.webp",
+      "bytes": 7536,
+      "width": 928,
+      "height": 290
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/manifest.json",
+      "bytes": 4940
+    },
+    {
+      "group": "typing",
+      "path": "app/typing/start-button.webp",
+      "bytes": 29772,
+      "width": 944,
+      "height": 186
+    },
+    {
+      "group": "products",
+      "path": "products/aeris-glow.webp",
+      "bytes": 48502,
+      "width": 744,
+      "height": 710,
+      "alpha": true
+    },
+    {
+      "group": "products",
+      "path": "products/aurae-pulse-pro.webp",
+      "bytes": 51684,
+      "width": 720,
+      "height": 818,
+      "alpha": true
+    },
+    {
+      "group": "products",
+      "path": "products/brevia-gopress.webp",
+      "bytes": 29090,
+      "width": 549,
+      "height": 814,
+      "alpha": true
+    },
+    {
+      "group": "products",
+      "path": "products/echobox-riff.webp",
+      "bytes": 90716,
+      "width": 900,
+      "height": 606,
+      "alpha": true
+    },
+    {
+      "group": "products",
+      "path": "products/lumio-air.webp",
+      "bytes": 88728,
+      "width": 777,
+      "height": 748,
+      "alpha": true
+    },
+    {
+      "group": "products",
+      "path": "products/lunaring-halo.webp",
+      "bytes": 61186,
+      "width": 704,
+      "height": 754,
+      "alpha": true
+    },
+    {
+      "group": "products",
+      "path": "products/nimbus-sip.webp",
+      "bytes": 16592,
+      "width": 280,
+      "height": 850,
+      "alpha": true
+    },
+    {
+      "group": "products",
+      "path": "products/pulsar-recover-x.webp",
+      "bytes": 50964,
+      "width": 890,
+      "height": 799,
+      "alpha": true
+    },
+    {
+      "group": "products",
+      "path": "products/vibewave-open.webp",
+      "bytes": 77472,
+      "width": 900,
+      "height": 664,
+      "alpha": true
+    },
+    {
+      "group": "products",
+      "path": "products/voltik-snapcell.webp",
+      "bytes": 24720,
+      "width": 574,
+      "height": 661,
+      "alpha": true
+    }
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "frames": {
+    "first": {
+      "text": "Marco",
+      "frames": [
+        "first-00.webp",
+        "first-01.webp",
+        "first-02.webp",
+        "first-03.webp",
+        "first-04.webp",
+        "first-05.webp"
+      ]
+    },
+    "last": {
+      "text": "Rossi",
+      "frames": [
+        "last-00.webp",
+        "last-01.webp",
+        "last-02.webp",
+        "last-03.webp",
+        "last-04.webp",
+        "last-05.webp"
+      ]
+    },
+    "email": {
+      "text": "marco.rossi@example.com",
+      "note": "authentic: the field is red (border, ring, ✕ icon) while the address is incomplete and green once valid (from char 22)",
+      "frames": [
+        "email-00.webp",
+        "email-01.webp",
+        "email-02.webp",
+        "email-03.webp",
+        "email-04.webp",
+        "email-05.webp",
+        "email-06.webp",
+        "email-07.webp",
+        "email-08.webp",
+        "email-09.webp",
+        "email-10.webp",
+        "email-11.webp",
+        "email-12.webp",
+        "email-13.webp",
+        "email-14.webp",
+        "email-15.webp",
+        "email-16.webp",
+        "email-17.webp",
+        "email-18.webp",
+        "email-19.webp",
+        "email-20.webp",
+        "email-21.webp",
+        "email-22.webp",
+        "email-23.webp"
+      ]
+    },
+    "emailCalm": {
+      "text": "marco.rossi@example.com",
+      "note": "same keystrokes as 'email' but the red invalid styling is suppressed with injected CSS (neutral border + blue ring until valid, then green)",
+      "frames": [
+        "email-calm-00.webp",
+        "email-calm-01.webp",
+        "email-calm-02.webp",
+        "email-calm-03.webp",
+        "email-calm-04.webp",
+        "email-calm-05.webp",
+        "email-calm-06.webp",
+        "email-calm-07.webp",
+        "email-calm-08.webp",
+        "email-calm-09.webp",
+        "email-calm-10.webp",
+        "email-calm-11.webp",
+        "email-calm-12.webp",
+        "email-calm-13.webp",
+        "email-calm-14.webp",
+        "email-calm-15.webp",
+        "email-calm-16.webp",
+        "email-calm-17.webp",
+        "email-calm-18.webp",
+        "email-calm-19.webp",
+        "email-calm-20.webp",
+        "email-calm-21.webp",
+        "email-calm-22.webp",
+        "email-calm-23.webp"
+      ]
+    }
+  },
+  "crops": {
+    "fields": {
+      "desc": "first-name + last-name + email inputs (+8 px margin): every first-*/last-*/email-* frame",
+      "css": {
+        "x": 280,
+        "y": 675,
+        "width": 464,
+        "height": 145
+      },
+      "image": {
+        "x": 560,
+        "y": 1350,
+        "width": 928,
+        "height": 290
+      }
+    },
+    "checkbox": {
+      "desc": "GDPR checkbox row, full form width: checkbox-unchecked / checkbox-checked",
+      "css": {
+        "x": 284,
+        "y": 819,
+        "width": 456,
+        "height": 32
+      },
+      "image": {
+        "x": 568,
+        "y": 1638,
+        "width": 912,
+        "height": 64
+      }
+    },
+    "startButton": {
+      "desc": "START THE GAME! button (+12 px margin)",
+      "css": {
+        "x": 276,
+        "y": 846,
+        "width": 472,
+        "height": 93
+      },
+      "image": {
+        "x": 552,
+        "y": 1692,
+        "width": 944,
+        "height": 186
+      }
+    }
+  },
+  "startButtonDiffersWhenValid": false,
+  "startButtonFiles": [
+    "start-button.webp"
+  ],
+  "dpr": 2,
+  "viewport": {
+    "width": 1024,
+    "height": 1366
+  },
+  "inputsCss": {
+    "firstName": {
+      "x": 288,
+      "y": 683.5,
+      "width": 218,
+      "height": 58
+    },
+    "lastName": {
+      "x": 518,
+      "y": 683.5,
+      "width": 218,
+      "height": 58
+    },
+    "email": {
+      "x": 288,
+      "y": 753.5,
+      "width": 448,
+      "height": 58
+    },
+    "relativeToFieldsCrop": {
+      "firstName": {
+        "x": 8,
+        "y": 8.5,
+        "width": 218,
+        "height": 58
+      },
+      "lastName": {
+        "x": 238,
+        "y": 8.5,
+        "width": 218,
+        "height": 58
+      },
+      "email": {
+        "x": 8,
+        "y": 78.5,
+        "width": 448,
+        "height": 58
+      }
+    }
+  },
+  "counts": {
+    "first": 6,
+    "last": 6,
+    "email": 24,
+    "emailCalm": 24
+  },
+  "states": {
+    "first": "frame 0 = first-name focused & empty; frame n = after n characters. Last/email still empty.",
+    "last": "first name already 'Marco' (green border); last-name focused; frame n = after n characters of 'Rossi'.",
+    "email": "first + last filled; email focused; frame n = after n characters.",
+    "checkbox": "form valid (all three fields green); unchecked then checked."
+  },
+  "notes": [
+    "The app inserts 'Please enter a valid email address.' under the field while the address is incomplete, shifting the centred form by 14 px; it is hidden by injected CSS so every frame shares one crop rectangle.",
+    "Caret hidden. Backgrounds are frozen (all infinite CSS/WAAPI animations paused) so the crops match still/welcome-empty.webp exactly outside the fields."
+  ]
+}
