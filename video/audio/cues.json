@@ -1,0 +1,1024 @@
+{
+  "bpm": 120,
+  "beat": 0.5,
+  "bar": 2,
+  "duration": 44.5,
+  "sampleRate": 48000,
+  "harmony": {
+    "key": "C major / A minor",
+    "note": "one chord per bar (2 s). Hits: logo-hit lands on C at 4.0, counter-hit on C at 22.0, end hit on C at 40.0.",
+    "bars": [
+      {
+        "bar": 1,
+        "from": 0,
+        "to": 2,
+        "chord": "Am"
+      },
+      {
+        "bar": 2,
+        "from": 2,
+        "to": 4,
+        "chord": "G"
+      },
+      {
+        "bar": 3,
+        "from": 4,
+        "to": 6,
+        "chord": "C"
+      },
+      {
+        "bar": 4,
+        "from": 6,
+        "to": 8,
+        "chord": "G"
+      },
+      {
+        "bar": 5,
+        "from": 8,
+        "to": 10,
+        "chord": "Am"
+      },
+      {
+        "bar": 6,
+        "from": 10,
+        "to": 12,
+        "chord": "F"
+      },
+      {
+        "bar": 7,
+        "from": 12,
+        "to": 14,
+        "chord": "C"
+      },
+      {
+        "bar": 8,
+        "from": 14,
+        "to": 16,
+        "chord": "G"
+      },
+      {
+        "bar": 9,
+        "from": 16,
+        "to": 18,
+        "chord": "Am"
+      },
+      {
+        "bar": 10,
+        "from": 18,
+        "to": 20,
+        "chord": "F"
+      },
+      {
+        "bar": 11,
+        "from": 20,
+        "to": 22,
+        "chord": "G"
+      },
+      {
+        "bar": 12,
+        "from": 22,
+        "to": 24,
+        "chord": "C"
+      },
+      {
+        "bar": 13,
+        "from": 24,
+        "to": 26,
+        "chord": "G"
+      },
+      {
+        "bar": 14,
+        "from": 26,
+        "to": 28,
+        "chord": "Am"
+      },
+      {
+        "bar": 15,
+        "from": 28,
+        "to": 30,
+        "chord": "F"
+      },
+      {
+        "bar": 16,
+        "from": 30,
+        "to": 32,
+        "chord": "C"
+      },
+      {
+        "bar": 17,
+        "from": 32,
+        "to": 34,
+        "chord": "G"
+      },
+      {
+        "bar": 18,
+        "from": 34,
+        "to": 36,
+        "chord": "Am"
+      },
+      {
+        "bar": 19,
+        "from": 36,
+        "to": 38,
+        "chord": "F"
+      },
+      {
+        "bar": 20,
+        "from": 38,
+        "to": 40,
+        "chord": "G"
+      },
+      {
+        "bar": 21,
+        "from": 40,
+        "to": 42,
+        "chord": "C"
+      },
+      {
+        "bar": 22,
+        "from": 42,
+        "to": 44,
+        "chord": "Cadd9"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "intro",
+      "from": 0,
+      "to": 4,
+      "bars": "1-2",
+      "brief": "No drums. Dark, tense, rising: low pad drone, filtered noise swell, sparse sub heartbeat, risers. Ticks from the sfx layer carry the rhythm."
+    },
+    {
+      "name": "drop-A",
+      "from": 4,
+      "to": 8,
+      "bars": "3-4",
+      "brief": "Logo hit at 4.0: kick + sub bass + pad chord + gentle plucked arp enter. Confident, clean, modern tech-product feel."
+    },
+    {
+      "name": "groove-A",
+      "from": 8,
+      "to": 14,
+      "bars": "5-7",
+      "brief": "Steady groove while the user types: hats on off-beats, soft shaker, bass pattern, arp gets busier. Leave space for the key clicks."
+    },
+    {
+      "name": "build",
+      "from": 14,
+      "to": 20,
+      "bars": "8-10",
+      "brief": "Energy climbs through the 8 swipes (they land on the beat from 17.5 on): add snare/clap fills, rising filter, tighter arps."
+    },
+    {
+      "name": "counter",
+      "from": 20,
+      "to": 22,
+      "bars": "11",
+      "brief": "Riser: kick drops out at 21.0, snare roll accelerating into 22.0, everything cuts for a beat of air right before the hit."
+    },
+    {
+      "name": "drop-B",
+      "from": 22,
+      "to": 26,
+      "bars": "12-13",
+      "brief": "Biggest moment: full chord stack + lead melody + open hats + kick. Celebratory but tasteful."
+    },
+    {
+      "name": "email",
+      "from": 26,
+      "to": 34,
+      "bars": "14-17",
+      "brief": "Breakdown: low-pass the groove, warm keys + pad, soft pulse; light percussion. The notif-ping and code-ding sit on top."
+    },
+    {
+      "name": "system",
+      "from": 34,
+      "to": 40,
+      "bars": "18-20",
+      "brief": "Rhythmic, techy: staccato arps / gated pad pulsing with the nodes, rising tension to the end card."
+    },
+    {
+      "name": "outro",
+      "from": 40,
+      "to": 44.5,
+      "bars": "21-22+",
+      "brief": "Final big chord at 40.0, then let it ring and decay; sparkle at 42.5; fade the tail to silence by 44.5."
+    }
+  ],
+  "sfx": [
+    {
+      "type": "riser-a",
+      "t": 0,
+      "dur": 2,
+      "note": "tension riser, ends exactly at lock-on"
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.1,
+      "step": 0,
+      "of": 10
+    },
+    {
+      "type": "word-hit",
+      "t": 0.12,
+      "step": 0,
+      "vel": 0.7
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.175,
+      "step": 1,
+      "of": 10
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.25,
+      "step": 2,
+      "of": 10
+    },
+    {
+      "type": "word-hit",
+      "t": 0.3,
+      "step": 1,
+      "vel": 0.7
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.325,
+      "step": 3,
+      "of": 10
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.4,
+      "step": 4,
+      "of": 10
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.475,
+      "step": 5,
+      "of": 10
+    },
+    {
+      "type": "word-hit",
+      "t": 0.48,
+      "step": 2,
+      "vel": 0.7
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.55,
+      "step": 6,
+      "of": 10
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.625,
+      "step": 7,
+      "of": 10
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.7,
+      "step": 8,
+      "of": 10
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.775,
+      "step": 9,
+      "of": 10
+    },
+    {
+      "type": "lock-on",
+      "t": 2,
+      "note": "product chosen: pitched ping + soft low thump"
+    },
+    {
+      "type": "whoosh-out",
+      "t": 2,
+      "dur": 0.9,
+      "note": "cards fly outward"
+    },
+    {
+      "type": "word-hit",
+      "t": 2.05,
+      "step": 0,
+      "vel": 0.85
+    },
+    {
+      "type": "word-hit",
+      "t": 2.25,
+      "step": 1,
+      "vel": 0.85
+    },
+    {
+      "type": "word-hit",
+      "t": 2.45,
+      "step": 2,
+      "vel": 0.85
+    },
+    {
+      "type": "sparkle-up",
+      "t": 2.5,
+      "dur": 0.8
+    },
+    {
+      "type": "riser-b",
+      "t": 3,
+      "dur": 1,
+      "note": "reverse-cymbal style swell landing on the logo hit"
+    },
+    {
+      "type": "logo-hit",
+      "t": 4,
+      "note": "big impact: sub boom + glassy chord + air; music 'drop' happens here"
+    },
+    {
+      "type": "shimmer",
+      "t": 4.2,
+      "dur": 1.2
+    },
+    {
+      "type": "tagline-air",
+      "t": 4.55,
+      "dur": 0.7
+    },
+    {
+      "type": "whoosh-up",
+      "t": 5.4,
+      "dur": 0.9,
+      "note": "iPad rises from below"
+    },
+    {
+      "type": "caption-pop",
+      "t": 6.2,
+      "step": 0
+    },
+    {
+      "type": "device-settle",
+      "t": 6.35,
+      "note": "soft low thump as the iPad lands"
+    },
+    {
+      "type": "tap",
+      "t": 8
+    },
+    {
+      "type": "page-swoosh",
+      "t": 8.05,
+      "dur": 0.45
+    },
+    {
+      "type": "callout-in",
+      "t": 8.7,
+      "note": "label pops in"
+    },
+    {
+      "type": "chip-tick",
+      "t": 8.8,
+      "step": 0,
+      "of": 5
+    },
+    {
+      "type": "chip-tick",
+      "t": 9,
+      "step": 1,
+      "of": 5
+    },
+    {
+      "type": "chip-tick",
+      "t": 9.2,
+      "step": 2,
+      "of": 5
+    },
+    {
+      "type": "chip-tick",
+      "t": 9.4,
+      "step": 3,
+      "of": 5
+    },
+    {
+      "type": "chip-tick",
+      "t": 9.6,
+      "step": 4,
+      "of": 5
+    },
+    {
+      "type": "key",
+      "t": 10.1,
+      "step": 0
+    },
+    {
+      "type": "key",
+      "t": 10.175,
+      "step": 1
+    },
+    {
+      "type": "key",
+      "t": 10.25,
+      "step": 2
+    },
+    {
+      "type": "key",
+      "t": 10.325,
+      "step": 3
+    },
+    {
+      "type": "key",
+      "t": 10.4,
+      "step": 4
+    },
+    {
+      "type": "key",
+      "t": 10.6,
+      "step": 0
+    },
+    {
+      "type": "key",
+      "t": 10.675,
+      "step": 1
+    },
+    {
+      "type": "key",
+      "t": 10.75,
+      "step": 2
+    },
+    {
+      "type": "key",
+      "t": 10.825,
+      "step": 3
+    },
+    {
+      "type": "key",
+      "t": 10.9,
+      "step": 4
+    },
+    {
+      "type": "key",
+      "t": 11.05,
+      "step": 0
+    },
+    {
+      "type": "key",
+      "t": 11.09,
+      "step": 1
+    },
+    {
+      "type": "key",
+      "t": 11.13,
+      "step": 2
+    },
+    {
+      "type": "key",
+      "t": 11.17,
+      "step": 3
+    },
+    {
+      "type": "key",
+      "t": 11.21,
+      "step": 4
+    },
+    {
+      "type": "key",
+      "t": 11.25,
+      "step": 5
+    },
+    {
+      "type": "key",
+      "t": 11.29,
+      "step": 6
+    },
+    {
+      "type": "key",
+      "t": 11.33,
+      "step": 7
+    },
+    {
+      "type": "key",
+      "t": 11.37,
+      "step": 8
+    },
+    {
+      "type": "key",
+      "t": 11.41,
+      "step": 9
+    },
+    {
+      "type": "key",
+      "t": 11.45,
+      "step": 10
+    },
+    {
+      "type": "key",
+      "t": 11.49,
+      "step": 11
+    },
+    {
+      "type": "key",
+      "t": 11.53,
+      "step": 12
+    },
+    {
+      "type": "key",
+      "t": 11.57,
+      "step": 13
+    },
+    {
+      "type": "key",
+      "t": 11.61,
+      "step": 14
+    },
+    {
+      "type": "key",
+      "t": 11.65,
+      "step": 15
+    },
+    {
+      "type": "key",
+      "t": 11.69,
+      "step": 16
+    },
+    {
+      "type": "key",
+      "t": 11.73,
+      "step": 17
+    },
+    {
+      "type": "key",
+      "t": 11.77,
+      "step": 18
+    },
+    {
+      "type": "key",
+      "t": 11.81,
+      "step": 19
+    },
+    {
+      "type": "key",
+      "t": 11.85,
+      "step": 20
+    },
+    {
+      "type": "key",
+      "t": 11.89,
+      "step": 21
+    },
+    {
+      "type": "key",
+      "t": 11.93,
+      "step": 22
+    },
+    {
+      "type": "check-tick",
+      "t": 12
+    },
+    {
+      "type": "callout-in",
+      "t": 12
+    },
+    {
+      "type": "lock-click",
+      "t": 12.25,
+      "note": "GDPR padlock closes"
+    },
+    {
+      "type": "tap",
+      "t": 13
+    },
+    {
+      "type": "confirm",
+      "t": 13.05,
+      "note": "positive confirmation after START THE GAME"
+    },
+    {
+      "type": "page-swoosh",
+      "t": 13.1,
+      "dur": 0.45
+    },
+    {
+      "type": "tap",
+      "t": 14.5
+    },
+    {
+      "type": "page-swoosh",
+      "t": 14.55,
+      "dur": 0.45
+    },
+    {
+      "type": "caption-pop",
+      "t": 14.6,
+      "step": 1
+    },
+    {
+      "type": "card-in",
+      "t": 14.7,
+      "step": 0,
+      "of": 8
+    },
+    {
+      "type": "swipe-no",
+      "t": 15.38,
+      "dur": 0.8,
+      "accent": 15.5,
+      "step": 0,
+      "of": 8
+    },
+    {
+      "type": "card-in",
+      "t": 15.95,
+      "step": 1,
+      "of": 8
+    },
+    {
+      "type": "swipe-no",
+      "t": 16.38,
+      "dur": 0.6,
+      "accent": 16.5,
+      "step": 1,
+      "of": 8
+    },
+    {
+      "type": "card-in",
+      "t": 17,
+      "step": 2,
+      "of": 8
+    },
+    {
+      "type": "swipe-yes",
+      "t": 17.38,
+      "dur": 0.4,
+      "accent": 17.5,
+      "step": 2,
+      "of": 8
+    },
+    {
+      "type": "card-in",
+      "t": 17.5,
+      "step": 3,
+      "of": 8
+    },
+    {
+      "type": "swipe-yes",
+      "t": 17.88,
+      "dur": 0.4,
+      "accent": 18,
+      "step": 3,
+      "of": 8
+    },
+    {
+      "type": "card-in",
+      "t": 18,
+      "step": 4,
+      "of": 8
+    },
+    {
+      "type": "swipe-yes",
+      "t": 18.38,
+      "dur": 0.4,
+      "accent": 18.5,
+      "step": 4,
+      "of": 8
+    },
+    {
+      "type": "card-in",
+      "t": 18.5,
+      "step": 5,
+      "of": 8
+    },
+    {
+      "type": "swipe-no",
+      "t": 18.88,
+      "dur": 0.4,
+      "accent": 19,
+      "step": 5,
+      "of": 8
+    },
+    {
+      "type": "card-in",
+      "t": 19,
+      "step": 6,
+      "of": 8
+    },
+    {
+      "type": "swipe-no",
+      "t": 19.38,
+      "dur": 0.4,
+      "accent": 19.5,
+      "step": 6,
+      "of": 8
+    },
+    {
+      "type": "card-in",
+      "t": 19.5,
+      "step": 7,
+      "of": 8
+    },
+    {
+      "type": "swipe-no",
+      "t": 19.88,
+      "dur": 0.4,
+      "accent": 20,
+      "step": 7,
+      "of": 8
+    },
+    {
+      "type": "reveal-whoosh",
+      "t": 20,
+      "dur": 0.8,
+      "note": "flash into the result screen"
+    },
+    {
+      "type": "riser-count",
+      "t": 20.3,
+      "dur": 1.6999999999999993,
+      "note": "rising tone under the counter; peaks exactly at the hit"
+    },
+    {
+      "type": "count-tick",
+      "t": 20.697,
+      "step": 0,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 20.8,
+      "step": 1,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 20.873,
+      "step": 2,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 20.931,
+      "step": 3,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 21.022,
+      "step": 4,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 21.094,
+      "step": 5,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 21.156,
+      "step": 6,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 21.219,
+      "step": 7,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 21.295,
+      "step": 8,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 21.391,
+      "step": 9,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 21.454,
+      "step": 10,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 21.535,
+      "step": 11,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 21.665,
+      "step": 12,
+      "of": 13
+    },
+    {
+      "type": "counter-hit",
+      "t": 22,
+      "note": "98 % reached: big impact + bright chime + sparkle; music drop B"
+    },
+    {
+      "type": "confetti-pop",
+      "t": 22.02
+    },
+    {
+      "type": "whoosh-pullback",
+      "t": 22.1,
+      "dur": 0.9
+    },
+    {
+      "type": "caption-pop",
+      "t": 22.3,
+      "step": 2
+    },
+    {
+      "type": "tap",
+      "t": 24
+    },
+    {
+      "type": "success-chime",
+      "t": 24.35,
+      "note": "pleasant two-note success"
+    },
+    {
+      "type": "whoosh-swap",
+      "t": 25.6,
+      "dur": 0.9,
+      "note": "iPad leaves left, iPhone arrives right"
+    },
+    {
+      "type": "notif-ping",
+      "t": 27,
+      "note": "glassy two-note notification ding"
+    },
+    {
+      "type": "swoosh-open",
+      "t": 27.6,
+      "dur": 0.5
+    },
+    {
+      "type": "caption-pop",
+      "t": 27.8,
+      "step": 3
+    },
+    {
+      "type": "scroll-soft",
+      "t": 29.6,
+      "dur": 1.3999999999999986
+    },
+    {
+      "type": "zoom-whoosh",
+      "t": 31.4,
+      "dur": 0.8000000000000043
+    },
+    {
+      "type": "code-ding",
+      "t": 32.2,
+      "note": "bright bell as the discount code lights up"
+    },
+    {
+      "type": "whoosh-down",
+      "t": 33.4,
+      "dur": 0.7
+    },
+    {
+      "type": "caption-pop",
+      "t": 34,
+      "step": 4
+    },
+    {
+      "type": "node-on",
+      "t": 34,
+      "step": 0,
+      "of": 5
+    },
+    {
+      "type": "packet",
+      "t": 34.45,
+      "step": 0
+    },
+    {
+      "type": "node-on",
+      "t": 34.5,
+      "step": 1,
+      "of": 5
+    },
+    {
+      "type": "packet",
+      "t": 34.95,
+      "step": 1
+    },
+    {
+      "type": "node-on",
+      "t": 35,
+      "step": 2,
+      "of": 5
+    },
+    {
+      "type": "packet",
+      "t": 35.45,
+      "step": 2
+    },
+    {
+      "type": "node-on",
+      "t": 35.5,
+      "step": 3,
+      "of": 5
+    },
+    {
+      "type": "packet",
+      "t": 35.65,
+      "step": 3
+    },
+    {
+      "type": "node-on",
+      "t": 35.7,
+      "step": 4,
+      "of": 5
+    },
+    {
+      "type": "tile-on",
+      "t": 36.5,
+      "step": 0,
+      "of": 3
+    },
+    {
+      "type": "tile-on",
+      "t": 36.75,
+      "step": 1,
+      "of": 3
+    },
+    {
+      "type": "tile-on",
+      "t": 37,
+      "step": 2,
+      "of": 3
+    },
+    {
+      "type": "lock-click",
+      "t": 37.5,
+      "step": 0,
+      "note": "2FA"
+    },
+    {
+      "type": "lock-click",
+      "t": 37.9,
+      "step": 1,
+      "note": "RLS"
+    },
+    {
+      "type": "whoosh-in",
+      "t": 39.4,
+      "dur": 0.7,
+      "note": "diagram collapses into the end card"
+    },
+    {
+      "type": "logo-hit-soft",
+      "t": 40,
+      "note": "softer sibling of logo-hit; the final chord starts here"
+    },
+    {
+      "type": "shimmer",
+      "t": 40.2,
+      "dur": 1.2
+    },
+    {
+      "type": "tagline-air",
+      "t": 40.8,
+      "dur": 0.7
+    },
+    {
+      "type": "chip-pop",
+      "t": 41.2,
+      "step": 0,
+      "of": 4
+    },
+    {
+      "type": "chip-pop",
+      "t": 41.45,
+      "step": 1,
+      "of": 4
+    },
+    {
+      "type": "chip-pop",
+      "t": 41.7,
+      "step": 2,
+      "of": 4
+    },
+    {
+      "type": "chip-pop",
+      "t": 41.95,
+      "step": 3,
+      "of": 4
+    },
+    {
+      "type": "sparkle",
+      "t": 42.5,
+      "dur": 1.5,
+      "note": "final glitter over the held chord"
+    }
+  ]
+}

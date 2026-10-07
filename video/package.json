@@ -2,23 +2,34 @@
   "name": "suaipe-video",
   "private": true,
   "version": "0.0.0",
-  "description": "Programmatic videos for Suaipe, built with Remotion. Isolated from the app: own package.json and node_modules.",
+  "description": "Suaipe LinkedIn film, built with Remotion from real captures of the kiosk. Isolated from the app: own package.json and node_modules.",
   "scripts": {
     "studio": "remotion studio src/index.ts",
     "compositions": "remotion compositions src/index.ts",
-    "still": "remotion still src/index.ts SmokeTest out/smoke.png --frame=60",
-    "render": "remotion render src/index.ts SmokeTest out/smoke.mp4",
+    "cues": "node scripts/export-cues.mjs",
+    "srt": "node scripts/export-srt.mjs",
+    "still": "remotion still src/index.ts SuaipeFilm out/frame.png --frame=1200 --gl=angle",
+    "cover": "remotion still src/index.ts Cover out/suaipe-cover.png --gl=angle",
+    "render": "remotion render src/index.ts SuaipeFilm out/suaipe-film.mp4 --codec=h264 --crf=14 --pixel-format=yuv420p --color-space=bt709 --audio-codec=aac --audio-bitrate=320k --gl=angle",
+    "render:silent": "remotion render src/index.ts SuaipeFilm out/suaipe-film-silent.mp4 --codec=h264 --crf=14 --pixel-format=yuv420p --color-space=bt709 --gl=angle --props='{\"withAudio\":false}'",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@remotion/cli": "4.0.534",
+    "@remotion/effects": "4.0.534",
     "@remotion/fonts": "4.0.534",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "@remotion/media": "4.0.534",
+    "@remotion/motion-blur": "4.0.534",
+    "@remotion/noise": "4.0.534",
+    "@remotion/paths": "4.0.534",
+    "@remotion/transitions": "4.0.534",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
     "remotion": "4.0.534"
   },
   "devDependencies": {
-    "@types/react": "18.3.12",
+    "@types/react": "19.2.7",
+    "esbuild": "0.28.1",
     "typescript": "5.8.3"
   }
 }

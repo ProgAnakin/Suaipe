@@ -232,6 +232,7 @@ Key architectural trade-offs are documented in [`docs/adr/`](./docs/adr/):
 | [004](./docs/adr/004-swipe-quiz-over-form.md) | Tinder-style swipe quiz over a traditional form |
 | [005](./docs/adr/005-synchronous-pii-encryption.md) | Synchronous PII encryption before email dispatch — superseded (see ADR 003) |
 | [006](./docs/adr/006-english-only-staff-ui.md) | Staff dashboards are English-only (the customer kiosk stays multilingual) |
+| [007](./docs/adr/007-product-film-with-remotion.md) | The product film is built with Remotion from real captures, in an isolated `video/` project |
 
 ---
 

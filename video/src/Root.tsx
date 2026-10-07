@@ -1,16 +1,55 @@
-import { Composition } from "remotion";
-import { SmokeTest } from "./SmokeTest";
+import React from "react";
+import { Composition, Folder, Still } from "remotion";
+import "./fonts";
+import { Backdrop } from "./components/Backdrop";
+import { FilmGrade } from "./components/FilmGrade";
+import { Cover } from "./Cover";
+import { SuaipeFilm } from "./SuaipeFilm";
+import { EndScene } from "./scenes/EndScene";
+import { HookScene } from "./scenes/HookScene";
+import { IpadScene } from "./scenes/IpadScene";
+import { LockupScene } from "./scenes/LockupScene";
+import { PhoneScene } from "./scenes/PhoneScene";
+import { SystemScene } from "./scenes/SystemScene";
+import { CHAPTER, DURATION_S, FPS, HEIGHT, WIDTH, sec } from "./timeline";
 
-// 4:5 portrait, the format used for the LinkedIn film (1080x1350).
-export const RemotionRoot = () => {
+// Each scene is registered on its own so it can be previewed (and rendered) in isolation; local frame 0 = chapter start.
+const stage = (Scene: React.FC): React.FC => () => (
+  <>
+    <Backdrop />
+    <Scene />
+    <FilmGrade />
+  </>
+);
+const HookPreview = stage(HookScene);
+const LockupPreview = stage(LockupScene);
+const IpadPreview = stage(IpadScene);
+const PhonePreview = stage(PhoneScene);
+const SystemPreview = stage(SystemScene);
+const EndPreview = stage(EndScene);
+const len = (c: { from: number; to: number }) => sec(c.to - c.from);
+
+export const RemotionRoot: React.FC = () => {
   return (
-    <Composition
-      id="SmokeTest"
-      component={SmokeTest}
-      durationInFrames={90}
-      fps={30}
-      width={1080}
-      height={1350}
-    />
+    <>
+      <Composition
+        id="SuaipeFilm"
+        component={SuaipeFilm}
+        durationInFrames={sec(DURATION_S)}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        defaultProps={{ withAudio: true }}
+      />
+      <Still id="Cover" component={Cover} width={WIDTH} height={HEIGHT} />
+      <Folder name="Scenes">
+        <Composition id="Hook" component={HookPreview} durationInFrames={len(CHAPTER.hook)} fps={FPS} width={WIDTH} height={HEIGHT} />
+        <Composition id="Lockup" component={LockupPreview} durationInFrames={len(CHAPTER.lockup)} fps={FPS} width={WIDTH} height={HEIGHT} />
+        <Composition id="IpadFlow" component={IpadPreview} durationInFrames={len(CHAPTER.ipad)} fps={FPS} width={WIDTH} height={HEIGHT} />
+        <Composition id="PhoneEmail" component={PhonePreview} durationInFrames={len(CHAPTER.phone)} fps={FPS} width={WIDTH} height={HEIGHT} />
+        <Composition id="System" component={SystemPreview} durationInFrames={len(CHAPTER.system)} fps={FPS} width={WIDTH} height={HEIGHT} />
+        <Composition id="EndCard" component={EndPreview} durationInFrames={len(CHAPTER.end)} fps={FPS} width={WIDTH} height={HEIGHT} />
+      </Folder>
+    </>
   );
 };

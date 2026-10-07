@@ -130,4 +130,6 @@ src/lib/              validators, imageProcessing, startupCache, verifyStaffPin,
 supabase/functions/   on-session-created, verify-pin, relay-to-sheets
 supabase/migrations/  versioned SQL (RLS, RPCs, schema) — apply manually
 docs/adr/             architecture decision records · docs/runbook.md · docs/edge-functions.md
+video/                LinkedIn product film (Remotion) — ISOLATED project: own package.json/node_modules, never imported
+                      by src/, excluded from the app's eslint. Real-app capture + synthesised soundtrack; see video/README.md, ADR 007
 ```
