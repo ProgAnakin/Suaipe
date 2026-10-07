@@ -25,6 +25,23 @@ const dirBlur = (id: string, bx: number, by: number) => ({
   filter: bx > 0.4 || by > 0.4 ? `url(#${id})` : undefined,
 });
 
+/** Anamorphic light leak laid over a cut (WebGL effect from @remotion/effects, tinted towards the brand blues). */
+const Leak: React.FC<{ p: number; seed: number; hueShift?: number; opacity?: number }> = ({ p, seed, hueShift = 190, opacity = 0.6 }) => {
+  const { width, height, fps } = useVideoConfig();
+  const bell = Math.sin(Math.PI * clamp(p)) ** 1.4;
+  if (bell < 0.02) return null;
+  return (
+    <Solid
+      color="#000"
+      width={width}
+      height={height}
+      premountFor={fps}
+      style={{ position: "absolute", inset: 0, mixBlendMode: "screen", opacity: opacity * bell, pointerEvents: "none" }}
+      effects={[lightLeak({ progress: p, seed, hueShift })]}
+    />
+  );
+};
+
 /** Speed (0..~1) of an eased curve at p — used to scale the blur. */
 const speedOf = (ease: (x: number) => number, p: number) => Math.min(1, Math.abs(ease(clamp(p + 0.025)) - ease(clamp(p - 0.025))) / 0.05 / 4);
 
@@ -124,6 +141,7 @@ const SwapSlide: PresentationComponent = ({ children, presentationProgress: p, p
   return (
     <AbsoluteFill style={{ perspective: 2000 }}>
       {blur.defs}
+      <Leak p={p} seed={9} hueShift={200} opacity={0.5} />
       <AbsoluteFill
         style={{
           transform: `translateX(${(1 - e) * 1300}px) rotateY(${-(1 - e) * 24}deg) rotate(${(1 - e) * 9}deg) scale(${lerp(0.9, 1, e)})`,
@@ -167,7 +185,12 @@ const Collapse: PresentationComponent = ({ children, presentationProgress: p, pr
     );
   }
   const e = EASE.out(p);
-  return <AbsoluteFill style={{ transform: `scale(${lerp(1.1, 1, e)})`, filter: `blur(${(1 - e) * 10}px)`, opacity: clamp(p * 1.8) }}>{children}</AbsoluteFill>;
+  return (
+    <AbsoluteFill>
+      <AbsoluteFill style={{ transform: `scale(${lerp(1.1, 1, e)})`, filter: `blur(${(1 - e) * 10}px)`, opacity: clamp(p * 1.8) }}>{children}</AbsoluteFill>
+      <Leak p={p} seed={13} hueShift={175} opacity={0.55} />
+    </AbsoluteFill>
+  );
 };
 export const collapse = make(Collapse);
 

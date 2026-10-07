@@ -95,7 +95,7 @@ const PhoneWorld: React.FC = () => {
               border: "1px solid rgba(255,255,255,.16)",
               boxShadow: `0 24px 60px rgba(0,0,0,.5), 0 0 ${40 * ping}px rgba(34,211,238,.7)`,
               transform: `scale(${1 + 0.035 * ping})`,
-              opacity: 1 - clamp(open * 2.4),
+              opacity: 1 - clamp(open * 6),
             }}
           >
             <div style={{ width: 56, height: 56, flex: "none", borderRadius: 15, background: "linear-gradient(145deg,#12204f,#0a1233)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 1px 0 rgba(255,255,255,.2)" }}>
@@ -120,7 +120,6 @@ const PhoneWorld: React.FC = () => {
                 overflow: "hidden",
                 clipPath: `inset(${inset.top}px ${inset.right}px ${inset.bottom}px ${inset.left}px round ${inset.r}px)`,
                 background: COLORS.bg,
-                opacity: clamp(open * 3),
               }}
             >
               <div style={{ position: "absolute", inset: 0, transform: `scale(${lerp(1.22, 1, open)})`, transformOrigin: "50% 38%" }}>

@@ -16,10 +16,12 @@ export type ScreenLayer = {
 const S = IPAD.swipes;
 
 export const SCREEN_LAYERS: ScreenLayer[] = [
-  { key: "attract", still: "attract", from: 0, to: IPAD.welcomeIn + 0.34, inD: 0.01, outD: 0.3 },
-  { key: "welcome-empty", still: "welcome-empty", from: IPAD.welcomeIn + 0.1, to: IPAD.consent + 0.12, inD: 0.4, outD: 0.12 },
+  { key: "attract", still: "attract", from: 0, to: IPAD.welcomeIn + 0.3, inD: 0.01, outD: 0.22 },
+  { key: "welcome-empty", still: "welcome-empty", from: IPAD.welcomeIn + 0.16, to: IPAD.consent + 0.12, inD: 0.38, outD: 0.12 },
   { key: "welcome-filled", still: "welcome-filled", from: IPAD.consent, to: IPAD.tap2 + 0.5, inD: 0.12, outD: 0.42 },
-  { key: "quiz-tutorial", still: "quiz-tutorial", from: IPAD.tap2 + 0.08, to: IPAD.tap3 + 0.38, inD: 0.4, outD: 0.3 },
+  // the app's own tutorial demonstrates a NO swipe, then a YES swipe — both phases are real captures
+  { key: "quiz-tutorial", still: "quiz-tutorial", from: IPAD.tap2 + 0.08, to: IPAD.tap2 + 0.78, inD: 0.4, outD: 0.25 },
+  { key: "quiz-tutorial-yes", still: "quiz-tutorial-yes", from: IPAD.tap2 + 0.6, to: IPAD.tap3 + 0.38, inD: 0.25, outD: 0.3 },
   ...S.map((s, i) => ({
     key: `card-${i + 1}`,
     still: `card-${i + 1}`,

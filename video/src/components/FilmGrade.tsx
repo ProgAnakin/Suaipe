@@ -11,7 +11,7 @@ const TILE = 384;
  * (public/fx/grain.png) blended with `overlay` and re-positioned every frame: ~100x cheaper to render than a WebGL
  * noise pass at full resolution, and just as film-like.
  */
-export const FilmGrade: React.FC<{ grain?: number }> = ({ grain = 0.28 }) => {
+export const FilmGrade: React.FC<{ grain?: number }> = ({ grain = 0.18 }) => {
   const frame = useCurrentFrame();
   const r = rng(frame * 7919 + 13);
   const ox = Math.floor(r() * TILE);

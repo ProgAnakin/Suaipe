@@ -33,6 +33,7 @@ const camSpeed = (t: number, fps: number) => {
 
 const callP = (t: number, [a, b]: readonly [number, number]) => Math.min(EASE.out(prog(t, a, a + 0.35)), 1 - EASE.in(prog(t, b - 0.3, b)));
 
+/** The device with its screen, finger and call-outs: everything that moves WITH the camera (gets motion blur). */
 const IpadWorld: React.FC = () => {
   const t = useSceneTime(CHAPTER.ipad.from);
   const cam = camAt(t);
@@ -47,11 +48,6 @@ const IpadWorld: React.FC = () => {
   const langC = at(lang.u, lang.v);
   const gdpr = LAYOUT.welcome.consentRow;
   const gdprC = at(gdpr.u, gdpr.v);
-
-  // result "hit": flash, shock ring, confetti
-  const dh = t - IPAD.counterHit;
-  const shock = prog(t, IPAD.counterHit, IPAD.counterHit + 1.0);
-  const ringC = { x: 540, y: 650 };
 
   return (
     <AbsoluteFill>
@@ -84,12 +80,18 @@ const IpadWorld: React.FC = () => {
         side="below"
         radius={16}
       />
+    </AbsoluteFill>
+  );
+};
 
-      <ConfettiBurst t={dh} x={ringC.x} y={ringC.y} count={170} seed={21} power={1.15} radius={300} />
-      <ConfettiBurst t={dh - 0.12} x={30} y={1340} count={70} seed={5} power={1.25} angle={-62} spread={46} />
-      <ConfettiBurst t={dh - 0.12} x={1050} y={1340} count={70} seed={6} power={1.25} angle={-118} spread={46} />
+/** Canvas-space layers that must stay crisp (and cheap): swipe dots, the match ring, flashes and confetti. */
+const IpadOverlays: React.FC<{ t: number; cam: Cam }> = ({ t, cam }) => {
+  const dh = t - IPAD.counterHit;
+  const shock = prog(t, IPAD.counterHit, IPAD.counterHit + 1.0);
+  const ringC = { x: 540, y: 650 };
+  return (
+    <AbsoluteFill>
       <SwipeDots t={t} landed={SWIPES.map((sw) => sw.accent)} from={14.9} to={20.1} y={262} yesIdx={new Set(SWIPES.flatMap((sw, i) => (sw.dir > 0 ? [i] : [])))} />
-      <MatchRing t={t} cam={cam} />
 
       {/* flashes: reveal of the result screen, and the 98 % hit */}
       <AbsoluteFill style={{ opacity: 0.8 * hit(t, IPAD.counterStart, 9) * (t >= IPAD.counterStart ? 1 : 0), background: "radial-gradient(circle at 50% 48%, rgba(255,255,255,.95), rgba(120,220,255,.5) 34%, rgba(59,130,246,0) 70%)", mixBlendMode: "screen", pointerEvents: "none" }} />
@@ -97,6 +99,10 @@ const IpadWorld: React.FC = () => {
       {shock > 0 && shock < 1 && (
         <div style={{ position: "absolute", left: ringC.x - 330, top: ringC.y - 330, width: 660, height: 660, borderRadius: "50%", border: `${9 * (1 - shock)}px solid rgba(94,234,212,${0.85 * (1 - shock)})`, transform: `scale(${1 + 1.5 * EASE.out(shock)})`, boxShadow: `0 0 80px rgba(34,211,238,${0.5 * (1 - shock)})` }} />
       )}
+      <ConfettiBurst t={dh} x={ringC.x} y={ringC.y} count={170} seed={21} power={1.15} radius={300} />
+      <ConfettiBurst t={dh - 0.12} x={30} y={1340} count={70} seed={5} power={1.25} angle={-62} spread={46} />
+      <ConfettiBurst t={dh - 0.12} x={1050} y={1340} count={70} seed={6} power={1.25} angle={-118} spread={46} />
+      <MatchRing t={t} cam={cam} />
     </AbsoluteFill>
   );
 };
@@ -105,11 +111,16 @@ export const IpadScene: React.FC = () => {
   const { fps } = useVideoConfig();
   const t = useSceneTime(CHAPTER.ipad.from);
   const shutter = Math.min(250, camSpeed(t, fps) * 9);
-  return shutter > 25 ? (
-    <CameraMotionBlur samples={8} shutterAngle={shutter}>
-      <IpadWorld />
-    </CameraMotionBlur>
-  ) : (
-    <IpadWorld />
+  return (
+    <AbsoluteFill>
+      {shutter > 25 ? (
+        <CameraMotionBlur samples={8} shutterAngle={shutter}>
+          <IpadWorld />
+        </CameraMotionBlur>
+      ) : (
+        <IpadWorld />
+      )}
+      <IpadOverlays t={t} cam={camAt(t)} />
+    </AbsoluteFill>
   );
 };

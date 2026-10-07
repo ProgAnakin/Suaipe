@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import { evolvePath, getLength, getPointAtLength } from "@remotion/paths";
-import { IconBolt, IconBook, IconChart, IconDatabase, IconLock, IconMail, IconShield, IconSheet, IconSliders, IconTablet } from "../components/Icons";
+import { IconBolt, IconBook, IconChart, IconDatabase, IconLock, IconMail, IconPin, IconShield, IconSheet, IconSliders, IconTablet } from "../components/Icons";
 import { COLORS, FONT } from "../theme";
 import { CHAPTER, SYSTEM } from "../timeline";
 import { EASE, clamp, hit, lerp, pop, prog, useSceneTime } from "../lib/motion";
@@ -31,11 +31,11 @@ const TILES = [
 ];
 
 const glass: React.CSSProperties = {
-  background: "linear-gradient(160deg, rgba(33,48,108,.78), rgba(16,24,64,.86))",
+  background: "linear-gradient(160deg, rgba(40,58,128,.82), rgba(18,28,72,.9))",
   boxShadow: "0 28px 70px rgba(0,0,0,.5), inset 0 1.5px 0 rgba(255,255,255,.13)",
 };
 
-const Chip: React.FC<{ x: number; y: number; p: number; label: string; icon: React.ReactNode }> = ({ x, y, p, label, icon }) =>
+const Chip: React.FC<{ x: number; y: number; p: number; label: string; icon: React.ReactNode; blue?: boolean }> = ({ x, y, p, label, icon, blue }) =>
   p <= 0.01 ? null : (
     <div
       style={{
@@ -51,9 +51,9 @@ const Chip: React.FC<{ x: number; y: number; p: number; label: string; icon: Rea
         fontWeight: 700,
         fontSize: 24,
         letterSpacing: "0.02em",
-        color: "#04131f",
-        background: "linear-gradient(95deg,#5eead4,#22d3ee)",
-        boxShadow: "0 10px 30px rgba(0,0,0,.45), 0 0 30px rgba(34,211,238,.65)",
+        color: blue ? "#f0f4ff" : "#04131f",
+        background: blue ? "linear-gradient(95deg,#3b82f6,#60a5fa)" : "linear-gradient(95deg,#5eead4,#22d3ee)",
+        boxShadow: blue ? "0 10px 30px rgba(0,0,0,.45), 0 0 30px rgba(59,130,246,.7)" : "0 10px 30px rgba(0,0,0,.45), 0 0 30px rgba(34,211,238,.65)",
         transform: `scale(${p}) rotate(${(1 - p) * 12}deg)`,
         transformOrigin: "100% 0%",
         zIndex: 6,
@@ -128,7 +128,7 @@ export const SystemScene: React.FC = () => {
               boxSizing: "border-box",
               fontFamily: FONT,
               color: COLORS.text,
-              border: `1.5px solid rgba(${i % 2 ? "94,234,212" : "120,160,255"},${0.3 + 0.5 * flash})`,
+              border: `1.5px solid rgba(${i % 2 ? "94,234,212" : "120,160,255"},${0.4 + 0.5 * flash})`,
               ...glass,
               boxShadow: `${glass.boxShadow}, 0 0 ${50 * flash}px ${n.color}`,
               opacity: clamp(p * 1.6),
@@ -147,6 +147,8 @@ export const SystemScene: React.FC = () => {
         );
       })}
 
+      {/* "×4 stores" on the kiosk node: the caption's "Multi-store." made literal */}
+      <Chip x={540 + 280 - 168} y={392 - NODE_H / 2 - 22} p={pop(t, SYSTEM.nodes[0] + 0.5, fps, { damping: 10, stiffness: 230 })} label="×4 stores" icon={<IconPin size={24} stroke={2.4} />} blue />
       {/* RLS badge on the database node */}
       <Chip x={540 + 280 - 150} y={590 - NODE_H / 2 - 22} p={pop(t, SYSTEM.locks[1], fps, { damping: 10, stiffness: 230 })} label="RLS" icon={<IconLock size={24} stroke={2.6} />} />
       {/* scan line over the node when RLS lands */}

@@ -10,8 +10,8 @@
     "srt": "node scripts/export-srt.mjs",
     "still": "remotion still src/index.ts SuaipeFilm out/frame.png --frame=1200 --gl=angle",
     "cover": "remotion still src/index.ts Cover out/suaipe-cover.png --gl=angle",
-    "render": "remotion render src/index.ts SuaipeFilm out/suaipe-film.mp4 --codec=h264 --crf=14 --pixel-format=yuv420p --color-space=bt709 --audio-codec=aac --audio-bitrate=320k --gl=angle",
-    "render:silent": "remotion render src/index.ts SuaipeFilm out/suaipe-film-silent.mp4 --codec=h264 --crf=14 --pixel-format=yuv420p --color-space=bt709 --gl=angle --props='{\"withAudio\":false}'",
+    "render": "remotion render src/index.ts SuaipeFilm out/suaipe-film.mp4 --codec=h264 --crf=17 --max-rate=20M --buffer-size=40M --pixel-format=yuv420p --color-space=bt709 --audio-codec=aac --audio-bitrate=320k --gl=angle",
+    "render:silent": "remotion render src/index.ts SuaipeFilm out/suaipe-film-silent.mp4 --codec=h264 --crf=17 --max-rate=20M --buffer-size=40M --pixel-format=yuv420p --color-space=bt709 --gl=angle --props='{\"withAudio\":false}'",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

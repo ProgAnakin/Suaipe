@@ -54,15 +54,15 @@ export const IPAD = {
   typeEmail: { start: 11.05, step: 0.04, count: 22 }, // "marco.rossi@example.com" (23 chars, 22 steps + final)
   consent: 12.0,
   lockClick: 12.25,
-  callGdpr: [12.0, 13.3],
-  tap2: 13.0, // START THE GAME!
-  tutorialIn: 13.3,
+  callGdpr: [12.0, 13.2],
+  tap2: 13.3, // START THE GAME!
+  tutorialIn: 13.6,
   tap3: 14.5, // I'm ready!
   // quiz: `start` = first moment the card moves, `dur` = length of the real drag, accent = start + 0.35 * dur
   swipes: [
     { enter: 14.7, start: 15.22, dur: 0.8, dir: -1 }, // sport      NO
     { enter: 15.95, start: 16.29, dur: 0.6, dir: -1 }, // audio      NO
-    { enter: 17.0, start: 17.36, dur: 0.4, dir: 1 }, // productivity YES
+    { enter: 16.8, start: 17.36, dur: 0.4, dir: 1 }, // productivity YES
     { enter: 17.5, start: 17.86, dur: 0.4, dir: 1 }, // wellness   YES
     { enter: 18.0, start: 18.36, dur: 0.4, dir: 1 }, // travel     YES
     { enter: 18.5, start: 18.86, dur: 0.4, dir: -1 }, // tech       NO

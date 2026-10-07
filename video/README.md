@@ -20,7 +20,8 @@ video/
   audio/cues.json      ← cue sheet the sound design is composed against (generated from timeline.ts)
   tools/capture/       ← Playwright harness that drives the real kiosk with a mocked Supabase
   tools/audio/         ← Python generator for the music + sound effects
-  scripts/             ← export-cues, export-srt, sheet (contact sheets for visual QA)
+  scripts/             ← export-cues, export-srt, render-film (chunked final render), qa-sheets / sheet (contact sheets), audio-sync
+  LINKEDIN.md          ← specs, suggested post copy and upload checklist
 ```
 
 ## Everyday commands
@@ -31,7 +32,8 @@ npm run studio          # interactive preview — every scene is also its own co
 npm run typecheck
 npm run cues            # timeline.ts  →  audio/cues.json   (after changing any timing)
 npm run srt             # captions     →  out/suaipe-captions.srt (upload it with the post for accessibility)
-npm run render          # final MP4 (H.264 CRF 14 + AAC 320k, bt709)  →  out/suaipe-film.mp4
+npm run render          # final MP4 straight from Remotion (H.264 CRF 17 capped at 20 Mbps + AAC 320k, bt709)  →  out/suaipe-film.mp4
+scripts/render-film.sh  # the production route: resumable chunks (stream-copied, single-generation H.264) + soundtrack muxed
 npm run render:silent   # same, no audio track
 npm run cover           # LinkedIn thumbnail still → out/suaipe-cover.png
 ```
