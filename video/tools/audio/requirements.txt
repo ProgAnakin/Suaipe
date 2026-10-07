@@ -1,0 +1,9 @@
+# Python 3.10+ (developed and tested on 3.11)
+# Versions in the comments are the ones the committed audio was rendered with.
+numpy>=2.0        # 2.4.6
+scipy>=1.11       # 1.17.1
+soundfile>=0.12   # 0.14.0  (WAV writing; bundles libsndfile)
+matplotlib>=3.7   # 3.11.2  (optional: only the loudness/spectrum overview plot in the QA folder)
+
+# External tool (not a pip package): an ffmpeg with libmp3lame, ebur128 (peak=true) and showspectrumpic.
+#   pass it with --ffmpeg /path/to/ffmpeg or export FFMPEG=/path/to/ffmpeg (default: ffmpeg on PATH)

@@ -587,16 +587,16 @@
     },
     {
       "type": "tap",
-      "t": 13
+      "t": 13.3
     },
     {
       "type": "confirm",
-      "t": 13.05,
+      "t": 13.35,
       "note": "positive confirmation after START THE GAME"
     },
     {
       "type": "page-swoosh",
-      "t": 13.1,
+      "t": 13.4,
       "dur": 0.45
     },
     {
@@ -643,7 +643,7 @@
     },
     {
       "type": "card-in",
-      "t": 17,
+      "t": 16.8,
       "step": 2,
       "of": 8
     },
