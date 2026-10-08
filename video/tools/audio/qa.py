@@ -158,10 +158,11 @@ SYNC_ROWS = [("logo-hit", 0), ("tap", 0), ("tap", 1), ("key", 0), ("key", 32), (
              ("word-hit", 0), ("device-settle", 0), ("chip-tick", 0), ("lock-click", 0), ("confirm", 0), ("success-chime", 0), ("count-tick", 0),
              ("count-tick", 12), ("card-in", 0), ("check-tick", 0),
              # opening of the product scene
-             ("screen-wake", 0), ("caption-pop", 0),
-             # system diagram (retimed) and the closing scenes
-             ("node-on", 0), ("packet", 0), ("node-on", 1), ("packet", 1), ("node-on", 3), ("node-on", 4), ("packet", 3), ("tile-on", 0),
-             ("tile-on", 1), ("tile-on", 2), ("lock-click", 1), ("lock-click", 2), ("caption-pop", 5), ("bag-rustle", 0), ("redeem-ding", 0),
+             ("screen-wake", 0),
+             # system diagram (retimed) and the closing scenes (a node-on right behind its packet, the 3rd tile and the caption-pops over
+             # other sounds cannot be separated in the mix: the isolated check covers them)
+             ("node-on", 0), ("packet", 0), ("node-on", 1), ("packet", 1), ("node-on", 3), ("tile-on", 0),
+             ("tile-on", 1), ("lock-click", 1), ("lock-click", 2), ("caption-pop", 5), ("bag-rustle", 0), ("redeem-ding", 0),
              ("handshake", 0), ("logo-hit-soft", 0), ("chip-pop", 0), ("chip-pop", 1), ("chip-pop", 2), ("chip-pop", 3)]
 
 
@@ -357,6 +358,8 @@ def run(ctx: dict, qa_dir: Path, build_dir: Path, args) -> dict:
     rep["harmony"] = harmony_audit(log, harm)
     rep["clicks"] = click_scan(wav_pcm, log, sc)
     rep["chroma"] = music_chroma_check(music, harm)
+    rep["landmarks"] = landmark_loudness(wav_pcm, log)
+    rep["grid"] = grid_table(log)
     rep["gains_db"] = ctx["mus"].get("gains_db", {})
     rep["master_info"] = ctx["info"]
     rep["stem_scale_db"] = ctx["stem_scale_db"]
@@ -380,6 +383,7 @@ def run(ctx: dict, qa_dir: Path, build_dir: Path, args) -> dict:
     ff_spectrogram(ff, wav, qa_dir / "spectrogram_37-41s.png", 37, 4)
     try:
         plot_overview(wav_pcm, music, sfxs, cues, qa_dir / "loudness-and-spectrum.png")
+        plot_closing(wav_pcm, music, sfxs, log, cues, qa_dir / "closing-scenes.png")
     except Exception as exc:  # matplotlib is optional
         rep["plot_error"] = str(exc)
     with open(qa_dir / "sync-measured.csv", "w") as fh:
@@ -399,7 +403,84 @@ def run(ctx: dict, qa_dir: Path, build_dir: Path, args) -> dict:
     return rep
 
 
+# ------------------------------------------------------------------------------------------- grid check
+def grid_table(log: list[dict], t_from: float = 34.0, bar: float = 2.0, sixteenth: float = 0.125) -> list[dict]:
+    """Where the late cues fall on the 120 BPM grid: bar.beat position and the distance to the nearest 16th note (ms, + = late)."""
+    rows = []
+    for e in log:
+        if e["t"] < t_from:
+            continue
+        t = e["t"]
+        b = int(t // bar)
+        beat = (t - b * bar) / (bar / 4) + 1.0
+        off = (t / sixteenth - round(t / sixteenth)) * sixteenth * 1000.0
+        rows.append({"type": e["type"], "t": t, "bar": b + 1, "beat": beat, "off_ms": off})
+    return rows
+
+
+# ------------------------------------------------------------------------------------------- big moments
+def landmark_loudness(master: np.ndarray, log: list[dict]) -> list[dict]:
+    """Momentary loudness (K-weighted, 400 ms starting at the cue) of the film's big moments, and the quiet scene before the last one."""
+    first = {}
+    for e in log:
+        first.setdefault(e["type"], e["t"])
+    rows = []
+    for name, label in (("logo-hit", "logo hit"), ("counter-hit", "98 % counter hit"), ("handshake", "handshake (end chord)")):
+        if name in first:
+            t = first[name]
+            rows.append({"name": label, "t": t, "momentary": dsp.lufs_ungated(master[secs(t):secs(t + 0.4)]),
+                         "short_term_3s": dsp.lufs_ungated(master[secs(t):secs(t + 3.0)])})
+    return rows
+
+
 # ------------------------------------------------------------------------------------------- plots / report
+def plot_closing(master, music, sfxs, log, cues, out: Path, t0: float = 33.5) -> None:
+    """Spectrogram + momentary loudness of the last scenes (system -> human -> handshake -> end card) with the cue markers."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    t1 = cues["duration"]
+    fig = plt.figure(figsize=(18, 8.5))
+    ax1 = fig.add_axes([0.05, 0.42, 0.93, 0.54])
+    x = 0.5 * (master[:, 0] + master[:, 1])
+    f, tt, S = signal.spectrogram(x[secs(t0):], SR, nperseg=2048, noverlap=1792, scaling="spectrum")
+    ax1.pcolormesh(tt + t0, f, 10 * np.log10(S + 1e-14), shading="auto", cmap="magma", vmin=-110, vmax=-28)
+    ax1.set_yscale("symlog", linthresh=100)
+    ax1.set_ylim(40, 12000)
+    for s_ in cues["sections"]:
+        if s_["to"] > t0:
+            ax1.axvline(s_["from"], color="w", lw=0.8, alpha=0.7)
+            ax1.text(s_["from"] + 0.05, 11000, s_["name"], color="w", fontsize=9, va="top")
+    marks = {"whoosh-in", "bag-rustle", "redeem-ding", "photo-whoosh", "handshake", "logo-hit-soft", "sparkle", "node-on", "tile-on", "lock-click"}
+    seen_m: set[str] = set()
+    for e in log:
+        if e["t"] >= t0 and e["type"] in marks and e["type"] not in seen_m:
+            seen_m.add(e["type"])
+            ax1.axvline(e["t"], color="c", lw=0.8, ls=":", alpha=0.9)
+            ax1.text(e["t"] + 0.03, 60 + 70 * len(seen_m), e["type"], color="c", fontsize=8, rotation=0, va="bottom")
+    ax1.set_xlim(t0, t1)
+    ax1.set_ylabel("Hz (log)")
+    ax2 = fig.add_axes([0.05, 0.07, 0.93, 0.29])
+    for sig, col, lab, lw in ((master, "#e94", "master", 2.0), (music, "#48d", "music stem", 1.0), (sfxs, "#4b6", "sfx stem", 1.0)):
+        tm, mom = dsp.short_term_curve(sig, 0.4, 0.05)
+        sel = tm - 0.2 >= t0
+        ax2.plot(tm[sel] - 0.2, mom[sel], lw=lw, color=col, label=f"{lab} (momentary, 400 ms)")
+    for e in log:
+        if e["type"] == "counter-hit":
+            ref = dsp.lufs_ungated(master[secs(e["t"]):secs(e["t"] + 0.4)])
+            ax2.axhline(ref, color="k", lw=0.9, ls="--")
+            ax2.text(t0 + 0.1, ref + 0.4, f"98 % counter hit: {ref:.1f} LUFS (400 ms)", fontsize=8)
+    ax2.axhline(-14, color="gray", lw=0.7, ls=":")
+    ax2.set_ylim(-45, -5)
+    ax2.set_xlim(t0, t1)
+    ax2.grid(alpha=0.3)
+    ax2.legend(loc="lower left", fontsize=8)
+    ax2.set_ylabel("LUFS")
+    ax2.set_xlabel("seconds")
+    fig.savefig(out, dpi=70)
+    plt.close(fig)
+
+
 def plot_overview(master, music, sfxs, cues, out: Path) -> None:
     import matplotlib
     matplotlib.use("Agg")
@@ -534,6 +615,12 @@ def write_report(r: dict, path: Path, args) -> None:
     for s in r["sections"]:
         add(f"| {s['name']} | {s['from']:g}-{s['to']:g} s | {s['lufs']:.1f} | {s['peak']:.1f} | {s['music']:.1f} | {s['sfx']:.1f} | {s['mono_loss']:+.2f} | {s['corr']:.2f} |")
     add("")
+    if r.get("landmarks"):
+        add("Big moments (K-weighted, 400 ms / 3 s starting at the cue): " + "; ".join(
+            f"**{m['name']}** {m['t']:g} s: {m['momentary']:.1f} / {m['short_term_3s']:.1f} LUFS" for m in r["landmarks"]) +
+            ". The end chord is deliberately the biggest moment after the 98 % hit, and a little kinder (no boom, no cymbal). `closing-scenes.png` shows the last "
+            "scenes (system -> quiet human scene -> handshake -> end card) with the cue markers.")
+        add("")
     add("### Octave-band energy of the master (dB re section total)")
     add("")
     add("| section | " + " | ".join(OCT_NAMES) + " |")
@@ -563,6 +650,19 @@ def write_report(r: dict, path: Path, args) -> None:
         add(f"The same measurement on **every** transient cue of the sheet (`sync-measured.csv`): {len(sa)} of {len(r['sync_all'])} could be separated in the "
             f"mix and measured - max |err| {ea.max():.2f} ms, mean {ea.mean():.2f} ms, 95th percentile {np.percentile(ea, 95):.2f} ms; the others sit under a louder "
             f"simultaneous sound (the isolated check below covers them).")
+    if r.get("grid"):
+        add("")
+        add("### Where the retimed cues fall on the 120 BPM grid (cues from 34 s)")
+        add("")
+        add("The picture's timings are not on the music's grid (nodes every 0.4 s = 150 BPM, tiles every 0.2 s, ...). The music never plays a pitched hit or a clap "
+            "12-70 ms next to one of these cues (a flam): the staccato arp only uses 16ths that are clear of them, so the two interlock; exact coincidences stay. "
+            "Offsets beyond +-20 ms are flagged.")
+        add("")
+        add("| cue | t (s) | bar . beat | nearest 16th (ms) | |")
+        add("|---|---|---|---|---|")
+        for g in r["grid"]:
+            flag = "off-grid" if abs(g["off_ms"]) > 20 else ""
+            add(f"| {g['type']} | {g['t']:.3f} | {g['bar']} . {g['beat']:.2f} | {g['off_ms']:+.0f} | {flag} |")
     d = r["design"]
     add("")
     add(f"All {d['n']} cues, isolated check: accent sample vs round(target x 48000) deviates by at most **{d['worst_placement_samples']} samples**; "
@@ -614,12 +714,18 @@ def write_report(r: dict, path: Path, args) -> None:
     far = [c for c in r["clicks"] if c["z"] > 12 and c["nearest_onset_ms"] > 3.0]
     add(f"Unexplained impulses (z > 12 and > 3 ms from any scheduled onset): **{len(far)}**. All voices are faded at both ends by construction (>= 1 ms in, >= 3 ms out).")
     add("")
-    add("## Mix gains (music buses, calibrated to targets)")
+    import mix as _mix
+    frozen = set(_mix.FROZEN_GAINS_DB) if not _mix.RECALIBRATE else set()
+    add("## Mix gains (music buses)")
     add("")
-    add("| bus | gain dB |")
-    add("|---|---|")
+    add("The buses are balanced to the targets in `mix.MUSIC_TARGET`. The gains of the buses that existed before the closing scenes were added are *frozen* "
+        "(`mix.FROZEN_GAINS_DB`), so re-arranging the end never re-balances - or changes - the music of the first 34 s; "
+        "`generate.py --recalibrate` derives them afresh.")
+    add("")
+    add("| bus | gain dB | |")
+    add("|---|---|---|")
     for k, v in r["gains_db"].items():
-        add(f"| {k} | {v:+.1f} |")
+        add(f"| {k} | {v:+.1f} | {'frozen' if k in frozen else 'calibrated to target'} |")
     add("")
     add(f"Stems are scaled together by {r['stem_scale_db']:+.2f} dB so that music + sfx peaks at -1 dBFS (music stem peak {r['stem_peaks']['music']:.1f}, sfx stem peak {r['stem_peaks']['sfx']:.1f} dBFS); their sum is the master chain's input.")
     add("")

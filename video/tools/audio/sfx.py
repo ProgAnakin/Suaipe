@@ -129,14 +129,14 @@ def cue_seed(cues_sfx: list, idx: int) -> int:
 LEVEL = {
     "tile-pop": -15, "word-hit": -11, "riser-a": -16, "lock-on": -11, "whoosh-out": -16, "sparkle-up": -16,
     "riser-b": -12, "logo-hit": -3.0, "shimmer": -18, "tagline-air": -20, "whoosh-up": -12, "caption-pop": -15,
-    "device-settle": -6, "tap": -4, "page-swoosh": -15, "callout-in": -12, "chip-tick": -10, "key": -13,
+    "device-settle": -9, "tap": -4, "page-swoosh": -15, "callout-in": -12, "chip-tick": -10, "key": -13,
     "check-tick": -9, "lock-click": -7, "confirm": -8, "card-in": -10, "swipe-no": -6, "swipe-yes": -7,
     "reveal-whoosh": -7, "riser-count": -8, "count-tick": -7, "counter-hit": -1.5, "confetti-pop": -9,
     "whoosh-pullback": -10, "success-chime": -7, "whoosh-swap": -11, "notif-ping": -7, "swoosh-open": -17,
     "scroll-soft": -22, "zoom-whoosh": -10, "code-ding": -6, "whoosh-down": -12, "node-on": -9, "packet": -13,
     "tile-on": -9, "whoosh-in": -13, "logo-hit-soft": -11, "chip-pop": -8, "sparkle": -12,
     # closing scenes (hand-off photos)
-    "screen-wake": -13, "bag-rustle": -11, "redeem-ding": -9, "photo-whoosh": -21, "handshake": -9,
+    "screen-wake": -13, "bag-rustle": -7.5, "redeem-ding": -9, "photo-whoosh": -19, "handshake": -9,
 }
 
 # reverb sends (linear gain into the shared room / plate / hall reverbs)

@@ -41,11 +41,11 @@ def macro_points(sec: dict, duration: float) -> list[tuple[float, float]]:
     return [(0.0, -6.0), (d_a - 0.1, -1.0), (d_a, 0.0), (cnt, 0.0), (d_b[0], 0.5), (d_b[1] - 0.1, 0.5), (d_b[1] + 0.1, -3.5),
             (em[1] - 0.1, -2.0), (sy[0] + 0.1, 0.0), (sy[1] - 0.1, 0.5),
             (hu[0] + 0.4, HUMAN_DB[0]), (out - 1.0, HUMAN_DB[1]), (out - 0.1, HUMAN_DB[2]),
-            (out, OUTRO_BUMP_DB), (out + 0.35, OUTRO_BUMP_DB), (out + 0.9, 0.0), (duration, -24.0)]
+            (out, OUTRO_BUMP_DB), (out + 0.5, OUTRO_BUMP_DB), (out + 1.4, 0.0), (duration, -24.0)]
 
 
 HUMAN_DB = (-1.5, -1.0, 0.5)       # macro (dB) of the quiet scene: at its start, a second before the downbeat, just before it
-OUTRO_BUMP_DB = 3.0                # the resolving chord's first 350 ms
+OUTRO_BUMP_DB = 3.5                # the resolving chord's first 500 ms (it then settles over the next second)
 # return levels of the shared reverbs (linear)
 REVERB_RETURN = {"room": 1.0, "plate": 1.0, "hall": 1.0}
 MUSIC_SENDS = {  # bus -> {reverb: send gain}
@@ -118,7 +118,7 @@ def sfx_ducks(cues: dict) -> dict[str, list]:
     cluster("notif-ping", -5.0, pre=0.02, post=0.8, groups=("keys", "mid"), att=0.02, rel=0.5)
     cluster("code-ding", -5.0, pre=0.02, post=1.0, groups=("keys", "mid"), att=0.02, rel=0.6)
     cluster("redeem-ding", -4.0, pre=0.02, post=0.4, groups=("keys", "mid"), att=0.02, rel=0.4)
-    cluster("bag-rustle", -6.0, pre=0.05, post=0.55, groups=("keys", "mid"), att=0.03, rel=0.35)   # the real, close sound: the music steps back
+    cluster("bag-rustle", -9.0, pre=0.05, post=0.50, groups=("keys", "mid"), att=0.03, rel=0.35)   # the real, close sound: the music steps back
     # (the soft logo accent at the end is only a secondary accent on the ringing chord: it ducks nothing, so the chord is never 'restarted')
     for name, depth_db, post in (("logo-hit", -4.0, 0.08), ("counter-hit", -4.5, 0.08)):
         for t in t_of(name):

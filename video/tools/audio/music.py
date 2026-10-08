@@ -307,10 +307,18 @@ def compose(cues: dict, harm: Harmony) -> Score:
 
     # ---------------------------------------------------------------- system (bars 18-19, 34.0-37.5): staccato, techy; stops cleanly
     syst = bars_of("system")
-    stop = sec["system"][1] - 0.1            # the diagram is pushed away (whoosh-in) and the groove ends with it: nothing is played from here
+    push = [float(e["t"]) for e in cues["sfx"] if e["type"] == "whoosh-in" and sec["system"][0] <= float(e["t"]) <= sec["system"][1]]
+    stop = push[0] if push else sec["system"][1] - 0.1   # the diagram is pushed away (whoosh-in) and the groove ends with it: nothing is played from here
     mark = {k: len(getattr(sc, k)) for k in ("kicks", "claps", "snares", "hats", "shakers", "rims", "bass", "subs", "arps")}
     mask_g = [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0]       # always open on the beats: the pad pulses with the node-on cues
-    mask_a = [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0]
+    # The picture's cues here (nodes 0.4 s apart, tiles 0.2 s, lock-clicks) are off the 120 BPM grid. The staccato arp plays on every 16th
+    # that would not flam with one of them (12-70 ms apart; exact coincidences and clearly separate hits are fine), so the two interlock.
+    ui_t = np.array(sorted(float(e["t"]) for e in cues["sfx"] if e["type"] in ("node-on", "packet", "tile-on", "lock-click", "caption-pop")))
+
+    def flams(t):
+        d = np.abs(ui_t - t)
+        return bool(np.any((d > 0.012) & (d < 0.070)))
+
     for i, b in enumerate(syst):
         t_end = min(S(b + 1), stop)
         add_pad(b, 0.95 + 0.08 * i, attack=0.12, release=0.25 if t_end < S(b + 1) else 0.2, extra_hi=False, t1=t_end)
@@ -322,14 +330,8 @@ def compose(cues: dict, harm: Harmony) -> Score:
         add_bass(b, "rolling" if i != 1 else "drive", 0.85)
         add_sub(b, 0.7)
         add_hats(b, 0.40, sixteenths=True, ghost=0.18 + 0.03 * i)
-        add_arps(b, 0.92, 1, 0.56 + 0.04 * i, 3 + (i % 2), 8, offset=i + 2, mask=mask_a)
-    # the picture's cues here (nodes 0.4 s apart, tiles 0.2 s, lock-clicks) are off the 120 BPM grid: pitched / clap hits that would flam
-    # with one of them (12-70 ms apart) are left out; exact coincidences and clearly separate hits stay.
-    ui_t = np.array(sorted(float(e["t"]) for e in cues["sfx"] if e["type"] in ("node-on", "packet", "tile-on", "lock-click", "caption-pop")))
-    for name in ("arps", "claps"):
-        lst = getattr(sc, name)
-        lst[mark[name]:] = [x for x in lst[mark[name]:]
-                            if not np.any((np.abs(ui_t - x[0]) > 0.012) & (np.abs(ui_t - x[0]) < 0.070))]
+        add_arps(b, 0.92, 1, 0.56 + 0.04 * i, 3 + (i % 2), 8, offset=i + 2, mask=[0 if flams(S(b, s)) else 1 for s in range(16)])
+    sc.claps[mark["claps"]:] = [x for x in sc.claps[mark["claps"]:] if not flams(x[0])]            # the same for the backbeat claps
     for name, i0 in mark.items():                                    # hard stop: drop everything from `stop`, shorten notes that cross it
         lst = getattr(sc, name)
         kept = []
@@ -347,7 +349,7 @@ def compose(cues: dict, harm: Harmony) -> Score:
     hb = int((h1 - 1e-6) // BAR)                                     # its closing bar (G)
     ch = chords[hb]
     voic = SOFT.get(ch, {"pad": PAD[ch], "lean": PAD[ch], "keys": KEYS[ch], "keys_lean": KEYS[ch]})
-    sc.pads.append(dict(t0=h0 + 0.15, t1=h1 - 0.5, notes=voic["pad"], gain=1.0, attack=0.60, release=0.55, layer="soft"))
+    sc.pads.append(dict(t0=h0 + 0.05, t1=h1 - 0.5, notes=voic["pad"], gain=1.0, attack=0.60, release=0.55, layer="soft"))
     sc.pads.append(dict(t0=h1 - 0.55, t1=h1 - 0.05, notes=voic["lean"], gain=0.80, attack=0.35, release=0.20, layer="soft"))
     sc.pads.append(dict(t0=h0 + 0.6, t1=h1 - 0.1, notes=PAD_HI[ch], gain=0.7, attack=1.0, release=0.6, layer="hi"))
     sc.subs.append((S(hb), h1 - S(hb) - 0.45, SUB_ROOT[ch], 0.5, 120.0))
