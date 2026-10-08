@@ -72,7 +72,7 @@ npm run render          # final MP4 straight from Remotion (H.264 CRF 17 capped 
 npm run render:silent   # same, no audio track
 npm run cover           # LinkedIn thumbnail still ("Eight swipes. One perfect match." over the result screen)              → out/suaipe-cover.png
 npm run cover:device    # alternative thumbnail without people                                                                → out/suaipe-cover-device.png
-scripts/render-preview.sh out/pv.mp4 [SuaipeFilm|SuaipeFilm15]    # half-resolution silent preview in resumable chunks (about 12 min for the master)
+scripts/render-preview.sh out/pv.mp4 [SuaipeFilm|SuaipeFilm15]    # half-resolution silent preview in resumable chunks (15–25 min for the master)
 scripts/audio-previews.sh out/pv.mp4 out/pv15.mp4                  # the listening package (out/audio-ab): the picture muxed with every soundtrack variant
 ```
 

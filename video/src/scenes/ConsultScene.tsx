@@ -91,6 +91,9 @@ const PhoneWorld: React.FC = () => {
   );
 };
 
+/** A label never sits lower than this: it keeps a clear gap above the "Sample data" chip (top 1186) */
+const SAMPLE_CLEAR = 1186 - 78 - 26;
+
 const Annotations: React.FC<{ t: number }> = ({ t }) => {
   const pose = poseAt(t);
   const s = pageScale(pose);
@@ -105,7 +108,7 @@ const Annotations: React.FC<{ t: number }> = ({ t }) => {
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
       <Callout {...search} label="Search any product" icon={<IconSearch size={28} stroke={2.4} />} p={env(t, CONSULT.search)} side="below" radius={22} />
-      <Callout {...video} label="Manager's video" icon={<IconVideo size={28} stroke={2.4} />} p={env(t, [CONSULT.video[0] + 0.1, CONSULT.video[1]])} side="below" radius={30} />
+      <Callout {...video} label="Manager's video" icon={<IconVideo size={28} stroke={2.4} />} p={env(t, [CONSULT.video[0] + 0.1, CONSULT.video[1]])} side="below" radius={30} labelTop={Math.min(video.y + video.h / 2 + 56, SAMPLE_CLEAR)} />
       <Callout {...advice} label="" p={env(t, [CONSULT.advice[0] + 0.1, CONSULT.advice[1]])} side="below" radius={30} />
     </AbsoluteFill>
   );
