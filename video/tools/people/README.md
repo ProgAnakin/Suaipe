@@ -20,7 +20,7 @@ render the film.
 ## Current status — provisional images
 
 The committed `public/people/*.webp` are the 192 × 256 hosted previews (`previews/`), cleaned of JPEG blocking and upscaled 4× with
-EDSR (`upscale.py`). They hold up in the film — the stills are graded, grained and always moving — but an upscaler cannot add detail
+a 50/50 blend of EDSR and Real-ESRGAN plus fine grain (`upscale.py`). They hold up in the film — the stills are graded, grained and always moving — but an upscaler cannot add detail
 that was never in the preview, so the hands are softer than the real files will be. The full-resolution originals are hosted on
 `www.figma.com`, which the sandbox's network policy denied when the film was made. To upgrade: allow that host (environment settings →
 Network access → Allowed domains), run `node tools/people/fetch.mjs`, re-run `measure_quad.py` on the hand-off (the glass does not
@@ -39,8 +39,8 @@ FFMPEG=/path/to/ffmpeg node tools/people/fetch.mjs bag handshake
 The script never touches TLS settings or the proxy. If the host is denied by the environment's network policy it says which
 host to allow (Allowed domains, with the package-manager list left ticked).
 
-`upscale.py` is the fallback that produced the provisional files (needs `opencv-contrib-python-headless` and the 38 MB `EDSR_x4.pb`,
-see its header).
+`upscale.py` is the fallback that produced the provisional files (needs `opencv-contrib-python-headless`, `realesrgan-ncnn-py` and the 38 MB
+`EDSR_x4.pb`; on a machine without a GPU also a software Vulkan driver — see its header).
 
 ## After replacing an image
 
