@@ -1,9 +1,9 @@
 node_modules
 out
 
-audio/build
+audio/build*/
 tools/capture/node_modules/
-public/audio/stems/
+public/audio/stems*/
 audio/qa/spectrogram_*.png
 __pycache__/
 *.pyc
