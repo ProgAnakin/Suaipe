@@ -125,6 +125,19 @@ def cue_seed(cues_sfx: list, idx: int) -> int:
     return zlib.crc32(f"{ev['type']}:{idx - shift}".encode()) & 0xFFFFFFFF
 
 
+# Second mixing pass (after listening to the numbers, not the speakers): measured against the music (loudest 350 ms of each cue vs the music
+# in the same window, above 200 Hz), the interaction sounds - typing, swipes, card-ins, clicks, the iPad -> iPhone swap - sat at or under the
+# music and were masked; only the hook pops, chimes and hits stood out. BOOST_DB raises those types (dB, on top of LEVEL; the synthesis and the
+# seeds are untouched), BOOST_AT a single cue (type, time) that is weaker than its siblings. Target: >= ~+4..+7 dB over the music.
+BOOST_DB = {
+    "key": 6.5, "lock-click": 9.0, "card-in": 7.0, "swipe-no": 7.0, "swipe-yes": 7.0, "device-settle": 7.0,
+    "caption-pop": 3.0, "node-on": 3.0, "packet": 3.0, "tap": 2.5, "tile-on": 2.0,
+    "whoosh-swap": 10.0, "whoosh-down": 7.0, "whoosh-up": 2.5, "reveal-whoosh": 4.5,
+    "photo-whoosh": 6.5, "scroll-soft": 10.0, "handshake": 6.0, "screen-wake": 2.5,
+}
+BOOST_AT = {("zoom-whoosh", 6.85): 9.0}   # the fly-into-the-screen whoosh sits under the loud drop-A music; the e-mail zoom at 31.4 s does not
+
+
 # Peak level (dBFS, pre-master) of each one-shot on the SFX bus - the relative balance of the whole film.
 LEVEL = {
     "tile-pop": -15, "word-hit": -11, "riser-a": -16, "lock-on": -11, "whoosh-out": -16, "sparkle-up": -16,
@@ -1058,6 +1071,11 @@ def render_sfx(cues: dict, harm: Harmony, n_total: int, verbose: bool = False):
         seen[name] = nth + 1
         ctx = Ctx(ev=ev, rng=np.random.default_rng(cue_seed(cues["sfx"], idx)), harm=harm, nth=nth, count=counts[name], index=idx)
         shot = REG[name](ctx)
+        boost = dsp.db2lin(BOOST_DB.get(name, 0.0) + BOOST_AT.get((name, round(float(ev["t"]), 3)), 0.0))
+        if boost != 1.0:
+            shot.audio = shot.audio * boost
+            if shot.send_src is not None:
+                shot.send_src = shot.send_src * boost
         target = shot.target if shot.target is not None else float(ev.get("accent", ev["t"]))
         start = secs(target) - shot.accent
         dsp.mix_into(dry, shot.audio, start, 1.0)

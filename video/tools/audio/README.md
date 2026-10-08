@@ -60,7 +60,7 @@ pure band-limited noise: crinkle bursts convolved with micro-kernels, a stick-sl
 `handshake` (a soft dry skin / cloth clasp plus a warm glass bloom of the C chord and a few glints - the big chord itself is the music's).
 **Seeds:** each cue is seeded from its type and time (`sfx.seed_for`), so adding or moving other cues never re-rolls a sound. The
 cues before 33.6 s keep the seeds of the first cue sheet (`sfx.cue_seed`, `ADDED_SINCE_V1`), so the first 33 s of sound design stays
-bit-identical to the version the picture was cut to.
+the same sound designs as the version the picture was cut to (only their levels changed, see below).
 
 **Music (music.py / instruments.py).** A 22-bar chord-locked score following the section brief: dark drone + sparse sub heartbeat
 (no drums) in the hook; kick, bass, pad and a gentle plucked arpeggio from the 4.0 drop; hats / shaker / backbeat for the typing
@@ -94,7 +94,11 @@ of the film's big moments (logo hit, 98 % hit, end chord), automatic warnings. S
 
 ## Tuning cheat-sheet
 
-* a sound is too loud / quiet: `sfx.LEVEL[type]` (dBFS peak before the master) or `mix.MUSIC_TARGET[bus]`
+* a sound is too loud / quiet: `sfx.LEVEL[type]` (dBFS peak before the master), `sfx.BOOST_DB[type]` / `sfx.BOOST_AT[(type, t)]` (extra dB on a
+  type / a single cue, synthesis and seeds untouched) or `mix.MUSIC_TARGET[bus]`. Judge the *balance* by the effect-vs-music margin (loudest 350 ms of
+  the cue against the music in the same window, above 200 Hz), not by peak level: whooshes and swipes have low crest factors, so a peak that looks
+  loud can still be masked. The second pass raised typing, swipes, card-ins, clicks, the iPad -> iPhone whoosh and a few others from about -5..+2 dB
+  to about +3..+6 dB over the music (the hook's pops, the chimes and the hits were already at +8..+17 dB).
 * more / less room: `sfx.SEND[type]`, `mix.MUSIC_SENDS`, `mix.ir_bank()`
 * the arc of the film: `mix.macro_points` (`HUMAN_DB`, `OUTRO_BUMP_DB` for the closing scenes); the section arrangement: `music.compose` (bar-locked to 120 BPM, anchored to the section times of the cue sheet; the SFX are fully data-driven)
 * duck depth under typing / ticks / hits: `mix.sfx_ducks`
