@@ -133,7 +133,7 @@ export const ConsultScene: React.FC = () => {
         <PhoneWorld />
       )}
       <Annotations t={t} />
-      <div style={{ position: "absolute", left: 0, bottom: 0, width: "100%", height: 190, background: "linear-gradient(rgba(7,10,26,0), rgba(7,10,26,.92) 78%)", opacity: sample, pointerEvents: "none" }} />
+      <div style={{ position: "absolute", left: 0, bottom: 0, width: "100%", height: 250, background: "linear-gradient(rgba(7,10,26,0), rgba(7,10,26,.94) 72%)", opacity: sample, pointerEvents: "none" }} />
       <SampleChip p={sample} />
     </AbsoluteFill>
   );

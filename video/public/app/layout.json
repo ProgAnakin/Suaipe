@@ -12,7 +12,7 @@
       "height": 2732
     },
     "units": "every entry has css {x,y,width,height,right,bottom,cx,cy} in CSS px (viewport coordinates) and norm = the same divided by the viewport (0..1)",
-    "locale": "en-US (English UI), store = Milano",
+    "locale": "en-US (English UI), store = Store A (neutral stand-in)",
     "seed": 20260607,
     "heroProduct": {
       "id": "brevia-gopress",
@@ -839,7 +839,7 @@
     },
     "storeBadge": {
       "tag": "button",
-      "text": "📍Milano",
+      "text": "📍Store A",
       "desc": "store badge (bottom-left; tap = staff PIN overlay)",
       "css": {
         "x": 16,

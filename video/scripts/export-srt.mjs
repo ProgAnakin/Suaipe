@@ -14,7 +14,13 @@ writeFileSync(tmp, js);
 const T = await import(pathToFileURL(tmp).href);
 
 const clean = (s) => s.replace(/<br\s*\/?>/gi, "\n").replace(/<\/?em>/gi, "");
-const items = [...T.CAPTIONS, ...T.SCENE_TEXT].map((c) => ({ from: c.from, to: c.to, text: clean(c.text) }));
+const items = [...T.CAPTIONS, ...T.SCENE_TEXT].map((c) => ({ from: c.from, to: c.to, text: clean(c.text) })).sort((a, b) => a.from - b.from);
+// a line that is only just leaving while the next one arrives (overlap < 0.5 s) hands over cleanly: no two-line flicker in the subtitle track
+for (let i = 0; i < items.length; i++)
+  for (let j = i + 1; j < items.length; j++) {
+    const overlap = items[i].to - items[j].from;
+    if (overlap > 1e-6 && overlap < 0.5 && items[j].to > items[i].to) items[i].to = items[j].from;
+  }
 const cuts = [...new Set(items.flatMap((i) => [i.from, i.to]))].sort((a, b) => a - b);
 const cues = [];
 for (let k = 0; k < cuts.length - 1; k++) {

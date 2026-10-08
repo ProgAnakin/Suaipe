@@ -98,6 +98,7 @@ export const Callout: React.FC<CalloutProps> = ({ x, y, w, h, label, icon, p, si
           letterSpacing: "-0.01em",
           color: COLORS.text,
           background: "linear-gradient(160deg, rgba(14,24,58,.88), rgba(8,14,36,.9))",
+          backdropFilter: "blur(14px)", // whatever sits under the pill (list rows, small type) is softened, never read through it
           border: "1.5px solid rgba(94,234,212,.5)",
           boxShadow: "0 22px 60px rgba(0,0,0,.55), 0 0 44px rgba(34,211,238,.28), inset 0 1px 0 rgba(255,255,255,.12)",
           opacity: labelP,

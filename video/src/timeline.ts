@@ -45,7 +45,7 @@ export const HOOK = {
 export const LOCKUP = {
   hit: 4.0,
   shimmer: 4.2,
-  tagline: 4.4,
+  tagline: 4.3,
   exit: 5.4,
 } as const;
 
@@ -65,7 +65,7 @@ export const IPAD = {
   typeEmail: { start: 11.05, step: 0.04, count: 22 }, // "marco.rossi@example.com" (23 chars, 22 steps + final)
   consent: 12.0,
   lockClick: 12.25,
-  callGdpr: [10.9, 13.2], // the call-out arrives while the e-mail is typed, so it can be read before the checkbox is ticked
+  callGdpr: [10.75, 13.2], // the call-out arrives while the e-mail is typed, so it can be read before the checkbox is ticked
   tap2: 13.3, // START THE GAME!
   tutorialIn: 13.6,
   tap3: 14.5, // I'm ready!
@@ -168,6 +168,7 @@ export const END = {
   chips: [62.2, 62.45, 62.7, 62.95], // the four areas of the product: iPad kiosk, Manager, Stats, Consultants
   tech: 63.3,
   sparkle: 63.4,
+  note: 62.2, // the near-invisible disclosure line (the in-store stills are AI-generated); it stays to the end
   fadeOut: [63.9, DURATION_S],
 } as const;
 
@@ -192,11 +193,12 @@ export const CAPTIONS = [
 export const SCENE_TEXT = [
   { from: 0.12, to: 2.0, text: "Too many gadgets." },
   { from: 2.05, to: 4.0, text: "One perfect match." },
-  { from: 4.4, to: 6.4, text: "Product discovery for physical retail" },
+  { from: LOCKUP.tagline, to: 6.4, text: "Product discovery for physical retail" },
   { from: 8.7, to: 10.0, text: "5 languages" },
-  { from: 10.9, to: 13.2, text: "GDPR consent, captured at the source" },
+  { from: IPAD.callGdpr[0], to: IPAD.callGdpr[1], text: "GDPR consent, captured at the source" },
   { from: 58.25, to: 59.8, text: "Redeemed in store" },
   { from: 61.8, to: 64.0, text: "Built for the whole store." },
+  { from: END.note, to: 64.0, text: "In-store scenes are AI-generated illustrations." },
 ] as const;
 
 // ── helpers ─────────────────────────────────────────────────────────────────────────────────

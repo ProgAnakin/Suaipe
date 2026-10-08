@@ -3,7 +3,7 @@ import { AbsoluteFill, Img, useVideoConfig } from "remotion";
 import { PHOTO } from "../people";
 import { LogoMark } from "../components/LogoMark";
 import { IconBook, IconChart, IconSliders, IconTablet } from "../components/Icons";
-import { COLORS, FONT, GRADIENT_SOFT, MONO } from "../theme";
+import { COLORS, FONT, GRADIENT_SOFT, MONO, TYPE } from "../theme";
 import { CHAPTER, END } from "../timeline";
 import { EASE, clamp, hit, lerp, pop, prog, rng, useSceneTime } from "../lib/motion";
 
@@ -182,6 +182,25 @@ export const EndScene: React.FC = () => {
         }}
       >
         REACT · SUPABASE · PWA
+      </div>
+
+      {/* disclosure: the in-store stills are AI-generated. Deliberately tiny and quiet (the author's choice), inside the safe area */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 1196,
+          width: "100%",
+          textAlign: "center",
+          fontFamily: FONT,
+          fontWeight: 500,
+          fontSize: TYPE.micro,
+          letterSpacing: "0.02em",
+          color: "rgba(226,232,240,.4)",
+          opacity: EASE.out(prog(t, END.note, END.note + 0.5)),
+        }}
+      >
+        In-store scenes are AI-generated illustrations.
       </div>
 
       {GLITTER.map((g, i) => {

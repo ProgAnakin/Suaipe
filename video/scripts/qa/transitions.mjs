@@ -17,10 +17,11 @@ const SEQUENCE = [
   ["hook", "lockup", "flashThrough", "hook -> lock-up"],
   ["lockup", "ipad", "passthrough", "lock-up -> hand-off/iPad"],
   ["ipad", "phone", "swapSlide", "iPad -> iPhone"],
-  ["phone", "store", "dropOut", "iPhone -> store value"],
-  ["store", "system", "passthrough", "store value -> system"],
+  ["phone", "store", "dropOut", "iPhone -> manager & stats"],
+  ["store", "consult", "swapSlide", "manager & stats -> consultants"],
+  ["consult", "system", "dropOut", "consultants -> system"],
   ["system", "human", "photoCut", "system -> human close"],
-  ["human", "signature", "defocus", "human close -> signature"],
+  ["human", "end", "defocus", "human close -> end card"],
 ];
 const out = SEQUENCE.map(([a, b, kind, name]) => ({ name, kind, start: +C[b].from.toFixed(3), end: +C[a].to.toFixed(3) }));
 console.log(JSON.stringify(out));

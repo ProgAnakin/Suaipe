@@ -187,6 +187,8 @@ export const StoreScene: React.FC = () => {
   const shutter = Math.min(250, camSpeed(t, fps) * 9);
   const outP = seg(t, STORE.out, CHAPTER.store.to - 0.05, EASE.in);
   const sample = seg(t, CHAPTER.store.from + 0.4, CHAPTER.store.from + 0.7, EASE.out) * (1 - seg(t, STORE.out, STORE.out + 0.25, EASE.in));
+  // while the screens run off the bottom of the frame they dissolve into the backdrop: no small text under the player controls
+  const bleed = 1 - seg(t, STORE.shift[0], STORE.shift[1], EASE.inOut);
   return (
     <AbsoluteFill
       style={{
@@ -202,6 +204,7 @@ export const StoreScene: React.FC = () => {
       ) : (
         <TabletWorld />
       )}
+      <div style={{ position: "absolute", left: 0, bottom: 0, width: "100%", height: 250, background: "linear-gradient(rgba(7,10,26,0), rgba(7,10,26,.94) 72%)", opacity: bleed, pointerEvents: "none" }} />
       <Annotations t={t} />
       <CrmLayer t={t} />
       <SampleChip p={sample} />
