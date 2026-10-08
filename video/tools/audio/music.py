@@ -85,6 +85,9 @@ class Score:
     air_gaps: list = field(default_factory=list)   # (t0, t1) everything but reverb tails cut
     echo_cuts: list = field(default_factory=list)  # (t0, t1) the arp ping-pong repeats fade out over this window (clean stop)
     roll_hits: list = field(default_factory=list)
+    pulses: list = field(default_factory=list)     # (t, vel, midi) the tuned half-time pulse (direction A)
+    pad_cut: list = field(default_factory=list)    # (t, Hz) low-pass of the pad bus (direction A)
+    macro: list = field(default_factory=list)      # (t, dB) macro level curve of the whole music stem (direction A)
 
 
 def arp_bar(rng, tones, b, density, dur_steps, vel_base, lo, hi, offset=0, mask=None):
@@ -491,6 +494,13 @@ def render_music(sc: Score, harm: Harmony, cues: dict, n: int) -> dict:
         dsp.edge_fades(thump, 3.0, 12.0)
         place(hr, dsp.stereo(thump), t, v * 0.9)
     st["heart"] = hr
+    pb = np.zeros((n, 2))
+    pulse_cache: dict[int, np.ndarray] = {}
+    for t, v, m in sc.pulses:
+        if m not in pulse_cache:
+            pulse_cache[m] = ins.pulse(float(mtof(m)))
+        place(pb, pulse_cache[m], t, v)
+    st["pulse"] = pb
 
     # ------------------------------------------------ pads (one raw bus per layer family, filtered per layer later)
     pad_raw = np.zeros((n, 2))

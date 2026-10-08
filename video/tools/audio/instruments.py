@@ -106,6 +106,21 @@ def rim(rng: np.random.Generator) -> np.ndarray:
     return dsp.stereo(_norm(y, 1.0))
 
 
+def pulse(freq: float, length: float = 0.60, tau: float = 0.20, drive: float = 1.5) -> np.ndarray:
+    """The film's half-time pulse (direction A): a soft, round, TUNED thump - a sine that falls from just above the root into it, a
+    sub-octave under it, saturated so its 2nd-4th harmonics (200-500 Hz) reach a phone speaker, and a little 3rd-harmonic knock."""
+    n = secs(length)
+    t = np.arange(n) / SR
+    f = freq * (1.0 + 0.9 * np.exp(-t / 0.020))
+    body = np.sin(dsp.phase_of(f)) * dsp.attack_decay(n, 3.0, tau)
+    sub_o = np.sin(TWO_PI * (freq / 2) * t) * dsp.attack_decay(n, 4.0, tau * 1.1) * 0.55
+    y = dsp.sat((body + sub_o) * 1.7, drive)
+    knock = sy.thump(freq * 3.0, 0.16, drop=0.4, drop_tau=0.010, tau=0.04, drive=1.8, attack_ms=1.2) * 0.28
+    y[: len(knock)] += knock
+    y = _fade_out(y, 10.0)
+    return dsp.stereo(_norm(y, 1.0))
+
+
 # ------------------------------------------------------------------------------------------- bass
 def sub(freq: float, dur: float, vel: float = 1.0, release: float = 0.12, attack_ms: float = 7.0) -> np.ndarray:
     """Clean sub: sine with a whisper of saturation."""

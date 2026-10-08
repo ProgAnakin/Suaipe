@@ -75,6 +75,8 @@ def penta_run(start_midi: int, count: int) -> list[int]:
 
 @dataclass
 class Harmony:
+    """The chord map: consecutive segments (`bars`, each {from, to, chord}). In the master every segment is a 2 s bar; in the 15 s cut-down
+    a chord may change off the bar line, where two excerpts of the master meet, so lookups go by time, not by bar number."""
     bars: list[dict]
     bar_len: float = 2.0
 
@@ -82,9 +84,13 @@ class Harmony:
     def from_cues(cls, cues: dict) -> "Harmony":
         return cls(bars=cues["harmony"]["bars"], bar_len=float(cues["bar"]))
 
+    def __post_init__(self):
+        self._starts = np.array([float(b["from"]) for b in self.bars])
+
     def bar_index(self, t: float) -> int:
-        """0-based bar index containing time t (the last bar is extended to cover the tail)."""
-        return int(min(max(np.floor((t + 1e-9) / self.bar_len), 0), len(self.bars) - 1))
+        """0-based index of the segment containing time t (the last one is extended to cover the tail)."""
+        i = int(np.searchsorted(self._starts, t + 1e-9, side="right")) - 1
+        return int(min(max(i, 0), len(self.bars) - 1))
 
     def at(self, t: float) -> str:
         return self.bars[self.bar_index(t)]["chord"]

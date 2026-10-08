@@ -17,6 +17,7 @@ import numpy as np
 from scipy import signal
 
 import dsp
+import instruments as ins
 import synth as sy
 import theory as th
 from dsp import SR, secs, mtof, note
@@ -113,7 +114,7 @@ def seed_for(name: str, t: float) -> int:
 # The first 33 s of the film were signed off with seeds derived from each cue's position in the first cue sheet ("v1"). Cues before
 # LEGACY_UNTIL keep exactly those seeds, so their sounds stay bit-identical when later cues are added or moved; the cues the sheet gained
 # since (listed here) are skipped when counting that position. Everything from LEGACY_UNTIL on is seeded from (type, time).
-LEGACY_UNTIL = 33.6
+LEGACY_UNTIL = 0.0          # (direction A: a new cue sheet, so every cue is seeded from its type and time)
 ADDED_SINCE_V1 = {("screen-wake", 5.9), ("zoom-whoosh", 6.85)}
 
 
@@ -130,7 +131,7 @@ def cue_seed(cues_sfx: list, idx: int) -> int:
 # music and were masked; only the hook pops, chimes and hits stood out. BOOST_DB raises those types (dB, on top of LEVEL; the synthesis and the
 # seeds are untouched), BOOST_AT a single cue (type, time) that is weaker than its siblings. Target: >= ~+4..+7 dB over the music.
 BOOST_DB = {
-    "key": 6.5, "lock-click": 9.0, "card-in": 7.0, "swipe-no": 7.0, "swipe-yes": 7.0, "device-settle": 7.0,
+    "key": 6.5, "lock-click": 9.0, "card-in": 7.0, "swipe-no": 5.0, "swipe-yes": 5.0, "device-settle": 7.0, "typing-texture": 6.5,
     "caption-pop": 3.0, "node-on": 3.0, "packet": 3.0, "tap": 2.5, "tile-on": 2.0,
     "whoosh-swap": 10.0, "whoosh-down": 7.0, "whoosh-up": 2.5, "reveal-whoosh": 4.5,
     "photo-whoosh": 6.5, "scroll-soft": 10.0, "handshake": 6.0, "screen-wake": 2.5,
@@ -144,12 +145,15 @@ LEVEL = {
     "riser-b": -12, "logo-hit": -3.0, "shimmer": -18, "tagline-air": -20, "whoosh-up": -12, "caption-pop": -15,
     "device-settle": -9, "tap": -4, "page-swoosh": -15, "callout-in": -12, "chip-tick": -10, "key": -13,
     "check-tick": -9, "lock-click": -7, "confirm": -8, "card-in": -10, "swipe-no": -6, "swipe-yes": -7,
-    "reveal-whoosh": -7, "riser-count": -8, "count-tick": -7, "counter-hit": -1.5, "confetti-pop": -9,
+    "reveal-whoosh": -7, "riser-count": -8, "count-tick": -7, "counter-hit": -4.0, "confetti-pop": -9,
     "whoosh-pullback": -10, "success-chime": -7, "whoosh-swap": -11, "notif-ping": -7, "swoosh-open": -17,
     "scroll-soft": -22, "zoom-whoosh": -10, "code-ding": -6, "whoosh-down": -12, "node-on": -9, "packet": -13,
     "tile-on": -9, "whoosh-in": -13, "logo-hit-soft": -11, "chip-pop": -8, "sparkle": -12,
     # closing scenes (hand-off photos)
     "screen-wake": -13, "bag-rustle": -7.5, "redeem-ding": -9, "photo-whoosh": -19, "handshake": -9,
+    # direction A (qa/SOUND.md): grouped gestures, the motif, the room
+    "typing-texture": -16, "scan-riser": -8, "store-ticks": -10, "node-run": -9, "tile-bloom": -10, "crm-land": -9,
+    "motif-q": -9, "motif": -7, "room-tone": -30,
 }
 
 # reverb sends (linear gain into the shared room / plate / hall reverbs)
@@ -167,6 +171,9 @@ SEND = {
     "caption-pop": {"plate": 0.20}, "riser-a": {"hall": 0.12}, "riser-b": {"hall": 0.10},
     "screen-wake": {"plate": 0.40}, "bag-rustle": {"room": 0.03}, "redeem-ding": {"plate": 0.30}, "photo-whoosh": {"plate": 0.08},
     "handshake": {"plate": 0.45, "hall": 0.25},
+    "typing-texture": {"room": 0.05}, "scan-riser": {"plate": 0.15}, "store-ticks": {"plate": 0.30}, "node-run": {"plate": 0.25},
+    "tile-bloom": {"plate": 0.35, "hall": 0.15}, "crm-land": {"plate": 0.22, "hall": 0.08}, "motif-q": {"hall": 0.45, "plate": 0.15},
+    "motif": {"hall": 0.50, "plate": 0.20}, "room-tone": {"hall": 0.20},
 }
 
 
@@ -333,7 +340,10 @@ def riser_b(c: Ctx) -> Shot:
 def logo_hit(c: Ctx) -> Shot:
     glass_notes = [(note("C5"), 0.0, 1.0), (note("G5"), -0.35, 0.85), (note("E6"), 0.35, 0.7), (note("C6"), 0.0, 0.6)]
     cv = impact(c.rng, 4.6, note("C2"), size=1.0, sub_tau=0.55, glass_notes=glass_notes, glass_tau=1.1, air=0.10, air_tau=0.9)
-    return Shot(finish(cv.y, LEVEL["logo-hit"], 1.5, 80.0), 0, notes=[(0, m) for m, _, _ in glass_notes] + [(0, note("C2"))], strict=True)
+    body = [(note("C4"), 0.60, -0.1), (note("G4"), 0.46, 0.12), (note("E4"), 0.36, 0.0)]       # the chord's low-mid body: a phone speaker keeps it
+    for m, lv, p in body:
+        cv.add(sy.glass(float(mtof(m)), 4.6, tau=1.0, bright=0.6, attack_ms=6.0, rng=c.rng), 0, lv * 0.6, p)
+    return Shot(finish(cv.y, LEVEL["logo-hit"], 1.5, 80.0), 0, notes=[(0, m) for m, _, _ in glass_notes] + [(0, note("C2"))] + [(0, m) for m, _, _ in body], strict=True)
 
 
 @sfx("shimmer")
@@ -405,7 +415,8 @@ def device_settle(c: Ctx) -> Shot:
     knock = sy.thump(f3 * 2, 0.2, drop=0.3, drop_tau=0.015, tau=0.05, drive=1.6, attack_ms=1.2)
     puff = dsp.lp(c.rng.standard_normal(secs(0.1)), 1800, 2) * dsp.attack_decay(secs(0.1), 2.0, 0.03)
     cv = Canvas(0.55)
-    cv.add(body, 0, 1.0).add(thud, 0, 0.65).add(knock, 0, 0.40).add(puff, 0, 0.30)
+    knock3 = sy.thump(f3 * 3, 0.14, drop=0.25, drop_tau=0.012, tau=0.035, drive=1.6, attack_ms=1.0)
+    cv.add(body, 0, 1.0).add(thud, 0, 0.65).add(knock, 0, 0.75).add(knock3, 0, 0.35).add(puff, 0, 0.35)
     return Shot(finish(cv.y, LEVEL["device-settle"]), 0, notes=[(0, m3), (0, m3 - 12)], strict=True)
 
 
@@ -536,41 +547,54 @@ def card_in(c: Ctx) -> Shot:
 
 
 def _swipe(c: Ctx, yes: bool) -> Shot:
+    """A swipe is a short tuned phrase, so the eight cards play a line and the decision can be heard with eyes closed: YES rises and opens
+    (two glass notes and a breath of air going up) and sits on the right; NO falls and closes (two muted plucks and a soft sigh) and sits
+    on the left. Under it a quiet band of noise is the card itself moving. Both are tuned to the chord of the bar."""
     ev = c.ev
     dur = float(ev["dur"])
     accent_t = float(ev.get("accent", ev["t"] + 0.12))
     lead = max(0.04, accent_t - c.t)
+    chord = c.harm.at(accent_t + 1e-4)
+    side = float(ev.get("pan", 0.55 if yes else -0.55))
     n = secs(dur)
     if yes:
-        f = dsp.smooth_curve([(0, 700), (dur, 5200)], n, kind="exp")
-        q, lp_hz, hp_hz, sign = 1.1, 9000, 350, 1.0
-        pow_down = 1.5
+        f = dsp.smooth_curve([(0, 800), (dur, 4800)], n, kind="exp")
+        q, lp_hz, hp_hz = 1.1, 8000, 400
     else:
-        f = dsp.smooth_curve([(0, 2600), (dur, 520)], n, kind="exp")
-        q, lp_hz, hp_hz, sign = 0.9, 4600, 220, -1.0
-        pow_down = 1.3
-    env = sy.bump(n, lead, pow_up=1.0, pow_down=pow_down)
-    pan_c = sign * 0.55 * np.clip(np.arange(n) / SR / dur, 0, 1) ** 0.8
-    y = sy.noise_whoosh(c.rng, dur, f, q, env, width=0.45, lp_hz=lp_hz, hp_hz=hp_hz, pan_curve=pan_c)
-    a_idx = secs(lead)
-    notes: list = []
-    cv = Canvas(dur + 0.3)
-    cv.add(y, 0, 0.8)
+        f = dsp.smooth_curve([(0, 2200), (dur, 500)], n, kind="exp")
+        q, lp_hz, hp_hz = 0.9, 4200, 200
+    env = sy.bump(n, lead, pow_up=1.0, pow_down=1.4)
+    pan_c = side * np.clip(np.arange(n) / SR / dur, 0, 1) ** 0.8
+    body = sy.noise_whoosh(c.rng, dur, f, q, env, width=0.45, lp_hz=lp_hz, hp_hz=hp_hz, pan_curve=pan_c)
+    cv = Canvas(dur + 0.9)
+    cv.add(body, 0, 0.30)
     if yes:
-        targets = [84, 89, 93]
-        m = th.nearest_tone(c.harm.at(accent_t + 1e-4), targets[min(c.nth, 2)], allow_ext=True)
-        ping = sy.glass(float(mtof(m)), 0.5, tau=0.10, bright=1.1, glide=0.03, glide_tau=0.006, attack_ms=1.0, rng=c.rng)
-        tick = sy.bp_noise(c.rng, 0.012, 3500, 9000, 0.002, attack_ms=0.7) * 0.2
-        cv.add(ping, lead, 0.95, 0.3).add(tick, lead, 1.0)
-        notes = [(0.0, m)]
+        m1 = th.nearest_tone(chord, note("G5"), allow_ext=True)
+        m2 = th.nearest_tone(chord, m1 + 4, allow_ext=True)
+        if m2 <= m1:
+            m2 = th.nearest_tone(chord, m1 + 7, allow_ext=True)
+        g1 = sy.glass(float(mtof(m1)), 0.35, tau=0.075, bright=1.0, glide=0.02, glide_tau=0.006, attack_ms=0.9, rng=c.rng)
+        g2 = sy.glass(float(mtof(m2)), 0.70, tau=0.16, bright=1.1, glide=0.02, glide_tau=0.006, attack_ms=0.9, rng=c.rng)
+        phrase = Canvas(1.0)
+        phrase.add(g1, 0, 0.85).add(g2, 0.075, 1.0)
+        air = dsp.hp(c.rng.standard_normal((secs(0.25), 2)), 5000, 2) * sy.bump(secs(0.25), 0.12, 1.2, 1.4)[:, None] * 0.05
+        cv.add(mono(phrase.y), lead, 1.0, side).add(air, lead, 1.0)
+        notes = [(0.0, m1), (0.075, m2)]
     else:
-        root = th.chord_midi(c.harm.at(accent_t + 1e-4), 3)[0]
-        thud = sy.thump(float(mtof(root + 12)), 0.14, drop=0.30, drop_tau=0.012, tau=0.035, drive=1.8, attack_ms=1.0)
-        dull = dsp.lp(c.rng.standard_normal(secs(0.03)), 1800, 2) * dsp.attack_decay(secs(0.03), 0.8, 0.005)
-        cv.add(thud, lead, 0.75, -0.2).add(dull, lead, 0.5)
-        notes = [(0.0, root + 12)]
+        m1 = th.nearest_tone(chord, note("E4"), allow_ext=True)
+        m2 = th.nearest_tone(chord, m1 - 3, allow_ext=True)
+        if m2 >= m1:
+            m2 = th.nearest_tone(chord, m1 - 7, allow_ext=True)
+        p1 = sy.harmonic_pluck(float(mtof(m1)), 0.25, tau=0.07, n_partials=6, tilt=1.4, damp=1.2, attack_ms=1.2, max_hz=3500, rng=c.rng)
+        p2 = sy.harmonic_pluck(float(mtof(m2)), 0.35, tau=0.10, n_partials=6, tilt=1.4, damp=1.2, attack_ms=1.2, max_hz=3500, rng=c.rng)
+        thud = sy.thump(float(mtof(m2)), 0.12, drop=0.3, drop_tau=0.012, tau=0.03, drive=1.4, attack_ms=1.0)
+        close = dsp.lp(c.rng.standard_normal(secs(0.14)), 1500, 2) * sy.bump(secs(0.14), 0.04, 1.0, 1.8)
+        phrase = Canvas(0.6)
+        phrase.add(p1, 0, 0.9).add(p2, 0.07, 1.0).add(thud, 0.07, 0.35)
+        cv.add(mono(phrase.y), lead, 1.0, side).add(close, lead + 0.04, 0.18, side * 0.6)
+        notes = [(0.0, m1), (0.07, m2)]
     name = "swipe-yes" if yes else "swipe-no"
-    return Shot(finish(cv.y, LEVEL[name], 2.5, 18.0), a_idx, target=accent_t, notes=notes, kind="onset")
+    return Shot(finish(cv.y, LEVEL[name], 2.5, 25.0), secs(lead), target=accent_t, notes=notes, kind="onset")
 
 
 @sfx("swipe-yes")
@@ -645,21 +669,22 @@ def count_tick(c: Ctx) -> Shot:
 
 @sfx("counter-hit")
 def counter_hit(c: Ctx) -> Shot:
-    glass_notes = [(note("C5"), 0.0, 0.9), (note("E5"), -0.3, 0.8), (note("G5"), 0.3, 0.8), (note("C6"), -0.15, 0.7),
-                   (note("E6"), 0.25, 0.6), (note("G6"), -0.4, 0.45)]
+    """The 98 % bloom (direction A: the first, smaller peak): a bright C glass chord that opens (soft attack), a sub swell, a low-mid body
+    so a phone speaker carries the chord, and a few top glints. No confetti, no drop."""
+    glass_notes = [(note("C5"), 0.0, 0.9), (note("E5"), -0.3, 0.8), (note("G5"), 0.3, 0.8), (note("C6"), -0.15, 0.7), (note("E6"), 0.25, 0.5)]
     L = 5.0
-    cv = impact(c.rng, L, note("C2"), size=1.15, sub_tau=0.75, glass_notes=glass_notes, glass_tau=1.5, air=0.14, air_tau=1.1,
-                chime_midi=note("C7"))
-    # sparkle spray (C pentatonic, top register) over ~1.2 s, thinning out
-    k = 26
+    cv = impact(c.rng, L, note("C2"), size=0.80, sub_tau=0.75, glass_notes=glass_notes, glass_tau=1.6, air=0.10, air_tau=1.2,
+                chime_midi=note("C7"), glass_attack_ms=16.0, click=0.25)
+    for m, lv, p in ((note("C4"), 0.55, -0.1), (note("G4"), 0.42, 0.12), (note("E4"), 0.34, 0.0)):
+        cv.add(sy.glass(float(mtof(m)), L, tau=1.1, bright=0.6, attack_ms=12.0, rng=c.rng), 0, lv * 0.55, p)
+    k = 9
     u = (np.arange(k) + c.rng.uniform(0, 0.8, k)) / k
-    times = 0.03 + 1.2 * u ** 1.5
-    pool = [m for m in th.penta_run(note("C6"), 14) if m <= note("A7")][4:]
+    times = 0.05 + 0.9 * u ** 1.4
+    pool = [m for m in th.penta_run(note("C6"), 12) if m <= note("G7")][3:]
     midis = [pool[int(c.rng.integers(0, len(pool)))] for _ in range(k)]
-    amps = 0.45 * (1 - u) ** 1.3 + 0.06
-    _glints(c.rng, cv, times, midis, amps, tau=0.10, bright=1.0, max_len=0.7)
+    _glints(c.rng, cv, times, midis, 0.30 * (1 - u) ** 1.3 + 0.05, tau=0.10, bright=1.0, max_len=0.7)
     return Shot(finish(cv.y, LEVEL["counter-hit"], 1.5, 100.0), 0,
-                notes=[(0, m) for m, _, _ in glass_notes] + [(0, note("C7")), (0, note("C2"))], strict=True)
+                notes=[(0, m) for m, _, _ in glass_notes] + [(0, note("C7")), (0, note("C2")), (0, note("C4")), (0, note("G4")), (0, note("E4"))], strict=True)
 
 
 @sfx("confetti-pop")
@@ -1050,6 +1075,186 @@ def handshake(c: Ctx) -> Shot:
     audio, send = finish_pair(dry + wet, wet, LEVEL["handshake"], 1.0, 150.0)
     notes = [(0, m) for m, _, _ in chord] + [(float(tt), m) for tt, m in zip(times, midis)]
     return Shot(audio, 0, notes=notes, strict=True, send_src=send)
+
+
+# =========================================================================================== DIRECTION A (qa/SOUND.md)
+# Sequences become single gestures that carry their own times; the film's shop is a bed; the motif is the signature.
+def _gesture_notes(c: Ctx, times, targets) -> list[int]:
+    """One chord tone (or consonant extension) per time, each in the chord that is playing at that moment."""
+    return [th.nearest_tone(c.harm.at(float(t) + 1e-4), tg, allow_ext=True) for t, tg in zip(times, targets)]
+
+
+@sfx("typing-texture")
+def typing_texture(c: Ctx) -> Shot:
+    """The 33 keystrokes of first name, last name and e-mail as ONE soft texture that follows the real typing (the cue carries every stroke
+    time): a rounded 'tok', a hint of tick and click per stroke, low-passed, with a slightly wandering level — a patter, not 33 clicks."""
+    strokes = [float(x) for x in c.ev["strokes"]]
+    t0 = strokes[0]
+    L = strokes[-1] - t0 + 0.12
+    cv = Canvas(L)
+    for i, ts in enumerate(strokes):
+        n_t = secs(0.045)
+        tick = dsp.sine(c.rng.uniform(2000, 3000), n_t) * dsp.attack_decay(n_t, 0.8, 0.005) * 0.45
+        body = sy.thump(c.rng.uniform(640, 900), 0.04, drop=0.2, drop_tau=0.004, tau=0.006, drive=1.0, attack_ms=0.8) * 0.5
+        click = sy.bp_noise(c.rng, 0.012, 2200, 7500, 0.0018, attack_ms=0.6) * 0.5
+        thud = sy.thump(c.rng.uniform(190, 250), 0.04, drop=0.2, drop_tau=0.004, tau=0.008, drive=1.0, attack_ms=0.9) * 0.14
+        k = min(len(tick), len(body), len(click), len(thud))
+        stroke = dsp.lp(tick[:k] + body[:k] + click[:k] + thud[:k], 5200, 1)
+        cv.add(stroke, ts - t0, c.rng.uniform(0.55, 1.0), c.rng.uniform(-0.2, 0.2))
+    return Shot(finish(cv.y, LEVEL["typing-texture"], 1.0, 14.0), 0)
+
+
+@sfx("scan-riser")
+def scan_riser(c: Ctx) -> Shot:
+    """One tonal riser under the scan ring (it replaces the eleven counter ticks): two detuned voices gliding C4 -> C6 with a gentle
+    'scanning' tremolo that speeds up, a thin veil of air. The body stops 0.25 s before the 98 %; only a faint inhale of the top note
+    keeps rising through that air gap."""
+    dur = float(c.ev["dur"])
+    gap = 0.25
+    n = secs(dur)
+    t = np.arange(n) / SR
+    u = t / dur
+    f = 261.63 * 4.0 ** (u ** 1.4)
+    tonal = np.zeros(n)
+    for det in (1.0, 1.0035):
+        ph = dsp.phase_of(f * det)
+        tonal += np.sin(ph) + 0.30 * np.sin(2 * ph) + 0.10 * np.sin(3 * ph)
+    tonal /= 2.8
+    rate = 5.0 + 14.0 * u
+    am = 1.0 - 0.28 * (0.5 + 0.5 * np.sin(dsp.phase_of(rate)))
+    veil = np.stack([dsp.sweep(c.rng.standard_normal(n), "bp", dsp.smooth_curve([(0, 1200), (dur, 9000)], n, kind="exp"), 1.8),
+                     dsp.sweep(c.rng.standard_normal(n), "bp", dsp.smooth_curve([(0, 1300), (dur, 9500)], n, kind="exp"), 1.8)], axis=1)
+    g_i = secs(dur - gap)
+    env = u ** 2.0
+    env = env / env[g_i - 1]
+    body = (dsp.stereo(tonal * am) * 0.85 + veil * 0.22) * env[:, None]
+    body[g_i:] = 0.0
+    k = n - g_i
+    ug = np.linspace(0, 1, k)
+    air = dsp.hp(c.rng.standard_normal((k, 2)), 6500, 2) * (0.05 * ug ** 1.5)[:, None]
+    top = np.sin(dsp.phase_of(f[g_i:])) * 0.05 * ug ** 2
+    body[g_i:] += air + dsp.stereo(top)
+    return Shot(finish(body, LEVEL["scan-riser"], 80.0, 2.5), g_i, target=c.t + dur - gap, kind="end", notes=[(dur, note("C6"))])
+
+
+@sfx("store-ticks")
+def store_ticks(c: Ctx) -> Shot:
+    """Small glass ticks as ONE gesture that carries its own times: three consent ticks climbing the chord (left to right), or the two
+    ticks that flip Store A to Store B (the second higher)."""
+    times = [float(x) for x in c.ev["times"]]
+    k = len(times)
+    targets = [note("G5"), note("B5"), note("D6")] if k == 3 else [note("E6"), note("G6")]
+    ms_ = _gesture_notes(c, times, targets)
+    cv = Canvas(times[-1] - times[0] + 0.5)
+    for i, (ts, m) in enumerate(zip(times, ms_)):
+        g = sy.glass(float(mtof(m)), 0.4, tau=0.07, bright=0.8, glide=0.02, glide_tau=0.005, attack_ms=0.8, rng=c.rng)
+        tick = sy.bp_noise(c.rng, 0.01, 3500, 9000, 0.0013, attack_ms=0.6) * 0.25
+        p = -0.3 + 0.6 * i / max(k - 1, 1)
+        cv.add(g, ts - times[0], 0.9 + 0.1 * i, p).add(tick, ts - times[0], 1.0, p)
+    return Shot(finish(cv.y, LEVEL["store-ticks"], 0.8, 40.0), 0, notes=[(ts - times[0], m) for ts, m in zip(times, ms_)])
+
+
+@sfx("node-run")
+def node_run(c: Ctx) -> Shot:
+    """The five nodes of the diagram as ONE run of short glass plucks climbing the chord (the marimba arps of the music stay out of this register)."""
+    times = [float(x) for x in c.ev["times"]]
+    targets = [note("G4"), note("D5"), note("G5"), note("B5"), note("D6")][: len(times)]
+    ms_ = _gesture_notes(c, times, targets)
+    cv = Canvas(times[-1] - times[0] + 0.9)
+    for i, (ts, m) in enumerate(zip(times, ms_)):
+        g = sy.glass(float(mtof(m)), 0.7, tau=0.10, bright=0.9, glide=0.02, glide_tau=0.005, attack_ms=1.0, rng=c.rng)
+        wood = sy.bp_noise(c.rng, 0.012, 1800, 5200, 0.002, attack_ms=0.7) * 0.3
+        p = (-0.3, 0.2, -0.15, 0.3, 0.0)[i % 5]
+        cv.add(g, ts - times[0], 0.85 + 0.03 * i, p).add(wood, ts - times[0], 1.0, p)
+    return Shot(finish(cv.y, LEVEL["node-run"], 0.8, 60.0), 0, notes=[(ts - times[0], m) for ts, m in zip(times, ms_)])
+
+
+@sfx("tile-bloom")
+def tile_bloom(c: Ctx) -> Shot:
+    """The three dashboard tiles as ONE bloom: three soft-attack glass notes opening a chord over a rising breath of air."""
+    times = [float(x) for x in c.ev["times"]]
+    targets = [note("B4"), note("E5"), note("A5")][: len(times)]
+    ms_ = _gesture_notes(c, times, targets)
+    L = times[-1] - times[0] + 1.6
+    cv = Canvas(L)
+    for i, (ts, m) in enumerate(zip(times, ms_)):
+        g = sy.glass(float(mtof(m)), 1.4, tau=0.45, bright=0.7, attack_ms=9.0, rng=c.rng)
+        cv.add(g, ts - times[0], 0.85, (-0.4, 0.0, 0.4)[i % 3])
+    n = secs(1.0)
+    air = dsp.sweep(c.rng.standard_normal((n, 2)), "bp", dsp.smooth_curve([(0, 1500), (1.0, 6000)], n, kind="exp"), 1.2) * sy.bump(n, 0.45, 1.4, 1.3)[:, None]
+    cv.add(air, 0, 0.10)
+    return Shot(finish(cv.y, LEVEL["tile-bloom"], 1.0, 120.0), 0, notes=[(ts - times[0], m) for ts, m in zip(times, ms_)])
+
+
+@sfx("crm-land")
+def crm_land(c: Ctx) -> Shot:
+    """A lead lands in its CRM row: one soft pluck with a felt 'thump' under it and a glass overtone (the second lead is quieter)."""
+    strength = float(c.ev.get("strength", 1.0))
+    m = th.nearest_tone(c.chord, note("A4") if c.nth == 0 else note("E5"), allow_ext=True)
+    f = float(mtof(m))
+    pluck = sy.harmonic_pluck(f, 0.8, tau=0.20, n_partials=8, tilt=1.1, damp=0.8, attack_ms=1.5, max_hz=6000, rng=c.rng)
+    felt = sy.thump(f / 2, 0.22, drop=0.3, drop_tau=0.012, tau=0.05, drive=1.2, attack_ms=2.0)
+    over = sy.glass(f * 2, 0.6, tau=0.12, bright=0.7, attack_ms=1.0, rng=c.rng)
+    cv = Canvas(0.9)
+    cv.add(pluck, 0, 1.0).add(felt, 0, 0.45).add(over, 0, 0.30, 0.15)
+    return Shot(finish(cv.y, LEVEL["crm-land"] + dsp.lin2db(strength), 1.0, 90.0), 0, notes=[(0, m)])
+
+
+MOTIF = (note("G4"), note("A4"), note("C5"), note("E5"))      # sol - la - do - mi: "contact"
+MOTIF_AT = (0.0, 0.25, 0.5, 0.75)
+MOTIF_VEL = (0.70, 0.76, 0.86, 1.0)
+
+
+def _motif(c: Ctx, count: int, last_ring: float) -> Canvas:
+    """Glass bell doubled by a felt electric piano, soft attack, no vibrato; the last note rings for `last_ring` seconds."""
+    cv = Canvas(MOTIF_AT[count - 1] + last_ring + 0.4)
+    for i in range(count):
+        last = i == count - 1
+        f = float(mtof(MOTIF[i]))
+        ring = last_ring if last else 0.5
+        bell = sy.glass(f, ring + 0.3, tau=(1.5 if last else 0.45), bright=0.8, attack_ms=5.0, rng=c.rng)
+        ep = ins.ep_tone(f, ring * (0.9 if last else 0.4), MOTIF_VEL[i], rng=None)
+        cv.add(bell, MOTIF_AT[i], 0.62 * MOTIF_VEL[i], -0.1 + 0.07 * i)
+        cv.add(ep, MOTIF_AT[i], 0.50, 0.1 - 0.05 * i)
+    return cv
+
+
+@sfx("motif-q")
+def motif_q(c: Ctx) -> Shot:
+    """The first half of the sonic motif: G4 - A4, a question left hanging over the C of the logo hit."""
+    cv = _motif(c, 2, 1.4)
+    return Shot(finish(cv.y, LEVEL["motif-q"], 3.0, 200.0), 0, notes=[(MOTIF_AT[i], MOTIF[i]) for i in range(2)], strict=True)
+
+
+@sfx("motif")
+def motif(c: Ctx) -> Shot:
+    """The complete sonic motif on the held Cadd9: G4 - A4 - C5 - E5, the last note ringing into the tail. The circle closes."""
+    cv = _motif(c, 4, 2.6)
+    return Shot(finish(cv.y, LEVEL["motif"], 3.0, 400.0), 0, notes=[(MOTIF_AT[i], MOTIF[i]) for i in range(4)], strict=True)
+
+
+@sfx("room-tone")
+def room_tone(c: Ctx) -> Shot:
+    """The shop, felt rather than heard: large-room air, a low ventilation rumble and a diffuse murmur of voices (filtered, syllable-modulated
+    noise — nothing intelligible), slowly breathing. It rhymes the hand-off photograph with the bag and the handshake."""
+    dur = float(c.ev["dur"])
+    n = secs(dur)
+    t = np.arange(n) / SR
+    rng = c.rng
+    air = np.stack([dsp.bp(dsp.pink(rng, n), 90, 5200, 2), dsp.bp(dsp.pink(rng, n), 90, 5200, 2)], axis=1)
+    slow = 1.0 + 0.18 * np.sin(2 * np.pi * (0.11 * t + rng.uniform())) + 0.10 * np.sin(2 * np.pi * (0.27 * t + rng.uniform()))
+    rumble = dsp.lp(rng.standard_normal((n, 2)), 150, 2) * 0.55
+    voices = np.zeros((n, 2))
+    for _ in range(5):
+        base = rng.standard_normal(n)
+        x = dsp.bp(base, 300, 1100, 2) + 0.6 * dsp.bp(base, 1500, 2600, 2)
+        syl = (0.5 + 0.5 * np.sin(2 * np.pi * (rng.uniform(3.0, 5.5) * t + rng.uniform()))) ** 1.6
+        gate = dsp.lp(rng.standard_normal(n), 0.6, 1)
+        gate = 1.0 / (1.0 + np.exp(-6.0 * (gate / (np.std(gate) + 1e-9) - 0.1)))      # slow random on / off: a conversation, then a pause
+        voices += dsp.pan(x * syl * gate, rng.uniform(-0.8, 0.8)) * rng.uniform(0.7, 1.0)
+    y = air * slow[:, None] + rumble + voices * 0.30
+    fi, fo = float(c.ev.get("fade_in", 0.6)) * 1000.0, float(c.ev.get("fade_out", 0.9)) * 1000.0
+    return Shot(finish(y, LEVEL["room-tone"], fi, fo), 0, kind="swell")
 
 
 # =========================================================================================== placement
