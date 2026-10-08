@@ -17,15 +17,11 @@ const r3 = (x) => Math.round(x * 1000) / 1000;
 const sfx = [];
 const add = (type, t, extra = {}) => sfx.push({ type, t: r3(t), ...extra });
 
-// ── hook ───────────────────────────────────────────────────────────────────────────────────
-T.HOOK.tilePop.forEach((t, i) => add("tile-pop", t, { step: i, of: 10 }));
-T.HOOK.words1.forEach((t, i) => add("word-hit", t, { step: i, vel: 0.7 }));
-add("riser-a", 0.0, { dur: 2.0, note: "tension riser, ends exactly at lock-on" });
-add("lock-on", T.HOOK.lockOn, { note: "product chosen: pitched ping + soft low thump" });
-add("whoosh-out", T.HOOK.lockOn, { dur: 0.9, note: "cards fly outward" });
-T.HOOK.words2.forEach((t, i) => add("word-hit", t, { step: i, vel: 0.85 }));
-add("sparkle-up", 2.5, { dur: 0.8 });
-add("riser-b", 3.0, { dur: 1.0, note: "reverse-cymbal style swell landing on the logo hit" });
+// ── hook (provisional until phase 4: the hook has no drums, the light's fade is the only soft event) ──
+add("riser-a", 0.0, { dur: 3.5, note: "tension riser, peaks at 3.5 (the light gathers); the picture holds for 0.25 s of air before the hit" });
+add("lock-on", T.HOOK.pulse, { note: "the light pulses once: a soft pitched ping + low thump" });
+add("whoosh-out", T.HOOK.fade[0], { dur: 0.7, note: "the light fades out: air" });
+add("riser-b", 3.0, { dur: 1.0, note: "swell landing on the logo hit" });
 
 // ── lock-up ────────────────────────────────────────────────────────────────────────────────
 add("logo-hit", T.LOCKUP.hit, { note: "big impact: sub boom + glassy chord + air; music 'drop' happens here" });
@@ -42,8 +38,6 @@ T.CAPTIONS.forEach((c, i) => add("caption-pop", c.from, { step: i }));
 // ── ipad flow ──────────────────────────────────────────────────────────────────────────────
 for (const t of [T.IPAD.tap1, T.IPAD.tap2, T.IPAD.tap3, T.IPAD.tap4]) add("tap", t);
 add("page-swoosh", T.IPAD.welcomeIn, { dur: 0.45 });
-T.IPAD.chipTicks.forEach((t, i) => add("chip-tick", t, { step: i, of: 5 }));
-add("callout-in", T.IPAD.callLang[0], { note: "label pops in" });
 const typeSeq = (cfg, n) => Array.from({ length: n }, (_, i) => cfg.start + cfg.step * i);
 typeSeq(T.IPAD.typeFirst, T.IPAD.typeFirst.count).forEach((t, i) => add("key", t, { step: i }));
 typeSeq(T.IPAD.typeLast, T.IPAD.typeLast.count).forEach((t, i) => add("key", t, { step: i }));
@@ -88,12 +82,17 @@ add("zoom-whoosh", T.PHONE.zoomCode[0], { dur: T.PHONE.zoomCode[1] - T.PHONE.zoo
 add("code-ding", T.PHONE.codeDing, { note: "bright bell as the discount code lights up" });
 add("whoosh-down", T.PHONE.exit, { dur: 0.7 });
 
+// ── store value (provisional: phase 4 re-designs these as grouped gestures) ──────────────────
+T.STORE.consent.forEach((t, i) => add("tile-on", t, { step: i, of: 3 }));
+add("packet", T.STORE.crm, { note: "one lead lands in the CRM row" });
+
 // ── system ─────────────────────────────────────────────────────────────────────────────────
 T.SYSTEM.nodes.forEach((t, i) => add("node-on", t, { step: i, of: T.SYSTEM.nodes.length }));
 T.SYSTEM.packets.forEach((t, i) => add("packet", t, { step: i }));
 T.SYSTEM.tiles.forEach((t, i) => add("tile-on", t, { step: i, of: 3 }));
-T.SYSTEM.locks.forEach((t, i) => add("lock-click", t, { step: i, note: i ? "RLS" : "2FA" }));
+T.SYSTEM.locks.forEach((t, i) => add("lock-click", t, { step: i, note: i ? "RLS" : "MFA" }));
 add("whoosh-in", T.SYSTEM.out, { dur: 0.7, note: "the diagram is pushed back as the bag hand-off photo fades in" });
+add("whoosh-in", T.STORE.out, { dur: 0.6, note: "the dashboard is pushed back as the system diagram arrives" });
 
 // ── human close ────────────────────────────────────────────────────────────────────────────
 add("bag-rustle", T.HUMAN.rustle, { dur: 0.5, note: "paper bag changes hands: soft paper rustle + rope-handle creak + a very low, warm thump (real, tactile, quiet)" });
@@ -101,12 +100,11 @@ add("redeem-ding", T.HUMAN.redeemed, { note: "the 'code redeemed' chip pops: bri
 add("photo-whoosh", T.HUMAN.handshakeIn - 0.1, { dur: 0.6, note: "soft air as the photo crosses to the handshake" });
 add("handshake", T.HUMAN.clasp, { note: "the hands meet exactly on the downbeat: skin/cloth clasp (soft) + the big warm resolving C chord swell (this IS the song's biggest chord) + a small glint of sparkle" });
 
-// ── end card ───────────────────────────────────────────────────────────────────────────────
-add("logo-hit-soft", T.END.hit, { note: "softer sibling of logo-hit: only a secondary accent on top of the C chord that is already ringing since the handshake at 40.0" });
-add("shimmer", T.END.shimmer, { dur: 1.2 });
-add("tagline-air", T.END.tagline, { dur: 0.7 });
-T.END.chips.forEach((t, i) => add("chip-pop", t, { step: i, of: 4 }));
-add("sparkle", T.END.sparkle, { dur: 1.5, note: "final glitter over the held chord" });
+// ── signature (provisional stand-ins; phase 4 designs the sonic motif) ───────────────────────
+add("logo-hit-soft", T.SIGNATURE.name, { note: "the name lands on the held chord of the handshake; the sonic motif completes here" });
+add("shimmer", T.SIGNATURE.name + 0.2, { dur: 1.2 });
+add("tagline-air", T.SIGNATURE.thesis, { dur: 0.7 });
+add("sparkle", T.SIGNATURE.tiny, { dur: 1.5, note: "a single glint" });
 
 sfx.sort((a, b) => a.t - b.t);
 
@@ -118,20 +116,21 @@ const out = {
   sampleRate: 48000,
   harmony: {
     key: "C major / A minor",
-    note: "one chord per bar (2 s). Hits: logo-hit lands on C at 4.0, counter-hit on C at 22.0, end hit on C at 40.0.",
-    bars: ["Am","G","C","G","Am","F","C","G","Am","F","G","C","G","Am","F","C","G","Am","F","G","C","Cadd9"].map((chord, i) => ({ bar: i + 1, from: i * 2, to: i * 2 + 2, chord })),
+    note: "one chord per bar (2 s). Hits: logo-hit on C at 4.0 (bar 3), counter-hit on C at 20.0 (bar 11), handshake on C at 44.0 (bar 23), the signature on Cadd9 at 46.0 (bar 24). Provisional: phase 4 re-plans the score.",
+    bars: ["Am","G","C","G","Am","F","C","G","Am","F","C","G","Am","F","C","G","Am","F","C","G","Am","G","C","Cadd9","Cadd9"].map((chord, i) => ({ bar: i + 1, from: i * 2, to: i * 2 + 2, chord })),
   },
   sections: [
-    { name: "intro", from: 0.0, to: 4.0, bars: "1-2", brief: "No drums. Dark, tense, rising: low pad drone, filtered noise swell, sparse sub heartbeat, risers. Ticks from the sfx layer carry the rhythm." },
-    { name: "drop-A", from: 4.0, to: 8.0, bars: "3-4", brief: "Logo hit at 4.0: kick + sub bass + pad chord + gentle plucked arp enter. Confident, clean, modern tech-product feel." },
-    { name: "groove-A", from: 8.0, to: 14.0, bars: "5-7", brief: "Steady groove while the user types: hats on off-beats, soft shaker, bass pattern, arp gets busier. Leave space for the key clicks." },
-    { name: "build", from: 14.0, to: 20.0, bars: "8-10", brief: "Energy climbs through the 8 swipes (they land on the beat from 17.5 on): add snare/clap fills, rising filter, tighter arps." },
-    { name: "counter", from: 20.0, to: 22.0, bars: "11", brief: "Riser: kick drops out at 21.0, snare roll accelerating into 22.0, everything cuts for a beat of air right before the hit." },
-    { name: "drop-B", from: 22.0, to: 26.0, bars: "12-13", brief: "Biggest moment: full chord stack + lead melody + open hats + kick. Celebratory but tasteful." },
-    { name: "email", from: 26.0, to: 34.0, bars: "14-17", brief: "Breakdown: low-pass the groove, warm keys + pad, soft pulse; light percussion. The notif-ping and code-ding sit on top." },
-    { name: "system", from: 34.0, to: 37.6, bars: "18-19", brief: "Rhythmic, techy: staccato arps / gated pad pulsing with the nodes (they come faster now: 5 nodes in 1.4 s, tiles at 35.8-36.2, locks 36.55 / 36.95); the groove stops cleanly at 37.5 when the diagram is pushed away." },
-    { name: "human", from: 37.6, to: 40.0, bars: "20", brief: "Warm, human, quiet: the groove is gone. Soft pad + felt/e-piano chords on G (V) leaning towards C, a little air, maybe a single gentle bell on the redeem-ding. Paper-bag rustle at 38.0 is a real, close, tactile sound: keep the music out of its way. Build a gentle lift into the downbeat at 40.0 (no drums, no riser clichés)." },
-    { name: "outro", from: 40.0, to: 44.5, bars: "21-22+", brief: "The handshake lands on the downbeat of bar 21 (40.0): THIS is the song's big resolving C chord (full, warm, the biggest moment of the film besides the 98 % hit). Let it ring through bar 22 (Cadd9 at 42.0); the logo-hit-soft at 41.0 is only a secondary accent on top of the held chord; chips at 42.2-42.95; sparkle 43.4; fade the tail to true silence by 44.5." },
+    { name: "intro", from: 0.0, to: 4.0, bars: "1-2", brief: "No drums. Dark, tense, suspended: low pad drone, sparse sub heartbeat, harmony left open, a quiet 0.25 s air gap right before the hit at 4.0." },
+    { name: "drop-A", from: 4.0, to: 8.0, bars: "3-4", brief: "Logo hit at 4.0: first resolution, sonic motif (first half). Kick + sub bass + pad chord + gentle plucked arp enter, confident and clean; the hand-off photo at 6.0 brings a shop room tone." },
+    { name: "groove-A", from: 8.0, to: 14.0, bars: "5-7", brief: "Light groove while the user types and consents; leave space for the single typing gesture and the consent click." },
+    { name: "build", from: 14.0, to: 18.0, bars: "8-9", brief: "Energy climbs through the eight swipes: the swipes lead the rhythm, 'yes' rises/opens and pans right, 'no' falls/closes and pans left." },
+    { name: "counter", from: 18.0, to: 20.0, bars: "10", brief: "One tonal riser under the scan ring, everything cuts for 0.25 s of air right before the hit at 20.0." },
+    { name: "drop-B", from: 20.0, to: 24.0, bars: "11-12", brief: "The 98 % hit on C at 20.0 (or held back, per the sound direction): the biggest moment of the first half." },
+    { name: "email", from: 24.0, to: 30.0, bars: "13-15", brief: "Breakdown: low-passed groove, warm keys, soft pulse. The notification ping and the code ding sit on top." },
+    { name: "store", from: 30.0, to: 38.0, bars: "16-19", brief: "Firm, steady, competent: regular pulse, confident harmony; tiny grouped ticks only, one soft 'land' when the lead reaches the CRM row." },
+    { name: "system", from: 38.0, to: 42.0, bars: "20-21", brief: "Precise and calm: staccato arps / gated pad with the nodes (5 nodes in 1.4 s, tiles at 39.8-40.2, locks 40.55 / 40.95); the pulse stops cleanly at 41.5 when the photo takes over." },
+    { name: "human", from: 42.0, to: 44.0, bars: "22", brief: "Warm, human, quiet: no drums. Soft pad + felt piano on G (V) leaning towards C, a shop room tone, the bag rustle at 42.0 and the redeem ding at 42.45; a gentle lift into the downbeat at 44.0." },
+    { name: "outro", from: 44.0, to: 50.0, bars: "23-25", brief: "The handshake lands on the downbeat of bar 23 (44.0): the big resolving C chord (full, warm, no cymbal). It rings through the Cadd9 of the signature (46.0, where the sonic motif completes); the last 1.5 s are still; fade the tail to true silence by 50.0." },
   ],
   sfx,
 };

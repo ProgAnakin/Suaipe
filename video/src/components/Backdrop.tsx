@@ -7,11 +7,12 @@ import { beatPulse, EASE, keyframes, rng } from "../lib/motion";
 
 // How "alive" the background is over the film (glow size + brightness). Peaks on the big hits.
 const ENERGY: ReadonlyArray<readonly [number, number]> = [
-  [0, 0.4], [3.6, 0.55], [4.0, 1.0], [4.8, 0.7], [8, 0.78], [14, 0.88], [20, 1.0], [22, 1.0], [23.5, 0.8],
-  [26, 0.55], [28, 0.5], [34, 0.75], [37.6, 0.7], [39.2, 0.5], [40.0, 1.0], [41.2, 0.85], [43.2, 0.55], [44.5, 0.35],
+  [0, 0.4], [3.6, 0.55], [4.0, 1.0], [4.8, 0.7], [8, 0.78], [14, 0.88], [18.5, 0.95], [20, 1.0], [21.5, 1.0], [23.2, 0.8],
+  [25.5, 0.55], [28, 0.5], [29.4, 0.6], [30.5, 0.72], [37.6, 0.74], [39, 0.75], [41.5, 0.7], [42.2, 0.5], [43.2, 0.5],
+  [44.0, 1.0], [45.2, 0.85], [47.2, 0.55], [50, 0.35],
 ];
 // Spans where the kick drum plays (the glow breathes on every beat there)
-const GROOVE: ReadonlyArray<readonly [number, number]> = [[4.0, 21.0], [22.0, 26.0], [34.0, 37.8], [40.0, 41.6]];
+const GROOVE: ReadonlyArray<readonly [number, number]> = [[4.0, 19.5], [20.0, 23.0], [30.0, 41.5], [44.0, 45.5]];
 
 type Particle = { x: number; y: number; r: number; speed: number; depth: number; phase: number; color: string };
 

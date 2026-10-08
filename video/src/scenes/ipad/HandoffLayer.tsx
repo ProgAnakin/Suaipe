@@ -18,7 +18,7 @@ export const HandoffLayer: React.FC = () => {
   const H = IPAD.handoff;
   if (t > H.out + 0.02) return null;
 
-  const inP = seg(t, H.in, H.in + 0.45, EASE.out);
+  const inP = seg(t, H.in, H.in + 0.55, EASE.inOut); // a real dissolve out of the lock-up, centred on the bar line (6.0)
   const outP = seg(t, H.zoom[1] - 0.12, H.out, EASE.inOut);
   const zoomE = seg(t, H.zoom[0], H.zoom[1], EASE.inOutSoft);
   const kb = EASE.inOut(prog(t, H.in, H.zoom[0]));

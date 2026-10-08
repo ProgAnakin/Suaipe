@@ -1,4 +1,5 @@
-// Writes out/suaipe-captions.srt from the captions in src/timeline.ts (LinkedIn accepts an uploaded .srt for accessibility).
+// Writes out/suaipe-captions.srt from ALL the copy in src/timeline.ts (burned-in captions + scene text), split into non-overlapping cues
+// (LinkedIn accepts an uploaded .srt for accessibility).
 // Run: npm run srt
 import { transformSync } from "esbuild";
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -13,7 +14,19 @@ writeFileSync(tmp, js);
 const T = await import(pathToFileURL(tmp).href);
 
 const clean = (s) => s.replace(/<br\s*\/?>/gi, "\n").replace(/<\/?em>/gi, "");
-const srt = T.CAPTIONS.map((c, i) => `${i + 1}\n${T.secToTimecode(c.from)} --> ${T.secToTimecode(c.to)}\n${clean(c.text)}\n`).join("\n");
+const items = [...T.CAPTIONS, ...T.SCENE_TEXT].map((c) => ({ from: c.from, to: c.to, text: clean(c.text) }));
+const cuts = [...new Set(items.flatMap((i) => [i.from, i.to]))].sort((a, b) => a - b);
+const cues = [];
+for (let k = 0; k < cuts.length - 1; k++) {
+  const a = cuts[k], b = cuts[k + 1];
+  const active = items.filter((i) => i.from <= a + 1e-6 && i.to >= b - 1e-6).sort((x, y) => x.from - y.from);
+  if (!active.length) continue;
+  const text = active.map((i) => i.text).join("\n");
+  const last = cues[cues.length - 1];
+  if (last && last.text === text && Math.abs(last.to - a) < 1e-6) last.to = b;
+  else cues.push({ from: a, to: b, text });
+}
+const srt = cues.map((c, i) => `${i + 1}\n${T.secToTimecode(c.from)} --> ${T.secToTimecode(c.to)}\n${c.text}\n`).join("\n");
 mkdirSync(join(root, "out"), { recursive: true });
 writeFileSync(join(root, "out/suaipe-captions.srt"), srt);
-console.log(`out/suaipe-captions.srt (${T.CAPTIONS.length} captions)`);
+console.log(`out/suaipe-captions.srt (${cues.length} cues from ${items.length} lines)`);

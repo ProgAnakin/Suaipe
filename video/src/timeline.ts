@@ -3,34 +3,41 @@
 // Scenes convert with `Math.round(seconds * fps)`; the audio generator reads the same numbers
 // through `npm run cues` (see scripts/export-cues.mjs).
 //
+// The structure follows qa/SCRIPT.md (BRIEF v2): 8 blocks, 50 s = 25 bars.
+//   hook 0-4 · idea 4-6 · experience 6-23 · customer value 23-30 · store value 30-38 · system 38-42 · human 42-46 · signature 46-50
+//
 // Keep this file free of imports: it is executed by plain Node as well as bundled by Remotion.
 
 export const FPS = 60;
 export const BPM = 120;
 export const BEAT = 60 / BPM; // 0.5 s
 export const BAR = BEAT * 4; // 2.0 s
-export const DURATION_S = 44.5;
+export const DURATION_S = 50.0; // 25 bars
 export const WIDTH = 1080;
 export const HEIGHT = 1350;
 
-// ── chapters ────────────────────────────────────────────────────────────────────────────────
+// ── chapters (scene sequences; neighbouring ones overlap by the length of their transition) ──────
 export const CHAPTER = {
   hook: { from: 0, to: 4.0 },
-  lockup: { from: 3.6, to: 6.2 },
-  ipad: { from: 5.4, to: 26.6 },
-  phone: { from: 25.6, to: 34.2 },
-  system: { from: 33.6, to: 37.9 },
-  human: { from: 37.5, to: 41.5 }, // bag hand-off → handshake, real hands, in store
-  end: { from: 41.0, to: DURATION_S },
+  lockup: { from: 3.6, to: 6.4 },
+  ipad: { from: 5.7, to: 24.0 },
+  phone: { from: 23.0, to: 30.0 },
+  store: { from: 29.4, to: 38.2 },
+  system: { from: 37.6, to: 41.9 },
+  human: { from: 41.5, to: 45.5 },
+  signature: { from: 45.0, to: DURATION_S },
 } as const;
 
-// ── hook (bars 1–2) ─────────────────────────────────────────────────────────────────────────
+// ── hook (bars 1–2): "A customer walks in. The store rarely learns who." ─────────────────────
 export const HOOK = {
-  tilePop: Array.from({ length: 10 }, (_, i) => +(0.1 + 0.075 * i).toFixed(3)),
-  words1: [0.12, 0.3, 0.48], // "Too" "many" "gadgets."
-  lockOn: 2.0, // beat 5: the chosen product lights up, the others fly away
-  words2: [2.05, 2.25, 2.45], // "One" "perfect" "match."
-  heroDone: 3.2,
+  line1: 0.0, // "A customer walks in." (on screen from the very first frame)
+  line1Out: 3.0,
+  line2: 1.0, // "The store rarely learns who." arrives word by word
+  walk: [0.0, 1.0], // the light crosses the shop floor to the counter
+  pulse: 2.0, // it pulses once ...
+  fade: [2.0, 2.7], // ... and is gone: the unknown
+  gather: 3.5, // light gathers at the centre
+  gap: [3.75, 4.0], // 0.25 s air gap: the picture holds, the sound cuts
   flashPeak: 4.0,
 } as const;
 
@@ -38,107 +45,123 @@ export const HOOK = {
 export const LOCKUP = {
   hit: 4.0,
   shimmer: 4.2,
-  tagline: 4.55,
-  exit: 5.4,
+  tagline: 4.35, // "One question changes that."
+  exit: 5.7,
 } as const;
 
-// ── iPad flow ───────────────────────────────────────────────────────────────────────────────
+// ── iPad flow (hand-off → form → 8 swipes → 98 % → "I want it") ─────────────────────────────
 export const IPAD = {
-  rise: 5.4, // the hand-off photo opens (soft whoosh as the lock-up leaves)
+  rise: 5.7, // the hand-off photo opens (soft whoosh as the lock-up leaves)
   settle: 6.4, // the tablet changes hands (soft thud)
   // the opening is a photo of the consultant handing the tablet over; the kiosk screen wakes up on it, then we fly into it
   // `zoomTo` = iPad zoom at which the photographed glass fills the canvas width (the CSS iPad waits there, hidden)
-  handoff: { in: 5.4, wake: 5.9, zoom: [6.85, 7.4], out: 7.55, zoomTo: 1.35 },
+  handoff: { in: 5.75, wake: 6.5, zoom: [7.0, 7.6], out: 7.9, zoomTo: 1.35 },
   tap1: 8.0, // TAP TO START
   welcomeIn: 8.05,
-  chipTicks: [8.8, 9.0, 9.2, 9.4, 9.6], // language highlight sweep IT → FR
-  callLang: [8.7, 10.0],
-  typeFirst: { start: 10.1, step: 0.075, count: 5 }, // "Marco"
-  typeLast: { start: 10.6, step: 0.075, count: 5 }, // "Rossi"
-  typeEmail: { start: 11.05, step: 0.04, count: 22 }, // "marco.rossi@example.com" (23 chars, 22 steps + final)
-  consent: 12.0,
-  lockClick: 12.25,
-  callGdpr: [12.0, 13.2],
-  tap2: 13.3, // START THE GAME!
-  tutorialIn: 13.6,
-  tap3: 14.5, // I'm ready!
+  typeFirst: { start: 8.5, step: 0.06, count: 5 }, // "Marco"
+  typeLast: { start: 8.85, step: 0.06, count: 5 }, // "Rossi"
+  typeEmail: { start: 9.2, step: 0.03, count: 22 }, // "marco.rossi@example.com" (23 chars, 22 steps + final)
+  consent: 10.0,
+  lockClick: 10.2,
+  callGdpr: [10.0, 12.4],
+  tap2: 12.0, // START THE GAME!
+  tutorialIn: 12.3,
+  tap3: 13.5, // I'm ready!
   // quiz: `start` = first moment the card moves, `dur` = length of the real drag, accent = start + 0.35 * dur
   swipes: [
-    { enter: 14.7, start: 15.22, dur: 0.8, dir: -1 }, // sport      NO
-    { enter: 15.95, start: 16.29, dur: 0.6, dir: -1 }, // audio      NO
-    { enter: 16.8, start: 17.36, dur: 0.4, dir: 1 }, // productivity YES
-    { enter: 17.5, start: 17.86, dur: 0.4, dir: 1 }, // wellness   YES
-    { enter: 18.0, start: 18.36, dur: 0.4, dir: 1 }, // travel     YES
-    { enter: 18.5, start: 18.86, dur: 0.4, dir: -1 }, // tech       NO
-    { enter: 19.0, start: 19.36, dur: 0.4, dir: -1 }, // style      NO
-    { enter: 19.5, start: 19.86, dur: 0.4, dir: -1 }, // recovery   NO
+    { enter: 13.75, start: 14.2, dur: 0.7, dir: -1 }, // sport      NO
+    { enter: 14.65, start: 14.95, dur: 0.55, dir: -1 }, // audio      NO
+    { enter: 15.25, start: 15.55, dur: 0.4, dir: 1 }, // productivity YES
+    { enter: 15.75, start: 16.05, dur: 0.4, dir: 1 }, // wellness   YES
+    { enter: 16.25, start: 16.55, dur: 0.4, dir: 1 }, // travel     YES
+    { enter: 16.75, start: 17.05, dur: 0.4, dir: -1 }, // tech       NO
+    { enter: 17.25, start: 17.55, dur: 0.4, dir: -1 }, // style      NO
+    { enter: 17.75, start: 18.05, dur: 0.4, dir: -1 }, // recovery   NO
   ],
-  counterStart: 20.0,
-  counterFillFrom: 20.3,
-  counterHit: 22.0, // 98 % reached, confetti, big hit (bar 12 downbeat)
-  pullBack: 22.1,
-  tap4: 24.0, // I want it!
-  successIn: 24.2,
-  successChime: 24.35,
-  exit: 25.6,
+  counterStart: 18.5,
+  counterFillFrom: 18.7,
+  counterHit: 20.0, // 98 % reached, confetti, big hit (bar 11 downbeat)
+  pullBack: 20.1,
+  tap4: 22.0, // I want it!
+  successIn: 22.2,
+  successChime: 22.35,
+  exit: 23.0,
 } as const;
 
-// ── phone / e-mail ──────────────────────────────────────────────────────────────────────────
+// ── phone / e-mail (customer value) ─────────────────────────────────────────────────────────
 export const PHONE = {
-  enter: 25.6,
-  settle: 26.7,
-  notif: 26.9,
-  notifPing: 27.0,
-  open: 27.6,
-  scroll: [29.6, 31.0],
-  zoomCode: [31.4, 32.2],
-  codeDing: 32.2,
-  exit: 33.4,
+  enter: 23.0,
+  settle: 23.7,
+  notif: 24.4,
+  notifPing: 24.5,
+  open: 25.0,
+  scroll: [25.9, 27.0],
+  zoomCode: [27.2, 28.0],
+  codeDing: 28.0,
+  exit: 29.2,
 } as const;
 
-// ── system diagram ──────────────────────────────────────────────────────────────────────────
+// ── store value (new): what the manager gets ────────────────────────────────────────────────
+export const STORE = {
+  rows: 30.0, // manager view with sample leads is in place
+  consent: [30.6, 30.85, 31.1], // consent badges pop in on the rows
+  funnel: 32.5, // funnel + product ranking
+  crm: 35.25, // one lead flies into a CRM row
+  out: 37.75, // pushed back as the system diagram arrives
+} as const;
+
+// ── system diagram (kept): how it is built ──────────────────────────────────────────────────
 export const SYSTEM = {
-  nodes: [34.0, 34.4, 34.8, 35.2, 35.4], // kiosk, supabase, edge fn, e-mail, CRM relay
-  packets: [34.35, 34.75, 35.15, 35.35],
-  tiles: [35.8, 36.0, 36.2], // Manager, Stats, Consultants
-  locks: [36.55, 36.95], // 2FA, RLS
-  out: 37.5,
+  nodes: [38.0, 38.4, 38.8, 39.2, 39.4], // kiosk, supabase, edge fn, e-mail, CRM relay
+  packets: [38.35, 38.75, 39.15, 39.35],
+  tiles: [39.8, 40.0, 40.2], // Manager, Stats, Consultants
+  locks: [40.55, 40.95], // MFA, RLS
+  out: 41.5,
 } as const;
 
 // ── human close: the sale happens in person ─────────────────────────────────────────────────
 export const HUMAN = {
-  bagIn: 37.6, // cut to the bag hand-off photo
-  rustle: 38.0, // the bag changes hands
-  redeemed: 38.45, // "Code redeemed" chip pops (the real mark_code_redeemed flow)
-  handshakeIn: 39.5, // cross to the handshake
-  clasp: 40.0, // the hands meet — bar 21 downbeat, the big resolving chord
-  out: 41.3,
+  bagIn: 41.6, // cut to the bag hand-off photo
+  rustle: 42.0, // the bag changes hands
+  redeemed: 42.45, // "Redeemed in store" chip pops (the real mark_code_redeemed flow)
+  handshakeIn: 43.5, // cross to the handshake
+  clasp: 44.0, // the hands meet — bar 23 downbeat, the big resolving chord
+  out: 45.3,
 } as const;
 
-// ── end card ────────────────────────────────────────────────────────────────────────────────
-export const END = {
-  hit: 41.0,
-  shimmer: 41.2,
-  tagline: 41.8,
-  chips: [42.2, 42.45, 42.7, 42.95],
-  tech: 43.3,
-  sparkle: 43.4,
-  fadeOut: [43.9, DURATION_S],
+// ── signature (the old end card): name, thesis, soft call to action ─────────────────────────
+export const SIGNATURE = {
+  glow: 45.2, // the defocused handshake darkens, a glow gathers
+  name: 46.0, // bar 24 downbeat: the sonic motif completes
+  thesis: 46.6,
+  tiny: 47.2, // the near-invisible "AI-generated illustrations" line
+  cta: 47.8,
+  still: 48.5, // from here nothing moves
 } as const;
 
-// ── captions (burned in: most LinkedIn viewers watch muted) ──────────────────────────────────
+// ── copy ────────────────────────────────────────────────────────────────────────────────────
+// CAPTIONS are burned in by components/Caption.tsx (most LinkedIn viewers watch muted). SCENE_TEXT is copy that a scene draws itself
+// (hook, lock-up, call-outs, chips, signature); it lives here so the subtitle file and the reading-time audit see all of it.
 export const CAPTIONS = [
-  { from: 6.2, to: 8.0, text: "Turns idle in-store iPads into a <em>touchpoint.</em>" },
-  { from: 14.6, to: 20.4, text: "Eight swipes. <em>One match.</em>" },
-  { from: 22.3, to: 25.4, text: "A match in <em>under two minutes.</em>" },
-  { from: 27.8, to: 31.4, text: "A personalised email with a <em>unique code.</em>" },
-  {
-    from: 34.0,
-    to: 37.6,
-    text: "Multi-store. <em>2FA on staff dashboards.</em><br/>Row-level security on every table.",
-    small: true,
-  },
-  { from: 37.8, to: 41.0, text: "Technology that keeps<br/>the in-store moment <em>human.</em>" },
+  { from: 6.6, to: 9.4, text: "A game, <em>not a form.</em>" },
+  { from: 14.2, to: 17.2, text: "Eight swipes. <em>One match.</em>" },
+  { from: 25.2, to: 28.8, text: "A personal email. <em>A reason to return.</em>" },
+  { from: 30.2, to: 32.8, text: "Every claimed match <em>becomes a lead.</em>" },
+  { from: 32.8, to: 35.4, text: "See what sells, <em>store by store.</em>" },
+  { from: 35.4, to: 37.8, text: "Leads land <em>in the CRM.</em>" },
+  { from: 38.0, to: 41.6, text: "Multi-store. <em>Row-level security</em> on every table." },
+  { from: 42.2, to: 45.8, text: "Technology opens the conversation.<br/><em>People close the sale.</em>" },
+] as const;
+
+export const SCENE_TEXT = [
+  { from: 0.0, to: 3.0, text: "A customer walks in." },
+  { from: 1.0, to: 3.7, text: "The store rarely learns who." },
+  { from: 4.4, to: 6.3, text: "One question changes that." },
+  { from: 10.0, to: 12.4, text: "GDPR consent, captured at the source" },
+  { from: 42.4, to: 44.0, text: "Redeemed in store" },
+  { from: 46.0, to: 50.0, text: "Costanzo Annichini" },
+  { from: 46.6, to: 49.4, text: "Simple ideas create contact.<br/>Contact creates data." },
+  { from: 47.8, to: 49.9, text: "Let's talk retail." },
 ] as const;
 
 // ── helpers ─────────────────────────────────────────────────────────────────────────────────

@@ -6,6 +6,17 @@ export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 /** 0..1 progress of `t` between a and b (clamped). */
 export const prog = (t: number, a: number, b: number) => (b === a ? (t >= b ? 1 : 0) : clamp((t - a) / (b - a)));
 
+/**
+ * Motion vocabulary (BRIEF v2): every move in the film is one of these.
+ *   EASE.out        arrivals — fast start, long settle (expo-like)
+ *   EASE.in         departures — slow start, accelerates away
+ *   EASE.inOut      deliberate moves between two states (camera, cross-fades)
+ *   EASE.inOutSoft  long, wide camera moves with soft ends
+ *   EASE.back       a "slam": one small overshoot — for hits and badges, never for text that must be read
+ *   pop() / settle() / hit()   spring with a small overshoot / overshoot-free spring / exponential impact decay
+ * EASE.lin is for effect progress only (sheens, light sweeps, particle life) — never for the position or scale of anything the
+ * viewer reads. Elements that leave in motion hand their velocity to what enters (whip, match-cut, shared motion blur).
+ */
 export const EASE = {
   lin: (t: number) => t,
   out: Easing.bezier(0.16, 1, 0.3, 1), // expo-like settle
