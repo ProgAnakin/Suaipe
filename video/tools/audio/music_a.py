@@ -1,4 +1,4 @@
-"""Direction A, "Minimal pulse" (qa/SOUND.md): the underscore of the 50 s film and of its 15 s cut-down.
+"""Direction A, "Minimal pulse" (qa/SOUND.md): the underscore of the 64.5 s film and of its 15 s cut-down.
 
 A warm breathing pad, felt electric piano playing sparse chord tones, a soft TUNED sub pulse in half-time (one thump per second), a dark
 drone and a faint heartbeat for the hook, a bright bloom for the 98 %, and ONE big resolved chord at the handshake that rings under the

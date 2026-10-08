@@ -1,34 +1,41 @@
 # Suaipe film soundtrack generator
 
-Original music + sound design for the 44.5 s LinkedIn film (4:5, 120 BPM), synthesised entirely in code and locked to the
-cue sheet `audio/cues.json` (the same numbers as `src/timeline.ts`). No samples, no downloads, deterministic.
+Original music + sound design for the 64.5 s LinkedIn film (4:5, 120 BPM) and its 15 s cut-down, synthesised entirely in code and locked to
+the cue sheets `audio/cues.json` / `audio/cues-15s.json` (derived from `src/timeline.ts` by `npm run cues`). No samples, no downloads, deterministic.
+
+The chosen direction is **A · "Minimal pulse"** (`qa/SOUND.md`): no drums, a soft sub pulse, a warm pad, felt electric piano, a glass bell for the
+motif, the room tone of a shop. Direction **B · "Confident build"** (light kick + soft clap) is built from the same bed for A/B listening files only.
 
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
 pip install -r tools/audio/requirements.txt
-python tools/audio/generate.py --ffmpeg /path/to/ffmpeg      # ~75 s, writes everything below
-python tools/audio/generate.py --skip-qa                      # ~50 s, audio only
+python tools/audio/generate.py --ffmpeg /path/to/ffmpeg      # direction A, the 64.5 s master: about 75 s, writes everything below
+python tools/audio/generate.py --skip-qa                      # about 50 s, audio only
+
+# the 15 s cut-down (its own arrangement, from its own cue sheet)
+python tools/audio/generate.py --cues audio/cues-15s.json --name soundtrack-15s --qa-dir audio/qa-15s --build-dir audio/build15
+# direction B, for the A/B listening files
+python tools/audio/generate.py --direction b --name soundtrack-B --out-dir out/audio-b --build-dir out/audio-b/build --skip-qa
 ```
 
-Re-run it whenever `audio/cues.json` changes (`npm run cues` regenerates the cue sheet from `src/timeline.ts`): every sound effect,
-every duck and every chord-dependent pitch is derived from the cue data at run time, and the music is anchored to the cue sheet's
-sections on its 120 BPM bar grid (a change to the bar structure itself means editing `music.compose`).
+Re-run it whenever `audio/cues*.json` changes (`npm run cues` regenerates them from `src/timeline.ts`): every sound effect, every duck and every
+chord-dependent pitch is derived from the cue data at run time, and the music follows the cue sheet's **sections** and **chord segments** (never bar numbers),
+so the same composer writes the master and the cut-down.
 
 | input | output |
 |---|---|
-| `audio/cues.json` (read-only) | `public/audio/soundtrack.wav` - master, 16-bit / 48 kHz / stereo, 44.500 s, -14 LUFS, <= -1.3 dBTP |
-| | `public/audio/soundtrack.mp3` - same master, 320 kbps (libmp3lame), same length (decodes to exactly 44.500 s: it carries the LAME gapless tag; a player that ignores that tag starts 23 ms late - use the WAV for frame-accurate work) |
+| `audio/cues.json` (read-only) | `public/audio/soundtrack.wav` - master, 16-bit / 48 kHz / stereo, 64.500 s, -14 LUFS, true peak -1.6 dBTP (-1.3 after an AAC 128k re-encode) |
+| | `public/audio/soundtrack.mp3` - same master, 320 kbps (libmp3lame), same length (it carries the LAME gapless tag; a player that ignores that tag starts 23 ms late - use the WAV for frame-accurate work) |
 | | `public/audio/stems/music.wav`, `stems/sfx.wav` - pre-master buses, 24-bit, sum peaks at -1 dBFS, music + sfx = the master chain's input |
-| | `audio/qa/` - `report.md`, `spectrogram*.png`, `loudness-and-spectrum.png`, `closing-scenes.png` (last 11 s: spectrogram + momentary loudness + cue markers), `cue-placement.csv` (every cue: target time, accent sample, peak), `sync-measured.csv` (every transient cue: onset detected in the SFX stem vs cue time) |
-| | `audio/build/` - scratch (git-ignored) |
+| | `audio/qa/` - `report.md`, `spectrogram*.png`, `loudness-and-spectrum.png`, `closing-scenes.png` (the last scenes: spectrogram + momentary loudness + cue markers), `cue-placement.csv`, `sync-measured.csv` (every transient cue: target time, measured onset, error in ms) |
+| `audio/cues-15s.json` | `public/audio/soundtrack-15s.wav/.mp3`, `stems-soundtrack-15s/`, `audio/qa-15s/` |
+| | `audio/build*/` - scratch (git-ignored) |
 
-Options: `--cues`, `--out-dir`, `--qa-dir`, `--build-dir`, `--ffmpeg` (or `$FFMPEG`), `--target-lufs`, `--ceiling-db`,
-`--music-gain-db` / `--sfx-gain-db` (balance trims before the master), `--skip-qa`, `--recalibrate` (see "Frozen gains").
-The MP3 decoder can overshoot the WAV's true peak by a fraction of a dB, so after encoding the MP3 is decoded and measured; if it
-exceeds the ceiling the limiter is tightened by the overshoot and both files are re-written (WAV and MP3 both end <= -1.3 dBTP).
-Re-balance without re-synthesising: `python tools/audio/generate.py --from-stems --music-gain-db -2 --sfx-gain-db 1`
-sums `public/audio/stems/*.wav`, runs the same master chain and writes `public/audio/soundtrack_remix.wav/.mp3`.
-ffmpeg needs `libmp3lame`, `ebur128` with `peak=true` and `showspectrumpic`.
+Options: `--cues`, `--out-dir`, `--qa-dir`, `--build-dir`, `--ffmpeg` (or `$FFMPEG`), `--target-lufs`, `--ceiling-db` (default -1.6: it leaves about 0.3-0.5 dB after an AAC 128k re-encode),
+`--direction a|b`, `--name`, `--music-gain-db` / `--sfx-gain-db` (balance trims before the master), `--skip-qa`, `--recalibrate` (only matters for the older arrangement),
+`--from-stems` + `--remix-name` (re-balance and re-master the exported stems without synthesis: `--from-stems --music-gain-db -2 --remix-name soundtrack_music-2.wav`).
+The MP3 decoder can overshoot the WAV's true peak by a fraction of a dB, so after encoding the MP3 is decoded and measured; if it exceeds the ceiling the limiter is tightened
+by the overshoot and both files are re-written. ffmpeg needs `libmp3lame`, `ebur128` with `peak=true` and `showspectrumpic`.
 
 ## Files
 
@@ -38,71 +45,59 @@ ffmpeg needs `libmp3lame`, `ebur128` with `peak=true` and `showspectrumpic`.
 | `dsp.py` | filters (RBJ biquads, swept filters), PolyBLEP saw, noise, saturation, synthetic-IR convolution reverb, ping-pong delay, compressor, look-ahead true-peak limiter, BS.1770 loudness |
 | `theory.py` | chord map from the cue sheet (`Harmony.at(t)`), chord tones / consonant extensions, pentatonic runs |
 | `synth.py` | glass / bell, pluck, thump, noise-sweep voices shared by sfx and music |
-| `sfx.py` | the 50 sound designers (one function per cue `type`), sample-exact placement, reverb sends, per-cue seeds |
-| `instruments.py` | music voices: kick, clap, snare, hats, bass, pads, plucks, e-piano, bell lead, textures |
-| `music.py` | the composition (`compose`) and instrument rendering (`render_music`) |
-| `mix.py` | bus processing, sidechain pumping, cue-driven ducking, reverbs, macro dynamics, master chain |
-| `qa.py` | measurements and `report.md` |
+| `sfx.py` | the sound designers (one function per cue `type`), sample-exact placement, reverb sends, per-cue seeds, `LEVEL` / `BOOST_DB` / `BOOST_AT` |
+| `instruments.py` | music voices: pulse, pads, felt e-piano, plucks, bell lead, textures (and, for direction B, kick / clap / shaker) |
+| `music_a.py` | `compose_a`: the direction A (and B) arrangement, driven by sections and chord segments |
+| `music.py` | the `Score` container, instrument rendering (`render_music`) and the older 44.5 s arrangement (`compose`, kept for reference) |
+| `mix.py` | bus processing (`process_music_a`), cue-driven ducking (`sfx_ducks_a`), reverbs, macro dynamics, master chain |
+| `qa.py` | measurements and `report.md` (duration-aware) |
 
 ## How it is built
 
-**Sound design (sfx.py).** Every cue `type` has one designer returning a stereo one-shot plus the *sample index of its accent*.
-The placer starts the sound at `round(target * 48000) - accent`, where `target` is the cue time (transients), the `accent` field
-(swipes: the card registers, the whoosh peaks there), the end of the riser (`riser-a` ends on the lock-on, `riser-b` on the logo hit)
-or the whoosh's own peak (whooshes start at their cue and peak where the picture moves). All sounds have a >= 1 ms rounded attack
-and a >= 3 ms release, so nothing clicks. Palette: glassy inharmonic bells (partials 1 : 2.76 : 5.4 : 8.9 with their own decays) for
-tiles / chips / chimes, soft plucks for nodes, tuned sine thumps with saturation (harmonics at 120-800 Hz so phones can hear them)
-for knocks, taps and impacts, band-passed noise sweeps for whooshes and risers, and a tuned sub + glass chord + air for the three
-hits. Pitched sounds take their notes from the chord of the bar they land in (`theory.py`); the QA report audits every one.
-The closing scenes (hand-off photos) add: `screen-wake` (soft rising two-note glass chime), `bag-rustle` (a close paper-bag hand-off -
-pure band-limited noise: crinkle bursts convolved with micro-kernels, a stick-slip rope-handle creak and a low thump; no pitch),
-`redeem-ding` (bright two-note glass ding, 3rd -> 5th of the chord), `photo-whoosh` (soft air, far gentler than the other whooshes) and
-`handshake` (a soft dry skin / cloth clasp plus a warm glass bloom of the C chord and a few glints - the big chord itself is the music's).
-**Seeds:** each cue is seeded from its type and time (`sfx.seed_for`), so adding or moving other cues never re-rolls a sound. The
-cues before 33.6 s keep the seeds of the first cue sheet (`sfx.cue_seed`, `ADDED_SINCE_V1`), so the first 33 s of sound design stays
-the same sound designs as the version the picture was cut to (only their levels changed, see below).
+**Sound design (sfx.py).** Every cue `type` has one designer returning a stereo one-shot plus the *sample index of its accent*. The placer starts the sound at
+`round(target * 48000) - accent`, where `target` is the cue time (transients), the `accent` field (swipes: the card registers, the whoosh peaks there), the end of the
+riser (`scan-riser`, `riser-a`, `riser-b`) or the whoosh's own peak. All sounds have a >= 1 ms rounded attack and a >= 3 ms release, so nothing clicks. Palette: glassy inharmonic
+bells (partials 1 : 2.76 : 5.4 : 8.9 with their own decays) for chimes, dings and the motif, soft plucks for nodes, tuned sine thumps with saturation (harmonics at 120-800 Hz so phones can
+hear them) for taps, knocks and impacts, band-passed noise sweeps for whooshes and risers, and a tuned sub + glass chord + air for the three hits.
+Pitched sounds take their notes from the chord of the bar they land in (`theory.py`); the QA report audits every one.
 
-**Music (music.py / instruments.py).** A 22-bar chord-locked score following the section brief: dark drone + sparse sub heartbeat
-(no drums) in the hook; kick, bass, pad and a gentle plucked arpeggio from the 4.0 drop; hats / shaker / backbeat for the typing
-groove (thinned out while the keys are typed); fills and a rising filter through the swipes; the counter bar drops the kick at 21.0,
-runs an accelerating snare roll and cuts everything for a 0.15 s air gap before the 22.0 hit; a bell lead for drop B; a low-passed
-electric-piano breakdown for the e-mail; gated pad + staccato arps for the system diagram, which **stops cleanly** when the diagram is
-pushed away (the `whoosh-in` cue, 37.5: events are cut, notes shortened, the arp's echo repeats fade out); then the **human** section - no drums, a soft pad with a
-slowly opening filter (the "lift"), a G1 sub, a few felt e-piano chords on the dominant that lean on the C (the fourth is held), air -
-and the **outro**: the film's big resolving C chord lands on `outro.from` (a pad stack with a little extra major third, a rolled
-e-piano chord, soft-attack bass and sub, a bell; no kick, no cymbal), rings through the Cadd9 bar and fades to silence.
-Arps are generated bar by bar from templates and a seeded RNG (varied, never copy-pasted, always chord tones). In the system section
-the arp only plays on 16ths that would not *flam* with a UI cue (12-70 ms apart; the picture's cues there are off the music's grid),
-so the two interlock.
+*Grouped gestures* keep the density low (the old mix had 153 events in 44.5 s, this one 65 in 64.5 s, never more than 3 in a second): `typing-texture` (one soft texture for every
+keystroke), `scan-riser` (one tonal riser for the scan), `store-ticks` (the consent ticks, the store swap), `node-run` (the system diagram's nodes and packets), `tile-bloom`
+(one cascade for a group of tiles), `crm-land` (a lead reaching the CRM), `room-tone`. *Swipe yes / no* are tuned phrases with a pan: yes = a rising glass two-note phrase to the right,
+no = a falling muted pluck to the left. *The motif* "contact" (G4 - A4 - C5 - E5; `motif-q` is its first half, `motif` the whole line) is a glass bell doubled by felt piano.
+The scenes of the real world add: `screen-wake` (soft rising two-note glass chime), `bag-rustle` (a close paper-bag hand-off - pure band-limited noise, no pitch), `redeem-ding`,
+`photo-whoosh` (soft air) and `handshake` (a soft dry skin / cloth clasp plus a warm glass bloom of the C chord - the big chord itself is the music's).
+**Seeds:** each cue is seeded from its type and time (`sfx.seed_for`), so adding or moving other cues never re-rolls a sound.
 
-**Mix (mix.py).** Each music bus has a target level (RMS or peak, `MUSIC_TARGET`). The gains that produced the signed-off first 34 s are
-**frozen** (`FROZEN_GAINS_DB`), so changing the end of the arrangement can never re-balance (or change) the music before it; a bus that
-is not in that table (the new quiet `soft` bus of the human scene) is calibrated to its target, and `--recalibrate` re-derives all of
-them. Kick-triggered pumping on pad / bass / sub; ducking windows are computed from the cue list (typing, ticks, hits, chimes,
-the notif-ping, code-ding, redeem-ding, and the bag rustle, under which the music steps back) so the UI sounds sit in clear air; the
-soft logo accent at the end ducks nothing, so the ringing chord is never "restarted"; three synthetic reverbs (room / plate / hall) are
-shared by send; `macro_points` is the dynamic arc of the film (`HUMAN_DB` = the quiet scene, `OUTRO_BUMP_DB` = the end chord's first
-500 ms); both stems fade to exact digital zero by 0.08 s before the end (squared raised cosine from 1.1 s before it). Master: 4th-order HP at 28 Hz,
-gentle 300 Hz / 11 kHz EQ, bass mono below 140 Hz, 1.8:1 glue compressor, gain to -14 LUFS (iterated against the limiter),
-4x-oversampled look-ahead true-peak limiter at -1.3 dBFS.
+**Music (music_a.py / instruments.py).** `compose_a` reads the sections and chord segments of the cue sheet and writes a `Score` (notes per instrument, `pulses`, `pad_cut`,
+`macro`, `gates`, `air_gaps`). Hook: a dark drone, a faint heartbeat, the harmony left open, 0.25 s of near-silence before the hit. Idea / hand-off: a pad, the sub pulse in
+half-time (one thump per second), the room tone. Form / swipes: pad + sparse felt piano; the swipes themselves are the rhythm. Scan: a tonal riser and an air gap before the 98 %. Match: a rolled felt
+chord and a glass shimmer. E-mail and Consultants: a low-passed felt piano, the pulse on beat 1 only. Store: a firmer pulse and one quiet off-beat tick. System: a gated pad and staccato plucks that
+**stop cleanly** (the pulse stops at 57.5). Human: no pulse, a soft pad and felt keys on G leaning towards C. Resolve: the film's one big resolved C chord at the handshake (a pad stack with a
+little extra major third, a rolled e-piano chord, soft-attack bass and sub, a bell; no kick, no cymbal) and the complete motif on the logo; Cadd9 rings and fades to digital silence.
+The 15 s cut starts on a downbeat and ends on the same resolved chord with the complete motif. Arps and keys are generated from templates and a seeded RNG (varied, never copy-pasted,
+always chord tones).
 
-**QA (qa.py).** Loudness (ffmpeg ebur128 on the WAV and on the decoded MP3, plus an independent BS.1770 meter), sections, band
-energy, mono compatibility, DC, clipping, tail, phone-speaker simulation, sync detection on the rendered SFX stem plus an isolated
-check of all 153 cues (plus the same onset measurement for every transient cue, `sync-measured.csv`), where the late cues fall on the
-120 BPM grid, SFX cut-through versus the music, harmony audit (cue notes and a chroma check of the music), click scan, the loudness
-of the film's big moments (logo hit, 98 % hit, end chord), automatic warnings. Spectrograms come from ffmpeg `showspectrumpic`.
+**Mix (mix.py).** Every music bus is calibrated to a target level (`MUSIC_TARGET`; direction A always recalibrates, `FROZEN_GAINS_DB` only belongs to the older 44.5 s arrangement). The pad breathes
+with the pulse (a soft, slow dip on every thump); ducking windows are computed from the cue list (`sfx_ducks_a`: the typing texture, the chimes, notification and dings, the bag rustle under
+which the music steps back, the grouped gestures, the motif) so the UI sounds sit in clear air; three synthetic reverbs (room / plate / hall) are shared by send; `macro_points` is the dynamic arc of the film
+(`HUMAN_DB` = the quiet scene, `OUTRO_BUMP_DB` = the end chord's first 500 ms); both stems fade to exact digital zero by 0.08 s before the end. Master: 4th-order HP at 28 Hz, gentle 300 Hz / 11 kHz EQ, bass mono below 140 Hz,
+1.8:1 glue compressor, gain to -14 LUFS (iterated against the limiter), 4x-oversampled look-ahead true-peak limiter at the ceiling (-1.6 dBFS).
+
+**QA (qa.py).** Loudness (ffmpeg ebur128 on the WAV and on the decoded MP3, plus an independent BS.1770 meter), sections, band energy, mono compatibility, DC, clipping, head and tail, phone-speaker simulation,
+sync detection on the rendered SFX stem plus an isolated check of every cue (`sync-measured.csv`), SFX cut-through versus the music, harmony audit (cue notes and a chroma check of the music), click scan, the loudness of
+the film's big moments (logo hit, 98 % hit, end chord), automatic warnings. Spectrograms come from ffmpeg `showspectrumpic`. Two more checks live in `scripts/qa/audio-audit.py`: the event density per
+second (signature / support / texture) and the re-encode test (AAC 192k / 128k / 96k: loudness and true peak).
 
 ## Tuning cheat-sheet
 
-* a sound is too loud / quiet: `sfx.LEVEL[type]` (dBFS peak before the master), `sfx.BOOST_DB[type]` / `sfx.BOOST_AT[(type, t)]` (extra dB on a
-  type / a single cue, synthesis and seeds untouched) or `mix.MUSIC_TARGET[bus]`. Judge the *balance* by the effect-vs-music margin (loudest 350 ms of
-  the cue against the music in the same window, above 200 Hz), not by peak level: whooshes and swipes have low crest factors, so a peak that looks
-  loud can still be masked. The second pass raised typing, swipes, card-ins, clicks, the iPad -> iPhone whoosh and a few others from about -5..+2 dB
-  to about +3..+6 dB over the music (the hook's pops, the chimes and the hits were already at +8..+17 dB).
+* a sound is too loud / quiet: `sfx.LEVEL[type]` (dBFS peak before the master), `sfx.BOOST_DB[type]` / `sfx.BOOST_AT[(type, t)]` (extra dB on a type / a single cue, synthesis and seeds untouched) or
+  `mix.MUSIC_TARGET[bus]`. Judge the *balance* by the effect-vs-music margin (loudest 350 ms of the cue against the music in the same window, above 200 Hz), not by peak level: whooshes and swipes have low
+  crest factors, so a peak that looks loud can still be masked.
 * more / less room: `sfx.SEND[type]`, `mix.MUSIC_SENDS`, `mix.ir_bank()`
-* the arc of the film: `mix.macro_points` (`HUMAN_DB`, `OUTRO_BUMP_DB` for the closing scenes); the section arrangement: `music.compose` (bar-locked to 120 BPM, anchored to the section times of the cue sheet; the SFX are fully data-driven)
-* duck depth under typing / ticks / hits: `mix.sfx_ducks`
-* a new cue type: add `@sfx("name")` in `sfx.py` returning a `Shot`, a `LEVEL` entry and (optionally) a `SEND` entry
-* balance music vs sfx without touching sounds: `--music-gain-db` / `--sfx-gain-db`
+* the arc of the film: `mix.macro_points` (`HUMAN_DB`, `OUTRO_BUMP_DB`); the arrangement: `music_a.compose_a` (a section's brief is in the cue sheet, `scripts/export-cues.mjs`)
+* duck depth under typing / ticks / hits: `mix.sfx_ducks_a`
+* a new cue type: add `@sfx("name")` in `sfx.py` returning a `Shot`, a `LEVEL` entry and (optionally) a `SEND` entry; the cue itself is added in `scripts/export-cues.mjs`
+* balance music vs sfx without touching sounds: `--music-gain-db` / `--sfx-gain-db`, or `--from-stems`
 
 Everything uses fixed seeds (`numpy.random.default_rng`), so identical inputs give byte-identical output.
