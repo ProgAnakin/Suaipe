@@ -20,7 +20,7 @@ cd video/tools/capture
 npm ci
 node capture.mjs      # stills + swipe frames + typing crops + layout.json      (~7 min)
 node email.mjs        # still/email-full.webp (+ `email` entry in layout.json)  (~15 s)
-node admin.mjs        # still/{stats-top,stats-funnel,stats-store,manager-sessions}.webp + admin-layout.json (~40 s)
+node admin.mjs        # still/{manager-sessions,stats-page-a,stats-page-b}.webp + admin-layout.json (~40 s)
 node extra-stills.mjs --install   # + still/quiz-tutorial-yes, still/result-mid, ring label styles in layout.json (~2 min)
 node products.mjs     # ../../public/products/<id>.webp                          (~15 s)
 node manifest.mjs     # public/app/manifest.json (files, pixel sizes, bytes, totals)
@@ -48,7 +48,8 @@ exists, otherwise Playwright's own: `npx playwright-core install chromium`). `pl
 still/     attract welcome-empty welcome-filled quiz-tutorial card-1..8 result result-plate success-mid success   WebP q90, 2048 x 2732
            quiz-tutorial-yes result-mid                                                                       (extra-stills.mjs, same format)
            email-full                                                                                        WebP q90, 1455 x 7746 (485 x 2582 CSS px @3x)
-           stats-top stats-funnel stats-store manager-sessions                                                (admin.mjs) WebP q90, 2048 x 2732
+           manager-sessions                                                                                   (admin.mjs) WebP q90, 2048 x 2732
+           stats-page-a stats-page-b                                                                          (admin.mjs) WebP q88, 2048 x 10228 (the whole /stats dashboard of Store A / Store B)
 swipe/     swipe-<n>-000..047                                  n = 1..8, WebP q88, 1536 x 2049
 typing/    first-00..05  last-00..05  email-00..23  email-calm-00..23  checkbox-unchecked  checkbox-checked
            start-button  manifest.json                         lossless WebP crops (+ crop rectangles, frame lists)
@@ -146,7 +147,8 @@ number / label computed styles, gradient stops) and `result.animation` (timing o
 ### The staff screens (`admin.mjs`)
 
 The "Store value" scene shows what the manager gets, so those two screens come from the **real app** too: `/manager` →
-*Sessions & Codes* and `/stats` (KPIs, drop-off funnel, ranking, sessions, the `?store=` filter).
+*Sessions & Codes* and `/stats?store=<id>` (KPIs, ranking, drop-off funnel, sessions) as one tall page per store, so the film can scroll
+through it the way a person would. `admin-layout.json` carries the rectangles the film pins its call-outs to (lead cards, ranking card).
 
 * The browser carries an injected, already **MFA-verified** (`aal2`) session in `sessionStorage` (`sb-mock-auth-token`, the key the
   app's Supabase client uses), so the real login / TOTP gates are passed without touching them; every Supabase call is answered by

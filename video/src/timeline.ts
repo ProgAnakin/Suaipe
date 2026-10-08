@@ -92,8 +92,8 @@ export const IPAD = {
 export const PHONE = {
   enter: 23.0,
   settle: 23.7,
-  notif: 24.4,
-  notifPing: 24.5,
+  notif: 24.0,
+  notifPing: 24.1,
   open: 25.0,
   scroll: [25.9, 27.0],
   zoomCode: [27.2, 28.0],
@@ -102,11 +102,22 @@ export const PHONE = {
 } as const;
 
 // ── store value (new): what the manager gets ────────────────────────────────────────────────
+// The two staff screens are the real ones (captured with labelled sample data). One close-up stays on screen for the whole beat and the
+// content moves under it: the lead list → a page push to the per-store dashboard → the tablet steps back and the leads land in a CRM.
 export const STORE = {
-  rows: 30.0, // manager view with sample leads is in place
-  consent: [30.6, 30.85, 31.1], // consent badges pop in on the rows
-  funnel: 32.5, // funnel + product ranking
-  crm: 35.25, // one lead flies into a CRM row
+  rows: 30.0, // the lead list is in place, the camera leans in on the first rows
+  consent: [30.6, 30.85, 31.1], // consent ticks pop in on the first three leads
+  label: 31.3, // "Consent on record" (leaves at labelOut)
+  labelOut: 32.3,
+  swap: [32.5, 32.95], // the screen pushes from the list to the dashboard
+  scroll: [32.85, 33.55], // the dashboard scrolls up to the product ranking
+  storeA: 33.55, // chip "Store A"
+  storeB: 34.2, // the same ranking for the other store
+  shift: [34.85, 35.4], // the tablet steps back, the CRM card rises
+  fly: [35.25, 35.85], // a lead flies from the tablet into the CRM ...
+  land: 35.85, // ... and lands as a row
+  fly2: [36.55, 37.0], // the next one, quicker: every lead lands
+  land2: 37.0,
   out: 37.75, // pushed back as the system diagram arrives
 } as const;
 
@@ -115,7 +126,7 @@ export const SYSTEM = {
   nodes: [38.0, 38.4, 38.8, 39.2, 39.4], // kiosk, supabase, edge fn, e-mail, CRM relay
   packets: [38.35, 38.75, 39.15, 39.35],
   tiles: [39.8, 40.0, 40.2], // Manager, Stats, Consultants
-  locks: [40.55, 40.95], // MFA, RLS
+  locks: [40.55, 40.95], // RLS (on the database node), MFA (on the Manager and Stats tiles)
   out: 41.5,
 } as const;
 
@@ -123,7 +134,7 @@ export const SYSTEM = {
 export const HUMAN = {
   bagIn: 41.6, // cut to the bag hand-off photo
   rustle: 42.0, // the bag changes hands
-  redeemed: 42.45, // "Redeemed in store" chip pops (the real mark_code_redeemed flow)
+  redeemed: 42.25, // "Redeemed in store" chip pops (the real mark_code_redeemed flow); stays until the photos cross at 43.5-43.9
   handshakeIn: 43.5, // cross to the handshake
   clasp: 44.0, // the hands meet — bar 23 downbeat, the big resolving chord
   out: 45.3,
@@ -144,7 +155,7 @@ export const SIGNATURE = {
 // (hook, lock-up, call-outs, chips, signature); it lives here so the subtitle file and the reading-time audit see all of it.
 export const CAPTIONS = [
   { from: 6.6, to: 9.4, text: "A game, <em>not a form.</em>" },
-  { from: 14.2, to: 17.2, text: "Eight swipes. <em>One match.</em>" },
+  { from: 14.2, to: 17.4, text: "Eight swipes. <em>One match.</em>" },
   { from: 25.2, to: 28.8, text: "A personal email. <em>A reason to return.</em>" },
   { from: 30.2, to: 32.8, text: "Every claimed match <em>becomes a lead.</em>" },
   { from: 32.8, to: 35.4, text: "See what sells, <em>store by store.</em>" },
@@ -158,7 +169,7 @@ export const SCENE_TEXT = [
   { from: 1.0, to: 3.7, text: "The store rarely learns who." },
   { from: 4.4, to: 6.3, text: "One question changes that." },
   { from: 10.0, to: 12.4, text: "GDPR consent, captured at the source" },
-  { from: 42.4, to: 44.0, text: "Redeemed in store" },
+  { from: 42.25, to: 43.8, text: "Redeemed in store" },
   { from: 46.0, to: 50.0, text: "Costanzo Annichini" },
   { from: 46.6, to: 49.4, text: "Simple ideas create contact.<br/>Contact creates data." },
   { from: 47.8, to: 49.9, text: "Let's talk retail." },

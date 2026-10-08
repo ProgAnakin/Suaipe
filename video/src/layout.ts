@@ -42,3 +42,18 @@ export const TYPING = { u0: 280 / 1024, v0: 675 / 1366, u1: (280 + 464) / 1024, 
 
 /** Set to false to render without the cropped typing frames (e.g. while the capture assets are missing). */
 export const TYPING_ENABLED = true;
+
+/**
+ * Rectangles on the captured staff screens (tools/capture/admin.mjs → public/app/admin-layout.json), in css px of the 1024-wide page.
+ * The manager still is one viewport (1024 x 1366); the dashboards are one tall page each (1024 x 5114).
+ */
+export const ADMIN = {
+  page: { w: 1024, h: 1366 },
+  /** The bordered card of each lead in "Sessions & Codes": the first one and the distance to the next. */
+  card: { x: 176, w: 672, h: 137, y0: 610.5, pitch: 145 },
+  dashboard: {
+    h: 5114,
+    ranking: { x: 176, y: 794, w: 672, h: 530.5 }, // "Most claimed products"
+    firstSession: { x: 201, y: 2637, w: 622, h: 104 },
+  },
+} as const;

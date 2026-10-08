@@ -1,9 +1,9 @@
 // Captures the two staff screens of the film's "Store value" scene from the REAL app: /manager ("Sessions & Codes") and /stats
-// (funnel, ranking, sessions). The browser carries an injected, already MFA-verified (aal2) session, and every Supabase call is
+// (KPIs, ranking, funnel, sessions: one tall page per store). The browser carries an injected, already MFA-verified (aal2) session, and every Supabase call is
 // answered with SAMPLE data: fictional people on example.com, two fictional stores ("Store A", "Store B"), round demo numbers.
 // Nothing here comes from production; the film labels these screens "Sample data".
 //
-//   node admin.mjs            writes ../../public/app/still/{stats-top,stats-funnel,stats-store,manager-sessions}.webp + admin-layout.json
+//   node admin.mjs            writes ../../public/app/still/{manager-sessions,stats-page-a,stats-page-b}.webp + admin-layout.json
 //   node admin.mjs --probe    prints what is on the pages (selectors, text) so the capture can be adjusted
 import path from "node:path";
 import * as L from "./lib.mjs";
@@ -140,25 +140,37 @@ try {
     L.log("still ", name);
   };
 
-  // ── /stats ──
-  await page.goto(`${L.APP_URL}/stats`, { waitUntil: "load" });
-  await waitText("sessions", "the stats dashboard");
-  await L.sleep(1800); // chart entrance animations
-  if (PROBE) {
-    console.log("--- /stats text ---\n" + (await page.evaluate(() => document.body.innerText)).slice(0, 2500));
-  }
-  await shot("stats-top", { settle: 1200 });
-  // the drop-off funnel (started -> result shown -> claimed), scrolled to the top of the view
-  await page.getByText("Drop-off funnel").first().scrollIntoViewIfNeeded();
-  await page.evaluate(() => { const h = [...document.querySelectorAll("*")].find((e) => e.children.length === 0 && /Drop-off funnel/.test(e.textContent || "")); if (h) window.scrollTo(0, window.scrollY + h.getBoundingClientRect().top - 140); });
-  await L.sleep(1600);
-  await shot("stats-funnel", { settle: 800 });
-
-  // the same dashboard filtered to one store (the "store by store" view)
-  await page.goto(`${L.APP_URL}/stats?store=store-a`, { waitUntil: "load" });
-  await waitText("sessions", "the filtered dashboard");
-  await L.sleep(1800);
-  await shot("stats-store", { settle: 1000 });
+  // ── /stats ──  (one tall page per store: the film scrolls through it like a person would)
+  // the whole dashboard, filtered to each store, as one tall page: the film scrolls through it like a person would
+  const shotTall = async (name, store, maxCss = 5200) => {
+    await page.goto(`${L.APP_URL}/stats?store=${store}`, { waitUntil: "load" });
+    await waitText("sessions", `the dashboard of ${store}`);
+    await L.sleep(2400); // chart entrance animations
+    await L.fontsReady(page);
+    await L.hideCaret(page);
+    const h = await page.evaluate(() => Math.ceil(document.documentElement.scrollHeight));
+    // where the film's call-outs and scroll targets sit, in css px of the tall page
+    const rects = await page.evaluate(() => {
+      const rect = (el) => { const r = el.getBoundingClientRect(); return { x: Math.round(r.x * 10) / 10, y: Math.round((r.y + window.scrollY) * 10) / 10, w: Math.round(r.width * 10) / 10, h: Math.round(r.height * 10) / 10 }; };
+      const card = (el) => { for (let e = el; e && e !== document.body; e = e.parentElement) { const r = e.getBoundingClientRect(); if (parseFloat(getComputedStyle(e).borderTopLeftRadius) >= 16 && r.width > 600 && r.height > 120) return e; } return null; };
+      const leaf = (re) => [...document.querySelectorAll("*")].find((e) => e.children.length === 0 && re.test((e.textContent || "").trim()));
+      const out = {};
+      const rank = leaf(/Most claimed products/); if (rank && card(rank)) out.ranking = rect(card(rank));
+      const sess = leaf(/^\W*Sessions$/); if (sess && card(sess)) out.sessions = rect(card(sess));
+      const first = [...document.querySelectorAll("*")].filter((e) => /@example\.com/.test(e.textContent || "") && e.getBoundingClientRect().width > 560 && e.getBoundingClientRect().height < 200 && parseFloat(getComputedStyle(e).borderTopLeftRadius) >= 10)[0];
+      if (first) out.firstSession = rect(first);
+      const fil = leaf(/Filter active/); if (fil) out.filter = rect(fil.closest("button") || fil);
+      return out;
+    });
+    layout[name] = { ...rects };
+    const buf = await page.screenshot({ type: "png", fullPage: true, clip: { x: 0, y: 0, width: L.VIEWPORT.width, height: Math.min(h, maxCss) } });
+    await L.writeWebp(buf, path.join(out, `${name}.webp`), { quality: 88 });
+    layout[name].cssHeight = Math.min(h, maxCss);
+    layout[name].pageHeight = h;
+    L.log("still ", `${name}  (${L.VIEWPORT.width} x ${Math.min(h, maxCss)} css px)`);
+  };
+  await shotTall("stats-page-a", "store-a");
+  await shotTall("stats-page-b", "store-b");
 
   // ── /manager → Sessions & Codes ──
   await page.goto(`${L.APP_URL}/manager`, { waitUntil: "load" });
@@ -182,6 +194,26 @@ try {
       seen.push({ x: r.x, y: r.y, w: r.width, h: r.height });
     }
     return seen.slice(0, 12);
+  });
+  // the bordered card around each lead (the call-outs ring these) and the code chip / "Mark as used" inside the first one
+  layout.managerCards = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll("*")].filter((e) => {
+      const r = e.getBoundingClientRect();
+      return /@example\.com/.test(e.textContent || "") && r.width > 600 && r.width < 760 && r.height > 100 && r.height < 200 && parseFloat(getComputedStyle(e).borderTopLeftRadius) >= 12;
+    });
+    const seen = [];
+    for (const e of cards) {
+      const r = e.getBoundingClientRect();
+      if (seen.some((q) => Math.abs(q.y - r.y) < 6)) continue;
+      seen.push({ x: r.x, y: r.y, w: r.width, h: r.height });
+    }
+    return seen.slice(0, 8);
+  });
+  layout.managerFirstCode = await page.evaluate(() => {
+    const e = [...document.querySelectorAll("*")].find((q) => q.children.length === 0 && /^SUP-7F3A9C2E10$/.test((q.textContent || "").trim()));
+    if (!e) return null;
+    const r = e.getBoundingClientRect();
+    return { x: r.x, y: r.y, w: r.width, h: r.height };
   });
   L.writeJson(path.join(L.OUT_DIR, "admin-layout.json"), { viewport: L.VIEWPORT, dpr: L.DPR, ...layout, note: "DOM rects in CSS px of the 1024 x 1366 viewport; the stills are 2x" });
   L.log("admin captured ✓");

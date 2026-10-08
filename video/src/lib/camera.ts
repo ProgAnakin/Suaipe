@@ -5,7 +5,7 @@ export type Cam = { z: number; u: number; v: number; fy: number };
 export type CamKey = { t: number; z: number; u: number; v: number; fy?: number; omega?: number; zeta?: number };
 
 /** Unit step response of a 2nd-order system (natural frequency `omega`, damping ratio `zeta`). */
-const stepResponse = (tau: number, omega: number, zeta: number) => {
+export const stepResponse = (tau: number, omega: number, zeta: number) => {
   if (tau <= 0) return 0;
   if (zeta >= 1) return 1 - (1 + omega * tau) * Math.exp(-omega * tau);
   const wd = omega * Math.sqrt(1 - zeta * zeta);
@@ -57,4 +57,25 @@ export const camTranslate = (cam: Cam, w: number, h: number) => {
 export const screenToCanvas = (cam: Cam, w: number, h: number, c: { x: number; y: number }, u: number, v: number) => {
   const { tx, ty } = camTranslate(cam, w, h);
   return { x: c.x + tx + cam.z * (u - 0.5) * w, y: c.y + ty + cam.z * (v - 0.5) * h };
+};
+
+/**
+ * The same critically damped follow as `followCamera`, for any set of named scalars (take logs yourself where a ratio should be
+ * interpolated). Each key sets a new TARGET at `t`; the first key is the start pose.
+ */
+export const followValues = <K extends string>(
+  keys: ReadonlyArray<{ t: number; omega?: number; zeta?: number } & Record<K, number>>,
+  t: number,
+  names: ReadonlyArray<K>,
+  defaults: { omega: number; zeta: number } = { omega: 9, zeta: 1 },
+): Record<K, number> => {
+  const out = {} as Record<K, number>;
+  for (const n of names) out[n] = keys[0][n];
+  for (let i = 1; i < keys.length; i++) {
+    const k = keys[i];
+    const p = keys[i - 1];
+    const s = stepResponse(t - k.t, k.omega ?? defaults.omega, k.zeta ?? defaults.zeta);
+    for (const n of names) out[n] += (k[n] - p[n]) * s;
+  }
+  return out;
 };

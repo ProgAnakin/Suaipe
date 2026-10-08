@@ -13,19 +13,19 @@
     }
   },
   "totals": {
-    "files": 478,
-    "bytes": 18663243,
-    "megabytes": 17.8,
+    "files": 482,
+    "bytes": 19920435,
+    "megabytes": 19,
     "groups": {
       "data": {
-        "files": 1,
-        "bytes": 195995,
+        "files": 2,
+        "bytes": 198625,
         "megabytes": 0.19
       },
       "still": {
-        "files": 19,
-        "bytes": 1727258,
-        "megabytes": 1.65
+        "files": 22,
+        "bytes": 2981820,
+        "megabytes": 2.84
       },
       "swipe": {
         "files": 384,
@@ -93,78 +93,90 @@
   "files": [
     {
       "group": "data",
+      "path": "app/admin-layout.json",
+      "bytes": 2630
+    },
+    {
+      "group": "data",
       "path": "app/layout.json",
       "bytes": 195995
     },
     {
       "group": "still",
       "path": "app/still/attract.webp",
-      "bytes": 84878,
+      "bytes": 84906,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/card-1.webp",
-      "bytes": 55838,
+      "bytes": 55964,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/card-2.webp",
-      "bytes": 53818,
+      "bytes": 53854,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/card-3.webp",
-      "bytes": 61264,
+      "bytes": 61308,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/card-4.webp",
-      "bytes": 64576,
+      "bytes": 64172,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/card-5.webp",
-      "bytes": 63000,
+      "bytes": 63398,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/card-6.webp",
-      "bytes": 61990,
+      "bytes": 62152,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/card-7.webp",
-      "bytes": 60276,
+      "bytes": 59962,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/card-8.webp",
-      "bytes": 60138,
+      "bytes": 60178,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/email-full.webp",
-      "bytes": 372580,
+      "bytes": 372468,
       "width": 1455,
       "height": 7746
+    },
+    {
+      "group": "still",
+      "path": "app/still/manager-sessions.webp",
+      "bytes": 188680,
+      "width": 2048,
+      "height": 2732
     },
     {
       "group": "still",
@@ -176,7 +188,7 @@
     {
       "group": "still",
       "path": "app/still/quiz-tutorial.webp",
-      "bytes": 49118,
+      "bytes": 49174,
       "width": 2048,
       "height": 2732
     },
@@ -190,42 +202,56 @@
     {
       "group": "still",
       "path": "app/still/result-plate.webp",
-      "bytes": 102622,
+      "bytes": 102626,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/result.webp",
-      "bytes": 133952,
+      "bytes": 134316,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
+      "path": "app/still/stats-page-a.webp",
+      "bytes": 536026,
+      "width": 2048,
+      "height": 10228
+    },
+    {
+      "group": "still",
+      "path": "app/still/stats-page-b.webp",
+      "bytes": 528812,
+      "width": 2048,
+      "height": 10228
+    },
+    {
+      "group": "still",
       "path": "app/still/success-mid.webp",
-      "bytes": 72572,
+      "bytes": 73196,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/success.webp",
-      "bytes": 98420,
+      "bytes": 98222,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/welcome-empty.webp",
-      "bytes": 82246,
+      "bytes": 82386,
       "width": 2048,
       "height": 2732
     },
     {
       "group": "still",
       "path": "app/still/welcome-filled.webp",
-      "bytes": 90000,
+      "bytes": 90050,
       "width": 2048,
       "height": 2732
     },

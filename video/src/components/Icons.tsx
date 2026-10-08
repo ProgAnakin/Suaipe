@@ -58,3 +58,6 @@ export const IconSparkle = (p: P) => (
 export const IconKey = (p: P) => (
   <svg {...base(p)}><circle cx="8" cy="15.5" r="4" /><path d="M10.8 12.7L20 3.5M16 7.5l2.5 2.5M13.5 10l2 2" /></svg>
 );
+export const IconUser = (p: P) => (
+  <svg {...base(p)}><circle cx="12" cy="8.2" r="3.8" /><path d="M4.5 20.5c.6-4 3.6-6.2 7.5-6.2s6.9 2.2 7.5 6.2" /></svg>
+);

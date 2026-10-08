@@ -84,13 +84,15 @@ add("whoosh-down", T.PHONE.exit, { dur: 0.7 });
 
 // ── store value (provisional: phase 4 re-designs these as grouped gestures) ──────────────────
 T.STORE.consent.forEach((t, i) => add("tile-on", t, { step: i, of: 3 }));
-add("packet", T.STORE.crm, { note: "one lead lands in the CRM row" });
+add("page-swoosh", T.STORE.swap[0], { dur: T.STORE.swap[1] - T.STORE.swap[0], note: "the screen pushes from the lead list to the dashboard" });
+add("packet", T.STORE.fly[1] - 0.05, { note: "the first lead lands in its CRM row (the soft 'land' pluck)" });
+add("packet", T.STORE.land2 - 0.04, { step: 1, note: "the next lead lands (quieter)" });
 
 // ── system ─────────────────────────────────────────────────────────────────────────────────
 T.SYSTEM.nodes.forEach((t, i) => add("node-on", t, { step: i, of: T.SYSTEM.nodes.length }));
 T.SYSTEM.packets.forEach((t, i) => add("packet", t, { step: i }));
 T.SYSTEM.tiles.forEach((t, i) => add("tile-on", t, { step: i, of: 3 }));
-T.SYSTEM.locks.forEach((t, i) => add("lock-click", t, { step: i, note: i ? "RLS" : "MFA" }));
+T.SYSTEM.locks.forEach((t, i) => add("lock-click", t, { step: i, note: i ? "MFA" : "RLS" }));
 add("whoosh-in", T.SYSTEM.out, { dur: 0.7, note: "the diagram is pushed back as the bag hand-off photo fades in" });
 add("whoosh-in", T.STORE.out, { dur: 0.6, note: "the dashboard is pushed back as the system diagram arrives" });
 

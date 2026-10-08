@@ -14,7 +14,7 @@ type PresentationComponent = React.FC<TransitionPresentationComponentProps<Empty
 const make = (component: PresentationComponent): (() => TransitionPresentation<Empty>) => () => ({ component, props: {} });
 
 /** Anisotropic blur (SVG filter) — a cheap, good-looking stand-in for motion blur on a fast slide. */
-const dirBlur = (id: string, bx: number, by: number) => ({
+export const dirBlur = (id: string, bx: number, by: number) => ({
   defs: (
     <svg width="0" height="0" style={{ position: "absolute" }}>
       <filter id={id} x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
@@ -43,7 +43,7 @@ const Leak: React.FC<{ p: number; seed: number; hueShift?: number; opacity?: num
 };
 
 /** Speed (0..~1) of an eased curve at p — used to scale the blur. */
-const speedOf = (ease: (x: number) => number, p: number) => Math.min(1, Math.abs(ease(clamp(p + 0.025)) - ease(clamp(p - 0.025))) / 0.05 / 4);
+export const speedOf = (ease: (x: number) => number, p: number) => Math.min(1, Math.abs(ease(clamp(p + 0.025)) - ease(clamp(p - 0.025))) / 0.05 / 4);
 
 // ── hook → lock-up: punch through the hero shot with a bright flash and a light leak ────────────────────────────────
 const FlashThrough: PresentationComponent = ({ children, presentationProgress: p, presentationDirection }) => {
