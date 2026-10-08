@@ -275,12 +275,12 @@
     },
     {
       "type": "tagline-air",
-      "t": 4.55,
+      "t": 4.35,
       "dur": 0.7
     },
     {
       "type": "whoosh-up",
-      "t": 5.8,
+      "t": 5.7,
       "dur": 0.9,
       "note": "iPad rises from below"
     },
@@ -742,7 +742,7 @@
     },
     {
       "type": "notif-ping",
-      "t": 24.5,
+      "t": 24.1,
       "note": "glassy two-note notification ding"
     },
     {
@@ -799,19 +799,31 @@
       "of": 3
     },
     {
+      "type": "page-swoosh",
+      "t": 32.5,
+      "dur": 0.45000000000000284,
+      "note": "the screen pushes from the lead list to the dashboard"
+    },
+    {
       "type": "caption-pop",
       "t": 32.8,
       "step": 4
     },
     {
-      "type": "packet",
-      "t": 35.25,
-      "note": "one lead lands in the CRM row"
-    },
-    {
       "type": "caption-pop",
       "t": 35.4,
       "step": 5
+    },
+    {
+      "type": "packet",
+      "t": 35.8,
+      "note": "the first lead lands in its CRM row (the soft 'land' pluck)"
+    },
+    {
+      "type": "packet",
+      "t": 36.96,
+      "step": 1,
+      "note": "the next lead lands (quieter)"
     },
     {
       "type": "whoosh-in",
@@ -896,13 +908,13 @@
       "type": "lock-click",
       "t": 40.55,
       "step": 0,
-      "note": "MFA"
+      "note": "RLS"
     },
     {
       "type": "lock-click",
       "t": 40.95,
       "step": 1,
-      "note": "RLS"
+      "note": "MFA"
     },
     {
       "type": "whoosh-in",
@@ -923,7 +935,7 @@
     },
     {
       "type": "redeem-ding",
-      "t": 42.45,
+      "t": 42.25,
       "note": "the 'code redeemed' chip pops: bright glassy two-note ding, consonant with the chord, clearly different from notif-ping and code-ding"
     },
     {
