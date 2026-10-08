@@ -10,9 +10,25 @@ import { LogoMark } from "./components/LogoMark";
 import { PhotoScreen, PhotoStage, coverPose } from "./components/PhotoStage";
 import { HANDOFF_FG, HANDOFF_QUAD, PHOTO } from "./people";
 import { HEIGHT, WIDTH } from "./timeline";
-import { COLORS, FONT } from "./theme";
+import { COLORS, FONT, TYPE } from "./theme";
 
-/** Alternative thumbnail (1080x1350): brand, the claim, the real result screen on a tilted iPad — no people. */
+const BrandRow: React.FC = () => (
+  <div style={{ position: "absolute", left: 0, top: 50, width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
+    <LogoMark size={64} glow={0.4} />
+    <div style={{ fontWeight: 700, fontSize: 44, letterSpacing: "0.2em" }}>
+      <GradientText>SUAIPE</GradientText>
+    </div>
+  </div>
+);
+
+/** The name, discreet, where the eye ends up: the bottom line of the thumbnail (inside the player-safe area). */
+const NameLine: React.FC = () => (
+  <div style={{ position: "absolute", left: 0, bottom: 76, width: "100%", textAlign: "center", fontWeight: 500, fontSize: TYPE.label, letterSpacing: "0.02em", color: COLORS.textSoft }}>
+    Costanzo Annichini
+  </div>
+);
+
+/** Alternative thumbnail (1080x1350): the thesis, the real result screen on a tilted iPad — no people. */
 export const CoverDevice: React.FC = () => (
   <AbsoluteFill style={{ backgroundColor: COLORS.bg, fontFamily: FONT }}>
     <Backdrop time={22.5} />
@@ -42,23 +58,15 @@ export const CoverDevice: React.FC = () => (
     {/* bottom fade so the device sinks into the frame */}
     <div style={{ position: "absolute", left: 0, bottom: 0, width: "100%", height: 300, background: "linear-gradient(rgba(7,10,26,0), rgba(7,10,26,.94) 70%)" }} />
 
-    {/* brand row */}
-    <div style={{ position: "absolute", left: 0, top: 50, width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
-      <LogoMark size={64} glow={0.4} />
-      <div style={{ fontWeight: 700, fontSize: 44, letterSpacing: "0.2em" }}>
-        <GradientText>SUAIPE</GradientText>
-      </div>
-    </div>
+    <BrandRow />
 
-    <div style={{ position: "absolute", left: 0, top: 150, width: "100%", textAlign: "center", fontWeight: 700, fontSize: 106, lineHeight: 1.04, letterSpacing: "-0.035em", color: COLORS.text }}>
-      Eight swipes.
+    <div style={{ position: "absolute", left: 0, top: 150, width: "100%", textAlign: "center", fontWeight: 700, fontSize: TYPE.headline, lineHeight: 1.04, letterSpacing: "-0.035em", color: COLORS.text }}>
+      Simple ideas
       <br />
-      <GradientText>One perfect match.</GradientText>
+      <GradientText>create contact.</GradientText>
     </div>
 
-    <div style={{ position: "absolute", left: 0, bottom: 56, width: "100%", textAlign: "center", fontWeight: 500, fontSize: 34, color: COLORS.textSoft }}>
-      Product discovery for physical retail
-    </div>
+    <NameLine />
 
     <FilmGrade grain={0.14} />
   </AbsoluteFill>
@@ -66,7 +74,7 @@ export const CoverDevice: React.FC = () => (
 
 // the hand-off photo sits lower than cover-fit so the claim has the dark top of the frame to itself
 const PUSH = 1; // 1 = cover-fit; > 1 pushes in toward the tablet
-const SHIFT_Y = 190; // px the photo is moved down on the canvas
+const SHIFT_Y = 238; // px the photo is moved down on the canvas (clear of the three-line claim)
 const MELT = `linear-gradient(to bottom, transparent ${SHIFT_Y - 40}px, #000 ${SHIFT_Y + 270}px)`; // photo top edge -> opaque, behind the claim
 
 /**
@@ -95,23 +103,19 @@ export const Cover: React.FC = () => {
       <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 55%, rgba(0,0,0,0) 50%, rgba(4,7,20,.6) 100%)" }} />
       <div style={{ position: "absolute", left: 0, bottom: 0, width: "100%", height: 300, background: "linear-gradient(rgba(7,10,26,0), rgba(7,10,26,.94) 70%)" }} />
 
-      {/* brand row */}
-      <div style={{ position: "absolute", left: 0, top: 50, width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
-        <LogoMark size={64} glow={0.4} />
-        <div style={{ fontWeight: 700, fontSize: 44, letterSpacing: "0.2em" }}>
-          <GradientText>SUAIPE</GradientText>
+      <BrandRow />
+
+      {/* the problem, in the words of the film's first two seconds */}
+      <div style={{ position: "absolute", left: 0, top: 138, width: "100%", textAlign: "center", fontFamily: FONT, color: COLORS.text }}>
+        <div style={{ fontWeight: 600, fontSize: TYPE.caption, letterSpacing: "-0.015em", color: COLORS.textSoft }}>A customer walks in.</div>
+        <div style={{ marginTop: 6, fontWeight: 700, fontSize: TYPE.headline, lineHeight: 1.04, letterSpacing: "-0.035em" }}>
+          The store rarely
+          <br />
+          <GradientText>learns who.</GradientText>
         </div>
       </div>
 
-      <div style={{ position: "absolute", left: 0, top: 150, width: "100%", textAlign: "center", fontWeight: 700, fontSize: 106, lineHeight: 1.04, letterSpacing: "-0.035em", color: COLORS.text }}>
-        Eight swipes.
-        <br />
-        <GradientText>One perfect match.</GradientText>
-      </div>
-
-      <div style={{ position: "absolute", left: 0, bottom: 56, width: "100%", textAlign: "center", fontWeight: 500, fontSize: 34, color: COLORS.textSoft }}>
-        Product discovery for physical retail
-      </div>
+      <NameLine />
 
       <FilmGrade grain={0.14} />
     </AbsoluteFill>

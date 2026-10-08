@@ -18,13 +18,17 @@ import { StoreScene } from "./scenes/StoreScene";
 import { SystemScene } from "./scenes/SystemScene";
 import { CHAPTER, sec } from "./timeline";
 
-export type FilmProps = { withAudio: boolean };
+export type FilmProps = {
+  withAudio: boolean;
+  /** Show only these burned-in captions (indices into CAPTIONS); omit for all. The 15 s cut-down re-uses the master and keeps one. */
+  captionsOnly?: ReadonlyArray<number>;
+};
 
 /**
  * The whole film. Chapters overlap by design: each overlap is a transition whose choreography lives in
  * presentations.tsx. Backdrop, captions and grade sit outside the series so they never cut.
  */
-export const SuaipeFilm: React.FC<FilmProps> = ({ withAudio }) => {
+export const SuaipeFilm: React.FC<FilmProps> = ({ withAudio, captionsOnly }) => {
   const { fps } = useVideoConfig();
   const f = (s: number) => sec(s, fps);
   const C = CHAPTER;
@@ -65,7 +69,7 @@ export const SuaipeFilm: React.FC<FilmProps> = ({ withAudio }) => {
           <SignatureScene />
         </TransitionSeries.Sequence>
       </TransitionSeries>
-      <Captions />
+      <Captions only={captionsOnly} />
       <FilmGrade />
       {withAudio && <Audio src={SOUNDTRACK} premountFor={fps} />}
     </AbsoluteFill>

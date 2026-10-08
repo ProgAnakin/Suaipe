@@ -4,6 +4,7 @@ import "./fonts";
 import { Backdrop } from "./components/Backdrop";
 import { FilmGrade } from "./components/FilmGrade";
 import { Cover, CoverDevice } from "./Cover";
+import { Cutdown15 } from "./Cutdown15";
 import { SuaipeFilm } from "./SuaipeFilm";
 import { HookScene } from "./scenes/HookScene";
 import { HumanScene } from "./scenes/HumanScene";
@@ -13,6 +14,7 @@ import { PhoneScene } from "./scenes/PhoneScene";
 import { SignatureScene } from "./scenes/SignatureScene";
 import { StoreScene } from "./scenes/StoreScene";
 import { SystemScene } from "./scenes/SystemScene";
+import { CUT_DURATION_S } from "./cutdown";
 import { CHAPTER, DURATION_S, FPS, HEIGHT, WIDTH, sec } from "./timeline";
 
 // Each scene is registered on its own so it can be previewed (and rendered) in isolation; local frame 0 = chapter start.
@@ -45,6 +47,7 @@ export const RemotionRoot: React.FC = () => {
         height={HEIGHT}
         defaultProps={{ withAudio: true }}
       />
+      <Composition id="SuaipeFilm15" component={Cutdown15} durationInFrames={sec(CUT_DURATION_S)} fps={FPS} width={WIDTH} height={HEIGHT} />
       <Still id="Cover" component={Cover} width={WIDTH} height={HEIGHT} />
       <Still id="CoverDevice" component={CoverDevice} width={WIDTH} height={HEIGHT} />
       <Folder name="Scenes">
