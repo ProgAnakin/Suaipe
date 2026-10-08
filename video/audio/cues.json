@@ -195,16 +195,23 @@
     {
       "name": "system",
       "from": 34,
+      "to": 37.6,
+      "bars": "18-19",
+      "brief": "Rhythmic, techy: staccato arps / gated pad pulsing with the nodes (they come faster now: 5 nodes in 1.4 s, tiles at 35.8-36.2, locks 36.55 / 36.95); the groove stops cleanly at 37.5 when the diagram is pushed away."
+    },
+    {
+      "name": "human",
+      "from": 37.6,
       "to": 40,
-      "bars": "18-20",
-      "brief": "Rhythmic, techy: staccato arps / gated pad pulsing with the nodes, rising tension to the end card."
+      "bars": "20",
+      "brief": "Warm, human, quiet: the groove is gone. Soft pad + felt/e-piano chords on G (V) leaning towards C, a little air, maybe a single gentle bell on the redeem-ding. Paper-bag rustle at 38.0 is a real, close, tactile sound: keep the music out of its way. Build a gentle lift into the downbeat at 40.0 (no drums, no riser clichés)."
     },
     {
       "name": "outro",
       "from": 40,
       "to": 44.5,
       "bars": "21-22+",
-      "brief": "Final big chord at 40.0, then let it ring and decay; sparkle at 42.5; fade the tail to silence by 44.5."
+      "brief": "The handshake lands on the downbeat of bar 21 (40.0): THIS is the song's big resolving C chord (full, warm, the biggest moment of the film besides the 98 % hit). Let it ring through bar 22 (Cadd9 at 42.0); the logo-hit-soft at 41.0 is only a secondary accent on top of the held chord; chips at 42.2-42.95; sparkle 43.4; fade the tail to true silence by 44.5."
     }
   ],
   "sfx": [
@@ -354,6 +361,12 @@
       "note": "iPad rises from below"
     },
     {
+      "type": "screen-wake",
+      "t": 5.9,
+      "dur": 0.6,
+      "note": "the kiosk screen lights up on the photographed tablet: soft rising two-note glass chime"
+    },
+    {
       "type": "caption-pop",
       "t": 6.2,
       "step": 0
@@ -361,7 +374,13 @@
     {
       "type": "device-settle",
       "t": 6.35,
-      "note": "soft low thump as the iPad lands"
+      "note": "soft low thump as the tablet changes hands in the hand-off photo"
+    },
+    {
+      "type": "zoom-whoosh",
+      "t": 6.85,
+      "dur": 0.5500000000000007,
+      "note": "camera flies into the tablet screen"
     },
     {
       "type": "tap",
@@ -897,126 +916,153 @@
     },
     {
       "type": "packet",
-      "t": 34.45,
+      "t": 34.35,
       "step": 0
     },
     {
       "type": "node-on",
-      "t": 34.5,
+      "t": 34.4,
       "step": 1,
       "of": 5
     },
     {
       "type": "packet",
-      "t": 34.95,
+      "t": 34.75,
       "step": 1
     },
     {
       "type": "node-on",
-      "t": 35,
+      "t": 34.8,
       "step": 2,
       "of": 5
     },
     {
       "type": "packet",
-      "t": 35.45,
+      "t": 35.15,
       "step": 2
     },
     {
       "type": "node-on",
-      "t": 35.5,
+      "t": 35.2,
       "step": 3,
       "of": 5
     },
     {
       "type": "packet",
-      "t": 35.65,
+      "t": 35.35,
       "step": 3
     },
     {
       "type": "node-on",
-      "t": 35.7,
+      "t": 35.4,
       "step": 4,
       "of": 5
     },
     {
       "type": "tile-on",
-      "t": 36.5,
+      "t": 35.8,
       "step": 0,
       "of": 3
     },
     {
       "type": "tile-on",
-      "t": 36.75,
+      "t": 36,
       "step": 1,
       "of": 3
     },
     {
       "type": "tile-on",
-      "t": 37,
+      "t": 36.2,
       "step": 2,
       "of": 3
     },
     {
       "type": "lock-click",
-      "t": 37.5,
+      "t": 36.55,
       "step": 0,
       "note": "2FA"
     },
     {
       "type": "lock-click",
-      "t": 37.9,
+      "t": 36.95,
       "step": 1,
       "note": "RLS"
     },
     {
       "type": "whoosh-in",
-      "t": 39.4,
+      "t": 37.5,
       "dur": 0.7,
-      "note": "diagram collapses into the end card"
+      "note": "the diagram is pushed back as the bag hand-off photo fades in"
+    },
+    {
+      "type": "caption-pop",
+      "t": 37.8,
+      "step": 5
+    },
+    {
+      "type": "bag-rustle",
+      "t": 38,
+      "dur": 0.5,
+      "note": "paper bag changes hands: soft paper rustle + rope-handle creak + a very low, warm thump (real, tactile, quiet)"
+    },
+    {
+      "type": "redeem-ding",
+      "t": 38.45,
+      "note": "the 'code redeemed' chip pops: bright glassy two-note ding, consonant with the chord, clearly different from notif-ping and code-ding"
+    },
+    {
+      "type": "photo-whoosh",
+      "t": 39.4,
+      "dur": 0.6,
+      "note": "soft air as the photo crosses to the handshake"
+    },
+    {
+      "type": "handshake",
+      "t": 40,
+      "note": "the hands meet exactly on the downbeat: skin/cloth clasp (soft) + the big warm resolving C chord swell (this IS the song's biggest chord) + a small glint of sparkle"
     },
     {
       "type": "logo-hit-soft",
-      "t": 40,
-      "note": "softer sibling of logo-hit; the final chord starts here"
+      "t": 41,
+      "note": "softer sibling of logo-hit: only a secondary accent on top of the C chord that is already ringing since the handshake at 40.0"
     },
     {
       "type": "shimmer",
-      "t": 40.2,
+      "t": 41.2,
       "dur": 1.2
     },
     {
       "type": "tagline-air",
-      "t": 40.8,
+      "t": 41.8,
       "dur": 0.7
     },
     {
       "type": "chip-pop",
-      "t": 41.2,
+      "t": 42.2,
       "step": 0,
       "of": 4
     },
     {
       "type": "chip-pop",
-      "t": 41.45,
+      "t": 42.45,
       "step": 1,
       "of": 4
     },
     {
       "type": "chip-pop",
-      "t": 41.7,
+      "t": 42.7,
       "step": 2,
       "of": 4
     },
     {
       "type": "chip-pop",
-      "t": 41.95,
+      "t": 42.95,
       "step": 3,
       "of": 4
     },
     {
       "type": "sparkle",
-      "t": 42.5,
+      "t": 43.4,
       "dur": 1.5,
       "note": "final glitter over the held chord"
     }

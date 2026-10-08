@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, useVideoConfig } from "remotion";
+import { PHOTO } from "../people";
 import { LogoMark } from "../components/LogoMark";
 import { IconPin } from "../components/Icons";
 import { COLORS, FONT, GRADIENT_SOFT, MONO } from "../theme";
@@ -29,7 +30,15 @@ export const EndScene: React.FC = () => {
   const ring = prog(t, H, H + 1.0);
   const breathe = 1 + 0.012 * Math.sin(t * 1.4);
 
+  // the handshake stays behind the lock-up, defocused and darkened: the brand sits on a human moment
+  const bg = EASE.out(prog(t, END.hit - 0.6, END.hit + 0.4));
+
   return (
+    <AbsoluteFill>
+      <AbsoluteFill style={{ opacity: 0.5 * bg, transform: `scale(${1.06 + 0.012 * (t - CHAPTER.end.from)})` }}>
+        <Img src={PHOTO.handshake.src} style={{ position: "absolute", left: -70, top: -120, width: 1220, height: 1627, objectFit: "cover", filter: "blur(16px) brightness(0.55) saturate(1.25)" }} />
+        <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 42%, rgba(7,10,26,.15), rgba(7,10,26,.82) 78%)" }} />
+      </AbsoluteFill>
     <AbsoluteFill style={{ transform: `scale(${breathe})`, transformOrigin: "540px 600px" }}>
       {/* light behind the lock-up */}
       <div
@@ -181,6 +190,7 @@ export const EndScene: React.FC = () => {
           </svg>
         );
       })}
+    </AbsoluteFill>
     </AbsoluteFill>
   );
 };

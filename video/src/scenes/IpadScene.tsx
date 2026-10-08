@@ -9,11 +9,12 @@ import { SCREEN } from "../theme";
 import { CHAPTER, IPAD } from "../timeline";
 import { LAYOUT } from "../layout";
 import { CAM_KEYS, PUNCH_TIMES } from "../ipadTimeline";
-import { EASE, beatPulse, hit, prog, useSceneTime } from "../lib/motion";
+import { EASE, beatPulse, hit, prog, seg, useSceneTime } from "../lib/motion";
 import { camTranslate, followCamera, punch, screenToCanvas, type Cam } from "../lib/camera";
 import { ScreenContent } from "./ipad/ScreenContent";
 import { ScreenOverlays } from "./ipad/ScreenOverlays";
 import { MatchRing } from "./ipad/MatchRing";
+import { HandoffLayer } from "./ipad/HandoffLayer";
 import { SwipeDots } from "../components/SwipeDots";
 import { SWIPES } from "./ipad/screens";
 
@@ -111,8 +112,11 @@ export const IpadScene: React.FC = () => {
   const { fps } = useVideoConfig();
   const t = useSceneTime(CHAPTER.ipad.from);
   const shutter = Math.min(250, camSpeed(t, fps) * 9);
+  // the CSS iPad stays hidden while the hand-off photo is on screen, then takes over from it
+  const reveal = seg(t, IPAD.handoff.zoom[1] - 0.1, IPAD.handoff.out, EASE.inOut);
   return (
     <AbsoluteFill>
+      <AbsoluteFill style={{ opacity: reveal }}>
       {shutter > 25 ? (
         <CameraMotionBlur samples={8} shutterAngle={shutter}>
           <IpadWorld />
@@ -120,6 +124,8 @@ export const IpadScene: React.FC = () => {
       ) : (
         <IpadWorld />
       )}
+      </AbsoluteFill>
+      <HandoffLayer />
       <IpadOverlays t={t} cam={camAt(t)} />
     </AbsoluteFill>
   );

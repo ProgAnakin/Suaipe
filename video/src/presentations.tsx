@@ -94,6 +94,38 @@ const FlashThrough: PresentationComponent = ({ children, presentationProgress: p
 };
 export const flashThrough = make(FlashThrough);
 
+// ── pure overlap: both scenes stay as they are (each handles its own fades) ───────────────────────────────────────────
+const Passthrough: PresentationComponent = ({ children }) => <AbsoluteFill>{children}</AbsoluteFill>;
+export const passthrough = make(Passthrough);
+
+// ── system diagram → photo: the diagram is pushed back and softened while the photograph fades in over it ─────────────
+const PhotoCut: PresentationComponent = ({ children, presentationProgress: p, presentationDirection }) => {
+  if (presentationDirection === "exiting") {
+    const e = EASE.in(p);
+    return (
+      <AbsoluteFill style={{ transform: `scale(${1 - 0.06 * e})`, filter: `blur(${12 * e}px)`, opacity: 1 - clamp((p - 0.3) / 0.7) }}>
+        {children}
+      </AbsoluteFill>
+    );
+  }
+  return <AbsoluteFill>{children}</AbsoluteFill>;
+};
+export const photoCut = make(PhotoCut);
+
+// ── photo → end card: the handshake goes soft and dark so the lock-up can sit on it ─────────────────────────────────
+const Defocus: PresentationComponent = ({ children, presentationProgress: p, presentationDirection }) => {
+  if (presentationDirection === "exiting") {
+    const e = EASE.inOut(p);
+    return (
+      <AbsoluteFill style={{ filter: `blur(${18 * e}px) brightness(${1 - 0.45 * e})`, transform: `scale(${1 + 0.03 * e})`, opacity: 1 - clamp((p - 0.55) / 0.45) }}>
+        {children}
+      </AbsoluteFill>
+    );
+  }
+  return <AbsoluteFill style={{ opacity: clamp(p * 1.8), transform: `scale(${lerp(1.03, 1, EASE.out(p))})` }}>{children}</AbsoluteFill>;
+};
+export const defocus = make(Defocus);
+
 // ── lock-up → iPad: the lock-up lifts away on its own, the iPad rises from below with a tilt ───────────────────────────
 const RiseUp: PresentationComponent = ({ children, presentationProgress: p, presentationDirection }) => {
   if (presentationDirection === "exiting") return <AbsoluteFill>{children}</AbsoluteFill>;

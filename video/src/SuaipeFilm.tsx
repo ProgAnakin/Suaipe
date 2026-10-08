@@ -7,9 +7,10 @@ import { SOUNDTRACK } from "./assets";
 import { Backdrop } from "./components/Backdrop";
 import { Captions } from "./components/Caption";
 import { FilmGrade } from "./components/FilmGrade";
-import { collapse, dropOut, flashThrough, riseUp, swapSlide } from "./presentations";
+import { defocus, dropOut, flashThrough, passthrough, photoCut, swapSlide } from "./presentations";
 import { EndScene } from "./scenes/EndScene";
 import { HookScene } from "./scenes/HookScene";
+import { HumanScene } from "./scenes/HumanScene";
 import { IpadScene } from "./scenes/IpadScene";
 import { LockupScene } from "./scenes/LockupScene";
 import { PhoneScene } from "./scenes/PhoneScene";
@@ -44,7 +45,7 @@ export const SuaipeFilm: React.FC<FilmProps> = ({ withAudio }) => {
         <TransitionSeries.Sequence name="Lock-up" durationInFrames={f(C.lockup.to) - f(C.lockup.from)} premountFor={fps}>
           <LockupScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={riseUp()} timing={linearTiming({ durationInFrames: f(C.lockup.to) - f(C.ipad.from) })} />
+        <TransitionSeries.Transition presentation={passthrough()} timing={linearTiming({ durationInFrames: f(C.lockup.to) - f(C.ipad.from) })} />
         <TransitionSeries.Sequence name="iPad flow" durationInFrames={f(C.ipad.to) - f(C.ipad.from)} premountFor={fps}>
           <IpadScene />
         </TransitionSeries.Sequence>
@@ -56,7 +57,11 @@ export const SuaipeFilm: React.FC<FilmProps> = ({ withAudio }) => {
         <TransitionSeries.Sequence name="System" durationInFrames={f(C.system.to) - f(C.system.from)} premountFor={fps}>
           <SystemScene />
         </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={collapse()} timing={linearTiming({ durationInFrames: f(C.system.to) - f(C.end.from) })} />
+        <TransitionSeries.Transition presentation={photoCut()} timing={linearTiming({ durationInFrames: f(C.system.to) - f(C.human.from) })} />
+        <TransitionSeries.Sequence name="Human close" durationInFrames={f(C.human.to) - f(C.human.from)} premountFor={fps}>
+          <HumanScene />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={defocus()} timing={linearTiming({ durationInFrames: f(C.human.to) - f(C.end.from) })} />
         <TransitionSeries.Sequence name="End card" durationInFrames={f(C.end.to) - f(C.end.from)} premountFor={fps}>
           <EndScene />
         </TransitionSeries.Sequence>

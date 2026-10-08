@@ -1,0 +1,36 @@
+{
+  "about": "AI-generated stills used for the human moments of the film (hands, bag hand-off, handshake, store backdrop). Generated with Figma AI (planKey team::1165712688955212743 = ToCherry) on 2026-10-08. The hosted URLs expire 7 days after generation, so the downloaded copies in video/public/people are the source of truth. Photoreal people are hands/forearms only (no faces).",
+  "size": "960x1280 (gpt-image-2.5-sunburst) / 928x1152 (gemini-3.1-flash-image)",
+  "images": [
+    {
+      "id": "handoff",
+      "model": "gpt-image-2.5-sunburst",
+      "url": "https://www.figma.com/api/mcp/asset/b071eda1-c611-4fd8-97aa-2d332d966e92.png",
+      "prompt": "Photorealistic photograph shot on a full-frame camera, 50mm lens at f/2, inside a modern consumer-electronics retail store. Close-up of a store consultant's two hands (dark navy blazer sleeves with white shirt cuffs) holding a large 13-inch tablet in portrait orientation, held upright and facing the camera, offering it forward to a customer. The customer's hand (light grey knit sweater sleeve) reaches in from the right edge of the frame to take the tablet. HANDS AND ARMS ONLY, no faces, no heads. Anatomically correct, natural-looking hands with exactly five fingers each. The tablet has slim silver aluminium bezels and a completely black, switched-off glass screen with a soft natural reflection. Background: softly blurred store shelves with headphones and smartwatches, warm pin-spot lights, shallow depth of field, creamy bokeh, cinematic navy and teal colour grade, premium commercial photography. No text, no logos, no watermarks."
+    },
+    {
+      "id": "handoff-gemini",
+      "model": "gemini-3.1-flash-image",
+      "url": "https://www.figma.com/api/mcp/asset/cdacccb5-ca4a-44c0-8624-e1ad7f33b817.png",
+      "prompt": "same scene as 'handoff', tablet 'held perfectly upright and square to the camera' (alternative take; shows blurred people in the background)"
+    },
+    {
+      "id": "bag",
+      "model": "gpt-image-2.5-sunburst",
+      "url": "https://www.figma.com/api/mcp/asset/ca06b9a4-0d9f-4baa-a941-5b09a682bcb8.png",
+      "prompt": "Photorealistic photograph, 50mm lens at f/2, inside a modern consumer-electronics retail store. Close-up of a store consultant's hands (dark navy blazer sleeve, white shirt cuff) handing a premium paper shopping bag to a customer. The bag is matte deep-navy paper with twisted rope handles and a plain blank front (no printing), and the top of a slim white product box is visible inside the bag. The customer's hand (light grey knit sweater sleeve) is taking the bag handles from the consultant. HANDS AND FOREARMS ONLY, no faces, no heads. Anatomically correct natural hands with five fingers each. Background: softly blurred retail store shelves with headphones and smartwatches, warm pin-spot lights, creamy bokeh, shallow depth of field, cinematic navy and teal colour grade, premium commercial photography. No text, no logos, no watermarks."
+    },
+    {
+      "id": "handshake",
+      "model": "gpt-image-2.5-sunburst",
+      "url": "https://www.figma.com/api/mcp/asset/b4de7832-03bd-41df-acc1-391e49d18e4b.png",
+      "prompt": "Photorealistic photograph, 50mm lens at f/2, inside a modern consumer-electronics retail store. Close-up of a firm, friendly handshake between a store consultant (dark navy blazer sleeve with white shirt cuff) and a customer (light grey knit sweater sleeve) over a counter, seen from the side at hand height. HANDS AND FOREARMS ONLY, no faces, no heads. Anatomically correct natural hands, exactly five fingers each, natural skin tones, a clasped handshake. Background: softly blurred retail store shelves with headphones and smartwatches, warm pin-spot lights, creamy bokeh, shallow depth of field, cinematic navy and teal colour grade, premium commercial photography. No text, no logos, no watermarks."
+    },
+    {
+      "id": "store",
+      "model": "gpt-image-2.5-sunburst",
+      "url": "https://www.figma.com/api/mcp/asset/dce595b6-7c48-4314-90f2-356823da85ad.png",
+      "prompt": "Photorealistic wide interior photograph of a modern consumer-electronics retail store, no people, shot at f/1.8 with strong depth of field: foreground out of focus, mid-ground shelves and display tables with headphones, smartwatches, speakers and small gadgets neatly arranged, soft warm pin-spot lighting, glossy dark floor reflections, background dissolving into creamy bokeh lights. Cinematic navy and teal colour grade, moody and premium, vertical composition. No text, no logos, no signs, no watermarks."
+    }
+  ]
+}

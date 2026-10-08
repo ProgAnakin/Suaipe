@@ -32,7 +32,9 @@ add("logo-hit", T.LOCKUP.hit, { note: "big impact: sub boom + glassy chord + air
 add("shimmer", T.LOCKUP.shimmer, { dur: 1.2 });
 add("tagline-air", T.LOCKUP.tagline, { dur: 0.7 });
 add("whoosh-up", T.IPAD.rise, { dur: 0.9, note: "iPad rises from below" });
-add("device-settle", T.IPAD.settle - 0.05, { note: "soft low thump as the iPad lands" });
+add("device-settle", T.IPAD.settle - 0.05, { note: "soft low thump as the tablet changes hands in the hand-off photo" });
+add("screen-wake", T.IPAD.handoff.wake, { dur: 0.6, note: "the kiosk screen lights up on the photographed tablet: soft rising two-note glass chime" });
+add("zoom-whoosh", T.IPAD.handoff.zoom[0], { dur: T.IPAD.handoff.zoom[1] - T.IPAD.handoff.zoom[0], note: "camera flies into the tablet screen" });
 
 // ── captions ───────────────────────────────────────────────────────────────────────────────
 T.CAPTIONS.forEach((c, i) => add("caption-pop", c.from, { step: i }));
@@ -91,10 +93,16 @@ T.SYSTEM.nodes.forEach((t, i) => add("node-on", t, { step: i, of: T.SYSTEM.nodes
 T.SYSTEM.packets.forEach((t, i) => add("packet", t, { step: i }));
 T.SYSTEM.tiles.forEach((t, i) => add("tile-on", t, { step: i, of: 3 }));
 T.SYSTEM.locks.forEach((t, i) => add("lock-click", t, { step: i, note: i ? "RLS" : "2FA" }));
-add("whoosh-in", T.SYSTEM.out, { dur: 0.7, note: "diagram collapses into the end card" });
+add("whoosh-in", T.SYSTEM.out, { dur: 0.7, note: "the diagram is pushed back as the bag hand-off photo fades in" });
+
+// ── human close ────────────────────────────────────────────────────────────────────────────
+add("bag-rustle", T.HUMAN.rustle, { dur: 0.5, note: "paper bag changes hands: soft paper rustle + rope-handle creak + a very low, warm thump (real, tactile, quiet)" });
+add("redeem-ding", T.HUMAN.redeemed, { note: "the 'code redeemed' chip pops: bright glassy two-note ding, consonant with the chord, clearly different from notif-ping and code-ding" });
+add("photo-whoosh", T.HUMAN.handshakeIn - 0.1, { dur: 0.6, note: "soft air as the photo crosses to the handshake" });
+add("handshake", T.HUMAN.clasp, { note: "the hands meet exactly on the downbeat: skin/cloth clasp (soft) + the big warm resolving C chord swell (this IS the song's biggest chord) + a small glint of sparkle" });
 
 // ── end card ───────────────────────────────────────────────────────────────────────────────
-add("logo-hit-soft", T.END.hit, { note: "softer sibling of logo-hit; the final chord starts here" });
+add("logo-hit-soft", T.END.hit, { note: "softer sibling of logo-hit: only a secondary accent on top of the C chord that is already ringing since the handshake at 40.0" });
 add("shimmer", T.END.shimmer, { dur: 1.2 });
 add("tagline-air", T.END.tagline, { dur: 0.7 });
 T.END.chips.forEach((t, i) => add("chip-pop", t, { step: i, of: 4 }));
@@ -121,8 +129,9 @@ const out = {
     { name: "counter", from: 20.0, to: 22.0, bars: "11", brief: "Riser: kick drops out at 21.0, snare roll accelerating into 22.0, everything cuts for a beat of air right before the hit." },
     { name: "drop-B", from: 22.0, to: 26.0, bars: "12-13", brief: "Biggest moment: full chord stack + lead melody + open hats + kick. Celebratory but tasteful." },
     { name: "email", from: 26.0, to: 34.0, bars: "14-17", brief: "Breakdown: low-pass the groove, warm keys + pad, soft pulse; light percussion. The notif-ping and code-ding sit on top." },
-    { name: "system", from: 34.0, to: 40.0, bars: "18-20", brief: "Rhythmic, techy: staccato arps / gated pad pulsing with the nodes, rising tension to the end card." },
-    { name: "outro", from: 40.0, to: 44.5, bars: "21-22+", brief: "Final big chord at 40.0, then let it ring and decay; sparkle at 42.5; fade the tail to silence by 44.5." },
+    { name: "system", from: 34.0, to: 37.6, bars: "18-19", brief: "Rhythmic, techy: staccato arps / gated pad pulsing with the nodes (they come faster now: 5 nodes in 1.4 s, tiles at 35.8-36.2, locks 36.55 / 36.95); the groove stops cleanly at 37.5 when the diagram is pushed away." },
+    { name: "human", from: 37.6, to: 40.0, bars: "20", brief: "Warm, human, quiet: the groove is gone. Soft pad + felt/e-piano chords on G (V) leaning towards C, a little air, maybe a single gentle bell on the redeem-ding. Paper-bag rustle at 38.0 is a real, close, tactile sound: keep the music out of its way. Build a gentle lift into the downbeat at 40.0 (no drums, no riser clichés)." },
+    { name: "outro", from: 40.0, to: 44.5, bars: "21-22+", brief: "The handshake lands on the downbeat of bar 21 (40.0): THIS is the song's big resolving C chord (full, warm, the biggest moment of the film besides the 98 % hit). Let it ring through bar 22 (Cadd9 at 42.0); the logo-hit-soft at 41.0 is only a secondary accent on top of the held chord; chips at 42.2-42.95; sparkle 43.4; fade the tail to true silence by 44.5." },
   ],
   sfx,
 };

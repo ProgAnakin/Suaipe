@@ -10,10 +10,9 @@ const L = LAYOUT;
  * `omega` ≈ speed (3 = slow drift, 9 = snappy). `fy` pushes the focus point up/down on the canvas (px).
  */
 export const CAM_KEYS: CamKey[] = [
-  { t: CHAPTER.ipad.from, z: 0.94, u: 0.5, v: 0.5 },
-  { t: 5.9, z: 1.0, u: 0.5, v: 0.5, omega: 5 },
-  { t: 6.9, z: 1.1, u: 0.5, v: 0.54, omega: 2.6 }, // slow push on the attract screen
-  { t: 7.4, z: 1.5, u: 0.5, v: L.attract.startBtn.v - 0.02, omega: 6 }, // lean in on the button
+  // while the hand-off photo is up the iPad sits at the zoom the photo flies into (screen fills the canvas width)
+  { t: CHAPTER.ipad.from, z: IPAD.handoff.zoomTo, u: 0.5, v: 0.5 },
+  { t: 7.45, z: 1.5, u: 0.5, v: L.attract.startBtn.v - 0.02, omega: 6 }, // lean in on the button
   { t: 8.35, z: 1.9, u: 0.855, v: 0.045, fy: -250, omega: 6.5 }, // language chips
   { t: 10.0, z: 1.62, u: 0.5, v: 0.565, omega: 6 }, // the form
   { t: 11.95, z: 1.82, u: 0.46, v: 0.6, fy: -70, omega: 7 }, // GDPR checkbox

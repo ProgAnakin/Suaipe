@@ -19,8 +19,9 @@ export const CHAPTER = {
   lockup: { from: 3.6, to: 6.2 },
   ipad: { from: 5.4, to: 26.6 },
   phone: { from: 25.6, to: 34.2 },
-  system: { from: 33.6, to: 40.2 },
-  end: { from: 39.6, to: DURATION_S },
+  system: { from: 33.6, to: 37.9 },
+  human: { from: 37.5, to: 41.5 }, // bag hand-off → handshake, real hands, in store
+  end: { from: 41.0, to: DURATION_S },
 } as const;
 
 // ── hook (bars 1–2) ─────────────────────────────────────────────────────────────────────────
@@ -43,8 +44,11 @@ export const LOCKUP = {
 
 // ── iPad flow ───────────────────────────────────────────────────────────────────────────────
 export const IPAD = {
-  rise: 5.4, // iPad slides up (whoosh)
-  settle: 6.4,
+  rise: 5.4, // the hand-off photo opens (soft whoosh as the lock-up leaves)
+  settle: 6.4, // the tablet changes hands (soft thud)
+  // the opening is a photo of the consultant handing the tablet over; the kiosk screen wakes up on it, then we fly into it
+  // `zoomTo` = iPad zoom at which the photographed glass fills the canvas width (the CSS iPad waits there, hidden)
+  handoff: { in: 5.4, wake: 5.9, zoom: [6.85, 7.4], out: 7.55, zoomTo: 1.35 },
   tap1: 8.0, // TAP TO START
   welcomeIn: 8.05,
   chipTicks: [8.8, 9.0, 9.2, 9.4, 9.6], // language highlight sweep IT → FR
@@ -94,21 +98,31 @@ export const PHONE = {
 
 // ── system diagram ──────────────────────────────────────────────────────────────────────────
 export const SYSTEM = {
-  nodes: [34.0, 34.5, 35.0, 35.5, 35.7], // kiosk, supabase, edge fn, e-mail, CRM relay
-  packets: [34.45, 34.95, 35.45, 35.65],
-  tiles: [36.5, 36.75, 37.0], // Manager, Stats, Consultants
-  locks: [37.5, 37.9], // 2FA, RLS
-  out: 39.4,
+  nodes: [34.0, 34.4, 34.8, 35.2, 35.4], // kiosk, supabase, edge fn, e-mail, CRM relay
+  packets: [34.35, 34.75, 35.15, 35.35],
+  tiles: [35.8, 36.0, 36.2], // Manager, Stats, Consultants
+  locks: [36.55, 36.95], // 2FA, RLS
+  out: 37.5,
+} as const;
+
+// ── human close: the sale happens in person ─────────────────────────────────────────────────
+export const HUMAN = {
+  bagIn: 37.6, // cut to the bag hand-off photo
+  rustle: 38.0, // the bag changes hands
+  redeemed: 38.45, // "Code redeemed" chip pops (the real mark_code_redeemed flow)
+  handshakeIn: 39.5, // cross to the handshake
+  clasp: 40.0, // the hands meet — bar 21 downbeat, the big resolving chord
+  out: 41.3,
 } as const;
 
 // ── end card ────────────────────────────────────────────────────────────────────────────────
 export const END = {
-  hit: 40.0,
-  shimmer: 40.2,
-  tagline: 40.8,
-  chips: [41.2, 41.45, 41.7, 41.95],
-  tech: 42.4,
-  sparkle: 42.5,
+  hit: 41.0,
+  shimmer: 41.2,
+  tagline: 41.8,
+  chips: [42.2, 42.45, 42.7, 42.95],
+  tech: 43.3,
+  sparkle: 43.4,
   fadeOut: [43.9, DURATION_S],
 } as const;
 
@@ -120,10 +134,11 @@ export const CAPTIONS = [
   { from: 27.8, to: 31.4, text: "A personalised email with a <em>unique code.</em>" },
   {
     from: 34.0,
-    to: 39.6,
+    to: 37.6,
     text: "Multi-store. <em>2FA on staff dashboards.</em><br/>Row-level security on every table.",
     small: true,
   },
+  { from: 37.8, to: 41.0, text: "Technology that keeps<br/>the in-store moment <em>human.</em>" },
 ] as const;
 
 // ── helpers ─────────────────────────────────────────────────────────────────────────────────

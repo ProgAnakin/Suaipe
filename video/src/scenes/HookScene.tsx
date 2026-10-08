@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, useVideoConfig } from "remotion";
+import { PHOTO } from "../people";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import { product } from "../assets";
 import { ProductTile } from "../components/ProductTile";
@@ -186,6 +187,13 @@ export const HookScene: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ transform: `translate(${sx}px, ${sy}px)` }}>
+      {/* the store, out of focus, behind everything: this is a physical-retail product */}
+      <AbsoluteFill style={{ opacity: 0.5 * seg(t, 0, 0.5, EASE.out) * (1 - seg(t, 3.4, 3.95, EASE.in)), mixBlendMode: "screen" }}>
+        <Img
+          src={PHOTO.store.src}
+          style={{ position: "absolute", left: -60, top: -170 - t * 14, width: 1200, height: 1600, objectFit: "cover", filter: "blur(9px) brightness(0.72) saturate(1.3)", transform: `scale(${1.04 + 0.025 * t})` }}
+        />
+      </AbsoluteFill>
       {/* hero halo + rotating light rays, behind the tiles */}
       <div
         style={{

@@ -5,3 +5,5 @@ audio/build
 tools/capture/node_modules/
 public/audio/stems/
 audio/qa/spectrogram_*.png
+__pycache__/
+*.pyc
