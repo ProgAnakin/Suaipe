@@ -123,7 +123,7 @@ export const SPEC_WELCOME = {
   startButton: { css: "button", text: "start the game", desc: "START THE GAME! button (gradient + glow)", style: BTN_STYLE },
   privacyLine: { css: "div.text-xs", text: "secure data", desc: "'🔒 Secure data · GDPR compliant'" },
   noSpam: { css: "p", text: "no spam", desc: "'No spam. Unsubscribe anytime.'" },
-  storeBadge: { css: "button", text: "milano", desc: "store badge (bottom-left; tap = staff PIN overlay)" },
+  storeBadge: { css: "button", text: "store a", desc: "store badge (bottom-left; tap = staff PIN overlay)" },
 };
 
 export const SPEC_TUTORIAL = {

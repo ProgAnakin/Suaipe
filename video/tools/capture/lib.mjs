@@ -57,9 +57,23 @@ const EN = {
   },
 };
 
-export const CATALOG = loadProducts().map((p) => ({
+/** English product names for the staff screens (the bundled catalogue is Italian). Same fictional, unbranded products. */
+const EN_NAMES = {
+  "brevia-gopress": "Brevia GoPress – Portable Espresso Maker",
+  "lunaring-halo": "Lunaring Halo – Smart Ring",
+  "vibewave-open": "Vibewave Open – Open-Ear Earbuds",
+  "pulsar-recover-x": "Pulsar Recover X – Massage Gun",
+  "voltik-snapcell": "Voltik SnapCell – Magnetic Power Bank",
+  "aeris-glow": "Aeris Glow – High-Speed Hair Dryer",
+  "echobox-riff": "Echobox Riff – Retro Bluetooth Speaker",
+  "nimbus-sip": "Nimbus Sip – Smart Bottle",
+  "lumio-air": "Lumio Air – Portable Mini Projector",
+};
+const RAW_PRODUCTS = loadProducts();
+
+export const CATALOG = RAW_PRODUCTS.map((p) => ({
   id: p.id,
-  name: (EN[p.id] || p).name,
+  name: EN_NAMES[p.id] || (EN[p.id] || p).name,
   description: (EN[p.id] || p).description,
   price: p.price,
   rating: p.rating,
@@ -138,13 +152,13 @@ export async function launch() {
   });
 }
 
-/** A fresh kiosk session: store = Milano, English UI, seeded Math.random, Supabase + fonts mocked. */
+/** A fresh kiosk session: store = "Store A" (neutral, see STORES_STUB), English UI, seeded Math.random, Supabase + fonts mocked. */
 export async function makeSession(browser, { dpr = DPR, width = VIEWPORT.width, height = VIEWPORT.height } = {}) {
   const ctx = await browser.newContext({
     viewport: { width, height }, deviceScaleFactor: dpr, locale: "en-US", timezoneId: "Europe/Rome",
   });
   await ctx.addInitScript((seed) => {
-    try { localStorage.setItem("wb_store_id", "milano"); } catch (e) { /* ignore */ }
+    try { localStorage.setItem("wb_store_id", "store-a"); } catch (e) { /* ignore */ }
     Object.defineProperty(navigator, "hardwareConcurrency", { get: () => 8 }); // device tier "high" => full confetti
     let s = seed >>> 0; // mulberry32: every random tie-break / slot-machine value is reproducible
     Math.random = () => {
@@ -201,6 +215,15 @@ export async function makeSession(browser, { dpr = DPR, width = VIEWPORT.width, 
     const req = route.request();
     const url = new URL(req.url());
     if (url.host === APP_HOST) {
+      // the film never shows real store or city names: the module that lists the stores is replaced, at capture time only
+      if (url.pathname === "/src/data/stores.ts") return route.fulfill({ contentType: "text/javascript", body: STORES_STUB });
+      if (url.pathname === "/src/data/products.ts") {
+        // the staff screens read product names from the bundled (Italian) catalogue: serve it with the English names
+        const res = await route.fetch();
+        let body = await res.text();
+        for (const p of RAW_PRODUCTS) if (EN_NAMES[p.id]) body = body.split(`name: ${JSON.stringify(p.name)}`).join(`name: ${JSON.stringify(EN_NAMES[p.id])}`);
+        return route.fulfill({ response: res, body });
+      }
       if (USE_CLEAN_BREVIA && url.pathname === "/products/brevia-gopress.png") {
         return route.fulfill({ path: CLEAN_BREVIA, contentType: "image/png" });
       }
@@ -222,6 +245,21 @@ export async function makeSession(browser, { dpr = DPR, width = VIEWPORT.width, 
   page.on("pageerror", (e) => console.log("[pageerror]", e.message));
   return { ctx, page };
 }
+
+/**
+ * Stand-in for src/data/stores.ts served to the capture browser: two neutral, fictional stores. The film must not show the
+ * employer's store or city names or their number, but the app needs a configured store to run (and the admin pages list them).
+ */
+const STORES_STUB = `
+export const STORES = [
+  { id: "store-a", name: "Suaipe Store A", shortName: "Store A" },
+  { id: "store-b", name: "Suaipe Store B", shortName: "Store B" },
+];
+export const STORE_LS_KEY = "wb_store_id";
+export function getStoredStoreId() { try { return localStorage.getItem(STORE_LS_KEY); } catch { return null; } }
+export function setStoredStoreId(id) { try { localStorage.setItem(STORE_LS_KEY, id); } catch {} }
+export function getStoreById(id) { return STORES.find((s) => s.id === id); }
+`;
 
 export async function assertAppIsUp() {
   try {

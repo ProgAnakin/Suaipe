@@ -377,7 +377,7 @@ async function main() {
         appUrl: L.APP_URL,
         viewportCss: VIEWPORT, deviceScaleFactor: DPR, imagePx: { width: VIEWPORT.width * DPR, height: VIEWPORT.height * DPR },
         units: "every entry has css {x,y,width,height,right,bottom,cx,cy} in CSS px (viewport coordinates) and norm = the same divided by the viewport (0..1)",
-        locale: "en-US (English UI), store = Milano", seed: L.SEED,
+        locale: "en-US (English UI), store = Store A (neutral stand-in)", seed: L.SEED,
         heroProduct: L.HERO,
         cleanBreviaPackshot: L.USE_CLEAN_BREVIA,
         note: "Boxes are getBoundingClientRect() values taken once each screen had settled; transformed elements (rotated stamps, scaled chips) report their visual bounding box.",

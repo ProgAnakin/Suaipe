@@ -20,6 +20,7 @@ cd video/tools/capture
 npm ci
 node capture.mjs      # stills + swipe frames + typing crops + layout.json      (~7 min)
 node email.mjs        # still/email-full.webp (+ `email` entry in layout.json)  (~15 s)
+node admin.mjs        # still/{stats-top,stats-funnel,stats-store,manager-sessions}.webp + admin-layout.json (~40 s)
 node extra-stills.mjs --install   # + still/quiz-tutorial-yes, still/result-mid, ring label styles in layout.json (~2 min)
 node products.mjs     # ../../public/products/<id>.webp                          (~15 s)
 node manifest.mjs     # public/app/manifest.json (files, pixel sizes, bytes, totals)
@@ -47,10 +48,12 @@ exists, otherwise Playwright's own: `npx playwright-core install chromium`). `pl
 still/     attract welcome-empty welcome-filled quiz-tutorial card-1..8 result result-plate success-mid success   WebP q90, 2048 x 2732
            quiz-tutorial-yes result-mid                                                                       (extra-stills.mjs, same format)
            email-full                                                                                        WebP q90, 1455 x 7746 (485 x 2582 CSS px @3x)
+           stats-top stats-funnel stats-store manager-sessions                                                (admin.mjs) WebP q90, 2048 x 2732
 swipe/     swipe-<n>-000..047                                  n = 1..8, WebP q88, 1536 x 2049
 typing/    first-00..05  last-00..05  email-00..23  email-calm-00..23  checkbox-unchecked  checkbox-checked
            start-button  manifest.json                         lossless WebP crops (+ crop rectangles, frame lists)
 layout.json    DOM-measured geometry of every screen (CSS px + 0..1 of the viewport)
+admin-layout.json  row rectangles of the manager list (CSS px of the 1024 x 1366 viewport) – where the film pins its call-outs
 manifest.json  every file with pixel size + bytes, totals
 ../products/<product-id>.webp                                  alpha WebP q90, long side <= 900
 ```
@@ -127,7 +130,8 @@ number / label computed styles, gradient stops) and `result.animation` (timing o
   `__capThaw()`: freezing stops every rAF loop (framer-motion, the count-up) and pauses all running CSS / Web Animations;
   thawing resumes them and seeks the paused animations forward by the frozen time, so the app's own timeline is unharmed.
   Every still is taken frozen; the tutorial / result moments are frozen *inside* the `waitForFunction` predicate.
-* **Seeded `Math.random`**, fixed viewport / DPR / locale (`en-US`) / store (Milano), network mocked, fonts served from
+* **Seeded `Math.random`**, fixed viewport / DPR / locale (`en-US`) / a neutral stand-in store ("Store A": the real store list is swapped for a two-store
+  stub at capture time, so no real shop name or city ever reaches the film), network mocked, fonts served from
   `@fontsource` (the sandbox cannot reach Google Fonts), emoji font preloaded – so every run walks the same journey.
 * **Repaired Brevia packshot**: `assets/brevia-gopress.clean.png` replaces the repo's PNG (checkerboard baked into the glass
   rim) both inside the app (request interception) and for the e-mail / product WebP. `CLEAN_BREVIA_IN_APP=0` turns it off.
@@ -138,3 +142,18 @@ number / label computed styles, gradient stops) and `result.animation` (timing o
   data (Marco Rossi, `SUP-7F3A9C2E10`, 98 %); five hard-coded Italian phrases are swapped for English at render time only.
   Space Grotesk stops at weight 700, so the template's 800/900 headline words render in Arial – as they did in the first
   render of this e-mail.
+
+### The staff screens (`admin.mjs`)
+
+The "Store value" scene shows what the manager gets, so those two screens come from the **real app** too: `/manager` →
+*Sessions & Codes* and `/stats` (KPIs, drop-off funnel, ranking, sessions, the `?store=` filter).
+
+* The browser carries an injected, already **MFA-verified** (`aal2`) session in `sessionStorage` (`sb-mock-auth-token`, the key the
+  app's Supabase client uses), so the real login / TOTP gates are passed without touching them; every Supabase call is answered by
+  the mock. Nothing here comes from production.
+* **Sample data only**: 118 fictional people on `example.com`, two fictional stores ("Store A", "Store B"), round demo numbers
+  (241 quizzes started → 176 results shown → 118 claimed). The film labels these screens *Sample data*.
+* The newest row is **the lead the film has just watched being created** – Marco Rossi, the hero product, 98 %, `SUP-7F3A9C2E10`,
+  Store A – so the picture is continuous from the kiosk, through the e-mail, to the manager's list.
+* Product names are the English ones used in the kiosk (`products.ts` is swapped at capture time, like `stores.ts`).
+* `node admin.mjs --probe` prints the pages' text, buttons and console errors, for when the app's UI changes.

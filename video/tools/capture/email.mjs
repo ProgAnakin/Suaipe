@@ -62,7 +62,7 @@ const html = buildEmail(
     subject_template: "{{nome}}, your match is {{pct}}%",
     header_title: "We found your match!",
     header_subtitle: 'Our algorithm analysed your answers and picked the <strong style="color:#f0f4ff;">perfect gadget for your lifestyle</strong>.',
-    footer_store_name: "Suaipe Milano",
+    footer_store_name: "Suaipe Store",
   },
 ).replace("https://suaipe.vercel.app/products/brevia-gopress.png", `https://${HOST}/product.png`);
 
