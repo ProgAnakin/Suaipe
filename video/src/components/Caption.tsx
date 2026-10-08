@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { CAPTIONS } from "../timeline";
-import { COLORS, FONT, GRADIENT_SOFT } from "../theme";
+import { COLORS, FONT, GRADIENT_SOFT, GRID, TYPE } from "../theme";
 import { EASE, prog, seg } from "../lib/motion";
 import { GradientText } from "./GradientText";
 
@@ -21,23 +21,30 @@ const parse = (markup: string): Line[] =>
     return words;
   });
 
+/** Captions that follow each other without a gap share one scrim: it fades in with the first and out with the last. */
+const RUNS = CAPTIONS.reduce<{ from: number; to: number }[]>((runs, c) => {
+  const last = runs[runs.length - 1];
+  if (last && c.from - last.to < 0.1) last.to = c.to;
+  else runs.push({ from: c.from, to: c.to });
+  return runs;
+}, []);
+
 /**
  * Burned-in captions (most LinkedIn viewers watch muted). Words rise in one by one; highlighted phrases get a
  * gradient fill and an underline that draws itself. Absolute film time: mount at composition level.
  */
-export const Captions: React.FC = () => {
+export const Captions: React.FC<{ only?: ReadonlyArray<number> }> = ({ only }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
-  const active = CAPTIONS.find((c) => t >= c.from - 0.01 && t < c.to);
+  const active = CAPTIONS.find((c, i) => (!only || only.includes(i)) && t >= c.from - 0.01 && t < c.to);
   if (!active) return null;
 
   const lines = parse(active.text);
-  const small = "small" in active && active.small;
-  const fontSize = small ? 46 : 60;
   const local = t - active.from;
   const outP = seg(t, active.to - 0.3, active.to, EASE.inOut);
-  const scrim = 0.94 * seg(t, active.from, active.from + 0.35, EASE.out) * (1 - outP);
+  const run = RUNS.find((r) => t >= r.from - 0.01 && t < r.to) ?? active;
+  const scrim = 0.94 * seg(t, run.from, run.from + 0.35, EASE.out) * (1 - seg(t, run.to - 0.3, run.to, EASE.inOut));
 
   let wordIndex = 0;
   return (
@@ -56,14 +63,14 @@ export const Captions: React.FC = () => {
       <div
         style={{
           position: "absolute",
-          left: 60,
-          width: 960,
-          top: 62,
+          left: GRID.marginX,
+          width: 1080 - 2 * GRID.marginX,
+          top: GRID.captionTop,
           textAlign: "center",
           fontFamily: FONT,
           fontWeight: 700,
-          fontSize,
-          lineHeight: small ? 1.2 : 1.12,
+          fontSize: TYPE.caption,
+          lineHeight: 1.12,
           letterSpacing: "-0.02em",
           color: COLORS.text,
           opacity: 1 - outP,
@@ -111,8 +118,8 @@ export const Captions: React.FC = () => {
                           position: "absolute",
                           left: 0,
                           right: 0,
-                          bottom: small ? -4 : -6,
-                          height: small ? 3 : 4,
+                          bottom: -6,
+                          height: 4,
                           borderRadius: 3,
                           background: GRADIENT_SOFT,
                           opacity: 0.85,

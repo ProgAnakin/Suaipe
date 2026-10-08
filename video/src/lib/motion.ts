@@ -53,6 +53,10 @@ export const settle = (t: number, at: number, fps: number, durationS = 0.8) => {
 /** Exponential decay pulse that jumps to 1 at `at`. */
 export const hit = (t: number, at: number, decay = 6) => (t < at ? 0 : Math.exp(-(t - at) * decay));
 
+/** A flash that blooms over `attack` seconds, peaks at `at` (where a cut can hide behind it) and then decays exponentially. */
+export const flashEnv = (t: number, at: number, attack = 0.1, decay = 9) =>
+  t < at - attack ? 0 : t < at ? EASE.in(prog(t, at - attack, at)) : Math.exp(-(t - at) * decay);
+
 /** Beat-synced pulse (1 on the beat, decaying) active between from..to; amplitude fades at the edges. */
 export const beatPulse = (t: number, from: number, to: number, decay = 5) => {
   if (t < from || t > to) return 0;

@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Img, useVideoConfig } from "remotion";
 import { PHOTO } from "../people";
-import { COLORS, FONT, GRADIENT_SOFT } from "../theme";
+import { COLORS, FONT, GRADIENT_SOFT, TYPE } from "../theme";
 import { CHAPTER, SIGNATURE } from "../timeline";
 import { EASE, clamp, hit, lerp, pop, prog, rng, useSceneTime } from "../lib/motion";
 
@@ -13,6 +13,12 @@ const CYAN: [number, number, number] = [34, 211, 238];
 const GLITTER = (() => {
   const r = rng(909);
   return Array.from({ length: 16 }, () => ({ x: 120 + r() * 840, y: 150 + r() * 1000, s: 14 + r() * 26, at: SIGNATURE.tiny + r() * 1.2, rot: r() * 45 }));
+})();
+
+// the quiet moment before the name: points of light converge on the centre and arrive with the downbeat (the hook's "light gathers", closing the loop)
+const GATHER = (() => {
+  const r = rng(77);
+  return Array.from({ length: 24 }, () => ({ a: r() * Math.PI * 2, d: 520 + r() * 420, s: 5 + r() * 7, delay: r() * 0.3 }));
 })();
 
 const gradientText: React.CSSProperties = { background: GRADIENT_SOFT, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" };
@@ -50,7 +56,7 @@ export const SignatureScene: React.FC = () => {
         )}
 
         {/* the name: two lines of the wordmark's own letter treatment */}
-        <div style={{ position: "absolute", left: 0, top: 360, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, fontFamily: FONT, fontWeight: 700, fontSize: 100, lineHeight: 1.04 }}>
+        <div style={{ position: "absolute", left: 0, top: 360, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, fontFamily: FONT, fontWeight: 700, fontSize: TYPE.headline, lineHeight: 1.04 }}>
           {NAME.map((word, wi) => (
             <div key={wi} style={{ display: "flex", gap: lerp(46, 14, settle) }}>
               {word.split("").map((c, i) => {
@@ -78,7 +84,7 @@ export const SignatureScene: React.FC = () => {
         <div style={{ position: "absolute", left: 540 - 150, top: 612, width: 300 * EASE.out(prog(t, H + 0.6, H + 1.2)), marginLeft: 150 * (1 - EASE.out(prog(t, H + 0.6, H + 1.2))), height: 3, borderRadius: 3, background: GRADIENT_SOFT, boxShadow: "0 0 18px rgba(34,211,238,.6)" }} />
 
         {/* the thesis */}
-        <div style={{ position: "absolute", left: 0, top: 664, width: "100%", textAlign: "center", fontFamily: FONT, fontWeight: 600, fontSize: 60, lineHeight: 1.16, letterSpacing: "-0.015em", color: COLORS.text, opacity: thesisP, transform: `translateY(${(1 - thesisP) * 26}px)`, filter: thesisP < 1 ? `blur(${(1 - thesisP) * 6}px)` : undefined }}>
+        <div style={{ position: "absolute", left: 0, top: 664, width: "100%", textAlign: "center", fontFamily: FONT, fontWeight: 600, fontSize: TYPE.caption, lineHeight: 1.16, letterSpacing: "-0.015em", color: COLORS.text, opacity: thesisP, transform: `translateY(${(1 - thesisP) * 26}px)`, filter: thesisP < 1 ? `blur(${(1 - thesisP) * 6}px)` : undefined }}>
           Simple ideas create <span style={gradientText}>contact.</span>
           <br />
           Contact creates <span style={gradientText}>data.</span>
@@ -86,16 +92,35 @@ export const SignatureScene: React.FC = () => {
 
         {/* soft call to action */}
         <div style={{ position: "absolute", left: 0, top: 920, width: "100%", display: "flex", justifyContent: "center", opacity: ctaP, transform: `translateY(${(1 - ctaP) * 18}px)` }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 30px", borderRadius: 999, fontFamily: FONT, fontWeight: 600, fontSize: 34, letterSpacing: "0.01em", color: COLORS.textSoft, border: "1.5px solid rgba(94,234,212,.5)", background: "rgba(14,24,58,.55)", boxShadow: "0 0 34px rgba(34,211,238,.18)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 30px", borderRadius: 999, fontFamily: FONT, fontWeight: 600, fontSize: TYPE.label, letterSpacing: "0.01em", color: COLORS.textSoft, border: "1.5px solid rgba(94,234,212,.5)", background: "rgba(14,24,58,.55)", boxShadow: "0 0 34px rgba(34,211,238,.18)" }}>
             Let's talk retail
             <span style={{ ...gradientText, fontWeight: 700 }}>→</span>
           </div>
         </div>
 
         {/* the near-invisible disclosure (a deliberate choice; the post carries the readable version) */}
-        <div style={{ position: "absolute", left: 0, top: 1196, width: "100%", textAlign: "center", fontFamily: FONT, fontWeight: 500, fontSize: 15, letterSpacing: "0.03em", color: COLORS.textSoft, opacity: 0.4 * tinyP }}>
+        <div style={{ position: "absolute", left: 0, top: 1196, width: "100%", textAlign: "center", fontFamily: FONT, fontWeight: 500, fontSize: TYPE.micro, letterSpacing: "0.03em", color: COLORS.textSoft, opacity: 0.4 * tinyP }}>
           In-store scenes are AI-generated illustrations.
         </div>
+
+        {GATHER.map((g, i) => {
+          const p = prog(t, SIGNATURE.glow + g.delay, H);
+          if (p <= 0 || p >= 1) return null;
+          const e = EASE.in(p);
+          const d = g.d * (1 - e);
+          const tail = g.d * (1 - EASE.in(Math.max(0, p - 0.06)));
+          const x = 540 + Math.cos(g.a) * d;
+          const y = 470 + Math.sin(g.a) * d * 0.9;
+          const x2 = 540 + Math.cos(g.a) * tail;
+          const y2 = 470 + Math.sin(g.a) * tail * 0.9;
+          const a = clamp(p * 5) * (1 - prog(p, 0.88, 1));
+          return (
+            <React.Fragment key={`g${i}`}>
+              <div style={{ position: "absolute", left: x2 - g.s * 0.35, top: y2 - g.s * 0.35, width: g.s * 0.7, height: g.s * 0.7, borderRadius: "50%", background: COLORS.cyan, opacity: 0.35 * a, filter: "blur(2px)" }} />
+              <div style={{ position: "absolute", left: x - g.s / 2, top: y - g.s / 2, width: g.s, height: g.s, borderRadius: "50%", background: "#e8fbff", opacity: 0.85 * a, boxShadow: "0 0 16px rgba(94,234,212,.9), 0 0 36px rgba(34,211,238,.6)" }} />
+            </React.Fragment>
+          );
+        })}
 
         {GLITTER.map((g, i) => {
           const p = prog(t, g.at, g.at + 0.5);

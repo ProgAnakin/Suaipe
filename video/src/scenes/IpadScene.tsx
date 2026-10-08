@@ -9,7 +9,7 @@ import { SCREEN } from "../theme";
 import { CHAPTER, IPAD } from "../timeline";
 import { LAYOUT } from "../layout";
 import { CAM_KEYS, PUNCH_TIMES } from "../ipadTimeline";
-import { EASE, beatPulse, hit, prog, seg, useSceneTime } from "../lib/motion";
+import { EASE, beatPulse, flashEnv, hit, prog, seg, useSceneTime } from "../lib/motion";
 import { camTranslate, followCamera, punch, screenToCanvas, type Cam } from "../lib/camera";
 import { ScreenContent } from "./ipad/ScreenContent";
 import { ScreenOverlays } from "./ipad/ScreenOverlays";
@@ -82,7 +82,7 @@ const IpadOverlays: React.FC<{ t: number; cam: Cam }> = ({ t, cam }) => {
       <SwipeDots t={t} landed={SWIPES.map((sw) => sw.accent)} from={IPAD.swipes[0].enter + 0.15} to={IPAD.counterStart + 0.1} y={262} yesIdx={new Set(SWIPES.flatMap((sw, i) => (sw.dir > 0 ? [i] : [])))} />
 
       {/* flashes: reveal of the result screen, and the 98 % hit */}
-      <AbsoluteFill style={{ opacity: 0.8 * hit(t, IPAD.counterStart, 9) * (t >= IPAD.counterStart ? 1 : 0), background: "radial-gradient(circle at 50% 48%, rgba(255,255,255,.95), rgba(120,220,255,.5) 34%, rgba(59,130,246,0) 70%)", mixBlendMode: "screen", pointerEvents: "none" }} />
+      <AbsoluteFill style={{ opacity: 0.8 * flashEnv(t, IPAD.counterStart, 0.1, 9), background: "radial-gradient(circle at 50% 48%, rgba(255,255,255,.95), rgba(120,220,255,.5) 34%, rgba(59,130,246,0) 70%)", mixBlendMode: "screen", pointerEvents: "none" }} />
       <AbsoluteFill style={{ opacity: 0.55 * hit(t, IPAD.counterHit, 8) * (t >= IPAD.counterHit ? 1 : 0), background: "radial-gradient(circle at 50% 48%, rgba(255,255,255,.9), rgba(94,234,212,.45) 30%, rgba(34,211,238,0) 66%)", mixBlendMode: "screen", pointerEvents: "none" }} />
       {shock > 0 && shock < 1 && (
         <div style={{ position: "absolute", left: ringC.x - 330, top: ringC.y - 330, width: 660, height: 660, borderRadius: "50%", border: `${9 * (1 - shock)}px solid rgba(94,234,212,${0.85 * (1 - shock)})`, transform: `scale(${1 + 1.5 * EASE.out(shock)})`, boxShadow: `0 0 80px rgba(34,211,238,${0.5 * (1 - shock)})` }} />

@@ -1,5 +1,5 @@
 import React from "react";
-import { COLORS, FONT } from "../theme";
+import { COLORS, FONT, TYPE } from "../theme";
 import { EASE, clamp, prog } from "../lib/motion";
 import { WIDTH } from "../timeline";
 
@@ -93,7 +93,7 @@ export const Callout: React.FC<CalloutProps> = ({ x, y, w, h, label, icon, p, si
           whiteSpace: "nowrap",
           fontFamily: FONT,
           fontWeight: 700,
-          fontSize: 34,
+          fontSize: TYPE.label,
           letterSpacing: "-0.01em",
           color: COLORS.text,
           background: "linear-gradient(160deg, rgba(14,24,58,.88), rgba(8,14,36,.9))",
