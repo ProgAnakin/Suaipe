@@ -348,25 +348,26 @@ def compose(cues: dict, harm: Harmony) -> Score:
     ch = chords[hb]
     voic = SOFT.get(ch, {"pad": PAD[ch], "lean": PAD[ch], "keys": KEYS[ch], "keys_lean": KEYS[ch]})
     sc.pads.append(dict(t0=h0 + 0.15, t1=h1 - 0.5, notes=voic["pad"], gain=1.0, attack=0.60, release=0.55, layer="soft"))
-    sc.pads.append(dict(t0=h1 - 0.55, t1=h1 + 0.05, notes=voic["lean"], gain=0.85, attack=0.35, release=0.45, layer="soft"))
+    sc.pads.append(dict(t0=h1 - 0.55, t1=h1 - 0.05, notes=voic["lean"], gain=0.80, attack=0.35, release=0.20, layer="soft"))
     sc.pads.append(dict(t0=h0 + 0.6, t1=h1 - 0.1, notes=PAD_HI[ch], gain=0.7, attack=1.0, release=0.6, layer="hi"))
     sc.subs.append((S(hb), h1 - S(hb) - 0.45, SUB_ROOT[ch], 0.5, 120.0))
     # felt e-piano: one rolled chord in the gap after the redeem-ding, the same chord on its fourth, then a C pickup into the downbeat
-    for t_k, notes_k, vel_k, dur_k in ((h1 - 1.0, voic["keys"], 0.36, 1.2), (h1 - 0.5, voic["keys_lean"], 0.32, 0.6)):
+    for t_k, notes_k, vel_k, dur_k in ((h1 - 1.0, voic["keys"], 0.42, 0.40), (h1 - 0.5, voic["keys_lean"], 0.38, 0.20)):
         for j, m in enumerate(notes_k):
             sc.keys.append((t_k + 0.022 * j, dur_k, m, vel_k * (1.0 - 0.06 * j)))
-    sc.keys.append((h1 - 0.25, 0.4, 72, 0.30))
+    sc.keys.append((h1 - 0.25, 0.25, 72, 0.34))
 
     # ---------------------------------------------------------------- outro (40.0): THE big resolving C chord, no drums
     o0 = sec["outro"][0]
     final = [48, 55, 60, 64, 67, 72, 76, 79]
     sc.pads.append(dict(t0=o0, t1=o0 + 2.0, notes=final, gain=1.35, attack=0.08, release=0.6, layer="final"))
+    sc.pads.append(dict(t0=o0, t1=o0 + 2.0, notes=[64, 76], gain=0.5, attack=0.10, release=0.6, layer="final"))    # a little more of the major third
     sc.pads.append(dict(t0=o0, t1=o0 + 2.0, notes=PAD_HI["C"], gain=0.8, attack=0.10, release=0.6, layer="hi"))
     sc.pads.append(dict(t0=o0 + 2.0, t1=dur, notes=PAD["Cadd9"] + [74], gain=1.5, attack=0.5, release=2.0, layer="final"))   # Cadd9 bloom
     sc.pads.append(dict(t0=o0 + 2.0, t1=dur, notes=PAD_HI["Cadd9"], gain=0.9, attack=0.6, release=2.0, layer="hi"))
-    for j, m in enumerate((48, 55, 60, 64, 67, 72)):                 # the e-piano rolls the chord (14 ms per note): a warm hammer, not a hit
-        sc.keys.append((o0 + 0.014 * j, 2.6, m, 0.40 - 0.015 * j))
-    sc.keys += [(o0 + 2.0, 1.8, 67, 0.30), (o0 + 2.03, 1.8, 74, 0.26)]                      # the 9th of the Cadd9 bar
+    for j, m in enumerate((48, 55, 60, 64, 67, 72, 76)):             # the e-piano rolls the chord (14 ms per note): a warm hammer, not a hit
+        sc.keys.append((o0 + 0.014 * j, 2.6, m, 0.40 - 0.012 * j))
+    sc.keys += [(o0 + 2.0, 1.8, 64, 0.30), (o0 + 2.03, 1.8, 67, 0.26)]                      # marks the Cadd9 bar (the pad adds the 9th)
     sc.bass.append((o0, 3.4, 48, 0.80, 18.0))
     sc.subs.append((o0, 4.2, 36, 0.75, 60.0))
     sc.leads += [(o0, 1.9, 84, 0.46, 1.6), (o0 + 2.05, 2.0, 86, 0.48, 1.8), (o0 + 3.0, 1.0, 88, 0.36, 1.4)]
