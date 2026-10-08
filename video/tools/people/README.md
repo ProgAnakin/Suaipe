@@ -17,15 +17,12 @@ camera flies into that glass to meet the flat iPad scene pixel for pixel (`src/s
 generation**; once `public/people/*.webp` is committed those files are the source of truth and nothing here is needed to
 render the film.
 
-## Current status — provisional images
+## Provenance
 
-The committed `public/people/*.webp` are the 192 × 256 hosted previews (`previews/`), cleaned of JPEG blocking and upscaled 4× with
-a 50/50 blend of EDSR and Real-ESRGAN plus fine grain (`upscale.py`). They hold up in the film — the stills are graded, grained and always moving — but an upscaler cannot add detail
-that was never in the preview, so the hands are softer than the real files will be. The full-resolution originals are hosted on
-`www.figma.com`, which the sandbox's network policy denied when the film was made. To upgrade: allow that host (environment settings →
-Network access → Allowed domains), run `node tools/people/fetch.mjs`, re-run `measure_quad.py` on the hand-off (the glass does not
-move, but the finger cut-out is made from the pixels), and re-render the chunks that contain photographs (0, 1 and 5 in
-`scripts/render-film.sh`; the others are unaffected). The hosted links expire 7 days after generation (2026-10-15).
+The committed `public/people/*.webp` are the four images exactly as generated on 2026-10-08 (960 × 1280, prompts in `manifest.json`). The
+sandbox this film was built in could not reach the host that serves the originals (`www.figma.com`), so they were handed over as chat
+attachments — the chat app re-encodes them to lossy WebP (≈ 80–120 KB each), which is why they are not bit-identical to the hosted PNGs.
+`handoff-fg.webp` (the fingers in front of the screen) is derived from the hand-off image by `measure_quad.py`.
 
 ## Download / convert
 
@@ -38,9 +35,6 @@ FFMPEG=/path/to/ffmpeg node tools/people/fetch.mjs bag handshake
 
 The script never touches TLS settings or the proxy. If the host is denied by the environment's network policy it says which
 host to allow (Allowed domains, with the package-manager list left ticked).
-
-`upscale.py` is the fallback that produced the provisional files (needs `opencv-contrib-python-headless`, `realesrgan-ncnn-py` and the 38 MB
-`EDSR_x4.pb`; on a machine without a GPU also a software Vulkan driver — see its header).
 
 ## After replacing an image
 

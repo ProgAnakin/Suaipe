@@ -23,8 +23,8 @@ export const HANDOFF_FG = staticFile("people/handoff-fg.webp");
  * border. Measured with `python3 tools/people/measure_quad.py public/people/handoff.webp` — re-run it if the image changes.
  */
 export const HANDOFF_QUAD: Quad = [
-  [228, 231],
-  [649, 216],
+  [228, 232],
+  [649, 215],
   [702, 819],
-  [268, 849],
+  [268, 850],
 ];
