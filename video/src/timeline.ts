@@ -144,7 +144,7 @@ export const HUMAN = {
 export const SIGNATURE = {
   glow: 45.2, // the defocused handshake darkens, a glow gathers
   name: 46.0, // bar 24 downbeat: the sonic motif completes
-  thesis: 46.6,
+  thesis: 46.75, // after the last letter of the name has landed: one main element enters at a time
   tiny: 47.2, // the near-invisible "AI-generated illustrations" line
   cta: 47.8,
   still: 48.5, // from here nothing moves
@@ -171,7 +171,7 @@ export const SCENE_TEXT = [
   { from: 10.0, to: 12.4, text: "GDPR consent, captured at the source" },
   { from: 42.25, to: 43.8, text: "Redeemed in store" },
   { from: 46.0, to: 50.0, text: "Costanzo Annichini" },
-  { from: 46.6, to: 49.4, text: "Simple ideas create contact.<br/>Contact creates data." },
+  { from: 46.75, to: 50.0, text: "Simple ideas create contact.<br/>Contact creates data." },
   { from: 47.8, to: 49.9, text: "Let's talk retail." },
 ] as const;
 
