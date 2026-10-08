@@ -139,18 +139,19 @@ def compose_a(cues: dict, harm: Harmony, direction: str = "a") -> Score:
                 sc.pulses.append((t, 0.46, BASS_ROOT[ch]))
             for t, idx in steps(max(t0, sec["match"][0] + 2.0), t1, [(0, 2), (8, 3)]):
                 keys(t, KEYS[ch], idx, 0.26)
-        elif name == "email":
-            i = int(round((t0 - sec["email"][0]) / BAR))
-            pad(t0, t1, ch, 0.9 + 0.06 * i, attack=0.5, release=0.8)
-            bass(t0, min(L, BAR) * 0.92, ch, 0.58 + 0.04 * i, attack=10.0)
+        elif name in ("email", "consult"):
+            i = int(round((t0 - sec[name][0]) / BAR))
+            lead_in = 1.0 if name == "email" else 0.4                                # leave the notification (or the arriving phone) alone
+            pad(t0, t1, ch, 0.9 + 0.06 * min(i, 3), attack=0.5, release=0.8)
+            bass(t0, min(L, BAR) * 0.92, ch, 0.58 + 0.04 * min(i, 3), attack=10.0)
             sub(t0, min(L, BAR) * 0.92, ch, 0.50)
             for t in pulse_times(t0, t1, every=2.0):
-                sc.pulses.append((t, 0.38 + 0.03 * i, BASS_ROOT[ch]))
+                sc.pulses.append((t, 0.38 + 0.03 * min(i, 3), BASS_ROOT[ch]))
             kt = KEYS[ch]
             for t, k_ in steps(t0, t1, [(0, 0), (3, 2), (6, 1), (8, 3), (11, 2), (14, 4)]):
-                if t < sec["email"][0] + 1.0:
-                    continue                                                       # leave the notification and the mail opening alone
-                keys(t, kt, k_, 0.40 + 0.03 * (k_ % 3) + 0.03 * i)
+                if t < sec[name][0] + lead_in:
+                    continue
+                keys(t, kt, k_, 0.40 + 0.03 * (k_ % 3) + 0.03 * min(i, 3))
         elif name == "store":
             i = int(round((t0 - sec["store"][0]) / BAR))
             pad(t0, t1, ch, 1.0, attack=0.3, release=0.45)
@@ -250,7 +251,7 @@ def compose_a(cues: dict, harm: Harmony, direction: str = "a") -> Score:
 
     cut = [(0.0, 1500.0)]
     for name, f0, f1 in (("idea", 1500, 2000), ("handoff", 1800, 2200), ("form", 2400, 2600), ("swipes", 2600, 2800), ("scan", 2800, 9000),
-                         ("match", 6500, 4500), ("email", 1100, 3200), ("store", 3200, 3600), ("system", 3600, 7000), ("human", 800, 1800),
+                         ("match", 6500, 4500), ("email", 1100, 3200), ("store", 3200, 3600), ("consult", 1400, 3000), ("system", 3600, 7000), ("human", 800, 1800),
                          ("resolve", 7000, 7000), ("signature", 7000, 7000)):
         if name in sec:
             a, z = sec[name]
@@ -263,7 +264,7 @@ def compose_a(cues: dict, harm: Harmony, direction: str = "a") -> Score:
         mac += [(sec["idea"][0] - 0.1, -1.0), (sec["idea"][0], 0.0)]
     elif "hook" in sec:
         mac += [(sec["hook"][1] - 0.1, -1.0), (sec["hook"][1], 0.0)]
-    for name, db, db_end in (("match", 1.0, 0.0), ("email", -2.0, -2.0), ("store", 0.0, 0.0), ("system", 0.5, 0.5), ("human", -1.5, -1.0)):
+    for name, db, db_end in (("match", 1.0, 0.0), ("email", -2.0, -2.0), ("store", 0.0, 0.0), ("consult", -1.5, -1.5), ("system", 0.5, 0.5), ("human", -1.5, -1.0)):
         if name in sec:
             a, z = sec[name]
             if name == "match":

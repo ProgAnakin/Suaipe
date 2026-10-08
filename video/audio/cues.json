@@ -2,12 +2,12 @@
   "bpm": 120,
   "beat": 0.5,
   "bar": 2,
-  "duration": 50,
+  "duration": 64.5,
   "sampleRate": 48000,
   "direction": "A",
   "harmony": {
     "key": "C major / A minor",
-    "note": "one chord per bar (2 s). Hits: logo-hit on C at 4.0, counter-hit on C at 20.0, handshake on C at 44.0, the motif on Cadd9 at 46.0.",
+    "note": "one chord per bar (2 s). Hits: logo-hit on C at 4.0, counter-hit on C at 22.0 (after G), handshake on C at 60.0, the motif on the logo at 61.0, Cadd9 from 62.0.",
     "bars": [
       {
         "bar": 1,
@@ -73,13 +73,13 @@
         "bar": 11,
         "from": 20,
         "to": 22,
-        "chord": "C"
+        "chord": "G"
       },
       {
         "bar": 12,
         "from": 22,
         "to": 24,
-        "chord": "G"
+        "chord": "C"
       },
       {
         "bar": 13,
@@ -139,7 +139,7 @@
         "bar": 22,
         "from": 42,
         "to": 44,
-        "chord": "G"
+        "chord": "F"
       },
       {
         "bar": 23,
@@ -151,12 +151,60 @@
         "bar": 24,
         "from": 46,
         "to": 48,
-        "chord": "Cadd9"
+        "chord": "G"
       },
       {
         "bar": 25,
         "from": 48,
         "to": 50,
+        "chord": "Am"
+      },
+      {
+        "bar": 26,
+        "from": 50,
+        "to": 52,
+        "chord": "F"
+      },
+      {
+        "bar": 27,
+        "from": 52,
+        "to": 54,
+        "chord": "C"
+      },
+      {
+        "bar": 28,
+        "from": 54,
+        "to": 56,
+        "chord": "G"
+      },
+      {
+        "bar": 29,
+        "from": 56,
+        "to": 58,
+        "chord": "Am"
+      },
+      {
+        "bar": 30,
+        "from": 58,
+        "to": 60,
+        "chord": "G"
+      },
+      {
+        "bar": 31,
+        "from": 60,
+        "to": 62,
+        "chord": "C"
+      },
+      {
+        "bar": 32,
+        "from": 62,
+        "to": 64,
+        "chord": "Cadd9"
+      },
+      {
+        "bar": 33,
+        "from": 64,
+        "to": 66,
         "chord": "Cadd9"
       }
     ]
@@ -184,80 +232,108 @@
       "name": "form",
       "from": 8,
       "to": 14,
-      "brief": "Pad and a sparse felt piano; room for the typing texture, the consent click and the taps."
+      "brief": "Pad and a sparse felt piano; room for the language ticks, the typing texture, the consent click and the taps."
     },
     {
       "name": "swipes",
       "from": 14,
-      "to": 18,
+      "to": 20,
       "brief": "The swipes are the rhythm: tuned yes (rising, right) and no (falling, left) phrases over a pad and the pulse; no keys."
     },
     {
       "name": "scan",
-      "from": 18,
-      "to": 20,
+      "from": 20,
+      "to": 22,
       "brief": "A tonal riser, the pad opens, everything cuts for 0.25 s of air before the 98 %."
     },
     {
       "name": "match",
-      "from": 20,
-      "to": 24,
+      "from": 22,
+      "to": 26,
       "brief": "The 98 % bloom on C: the first, smaller peak. A rolled felt chord, a glass shimmer, then calm."
     },
     {
       "name": "email",
-      "from": 24,
-      "to": 30,
+      "from": 26,
+      "to": 34,
       "brief": "Intimate: low-passed felt piano, the pulse on beat 1 only. The notification and the code ding sit on top."
     },
     {
       "name": "store",
-      "from": 30,
-      "to": 38,
+      "from": 34,
+      "to": 44,
       "brief": "Steady and competent: a firm sub pulse and one quiet off-beat tick, confident chords; one soft 'land' when a lead reaches the CRM."
     },
     {
+      "name": "consult",
+      "from": 44,
+      "to": 54,
+      "brief": "Calm, a place to learn: the e-mail's low-passed felt piano again, a light pulse; the search, the tap and the two call-outs are small glass ticks."
+    },
+    {
       "name": "system",
-      "from": 38,
-      "to": 42,
-      "brief": "Precise and calm: gated pad and staccato plucks, less busy than before; the pulse stops cleanly at 41.5."
+      "from": 54,
+      "to": 58,
+      "brief": "Precise and calm: gated pad and staccato plucks, less busy than before; the pulse stops cleanly at 57.5."
     },
     {
       "name": "human",
-      "from": 42,
-      "to": 44,
+      "from": 58,
+      "to": 60,
       "brief": "Warm and quiet: a soft pad and felt keys on G leaning towards C, the room tone, the bag rustle; no pulse."
     },
     {
       "name": "resolve",
-      "from": 44,
-      "to": 46,
-      "brief": "★ The handshake: the film's one big resolved C chord, full and warm, no cymbal."
+      "from": 60,
+      "to": 62,
+      "brief": "★ The handshake: the film's one big resolved C chord, full and warm, no cymbal; the motif completes on the logo at 61.0."
     },
     {
       "name": "signature",
-      "from": 46,
-      "to": 50,
-      "brief": "Cadd9 rings; the motif completes at 46.0; the last 1.5 s are still and the tail fades to true silence."
+      "from": 62,
+      "to": 64.5,
+      "brief": "Cadd9 rings; the last second is still and the tail fades to true silence."
     }
   ],
   "sfx": [
     {
       "type": "riser-a",
       "t": 0,
-      "dur": 3.5,
-      "note": "tension riser, peaks at 3.5 (the light gathers); the picture holds for 0.25 s of air before the hit"
+      "dur": 2,
+      "note": "tension riser, ends exactly at lock-on"
+    },
+    {
+      "type": "tile-bloom",
+      "t": 0.1,
+      "times": [
+        0.1,
+        0.175,
+        0.25,
+        0.325,
+        0.4,
+        0.475,
+        0.55,
+        0.625,
+        0.7,
+        0.775
+      ],
+      "note": "the ten gadget cards as ONE rising cascade"
     },
     {
       "type": "lock-on",
       "t": 2,
-      "note": "★ the light pulses once: a soft pitched ping + low thump"
+      "note": "★ product chosen: a soft pitched ping + low thump"
     },
     {
       "type": "whoosh-out",
       "t": 2,
-      "dur": 0.7,
-      "note": "the light fades out: air"
+      "dur": 0.9,
+      "note": "the other cards fly outward: air"
+    },
+    {
+      "type": "sparkle-up",
+      "t": 2.5,
+      "dur": 0.8
     },
     {
       "type": "riser-b",
@@ -268,7 +344,7 @@
     {
       "type": "logo-hit",
       "t": 4,
-      "note": "★ sub boom + glassy C chord (with upper harmonics for phones) + air; the pulse begins after it"
+      "note": "★ sub boom + glassy C chord (with a low-mid body for phones) + air; the pulse begins after it"
     },
     {
       "type": "motif-q",
@@ -277,17 +353,23 @@
     },
     {
       "type": "room-tone",
-      "t": 5.7,
-      "dur": 2.8,
+      "t": 5.4,
+      "dur": 2.75,
       "fade_in": 0.6,
       "fade_out": 0.9,
       "note": "the shop under the hand-off photograph; it gives way to the interface as the camera enters the screen"
     },
     {
       "type": "whoosh-up",
-      "t": 5.7,
+      "t": 5.4,
       "dur": 0.9,
       "note": "the hand-off photograph opens"
+    },
+    {
+      "type": "screen-wake",
+      "t": 5.9,
+      "dur": 0.6,
+      "note": "the kiosk screen lights up inside the photographed glass: soft rising two-note chime"
     },
     {
       "type": "device-settle",
@@ -295,15 +377,9 @@
       "note": "soft low thump as the tablet changes hands"
     },
     {
-      "type": "screen-wake",
-      "t": 6.5,
-      "dur": 0.6,
-      "note": "the kiosk screen lights up inside the photographed glass: soft rising two-note chime"
-    },
-    {
       "type": "zoom-whoosh",
-      "t": 7,
-      "dur": 0.5999999999999996,
+      "t": 6.85,
+      "dur": 0.55,
       "note": "camera flies into the tablet screen"
     },
     {
@@ -316,319 +392,361 @@
       "dur": 0.45
     },
     {
-      "type": "typing-texture",
-      "t": 8.5,
-      "dur": 1.48,
-      "strokes": [
-        8.5,
-        8.56,
-        8.62,
-        8.68,
-        8.74,
-        8.85,
-        8.91,
-        8.97,
-        9.03,
-        9.09,
+      "type": "store-ticks",
+      "t": 8.8,
+      "times": [
+        8.8,
+        9,
         9.2,
-        9.23,
-        9.26,
-        9.29,
-        9.32,
-        9.35,
-        9.38,
-        9.41,
-        9.44,
-        9.47,
-        9.5,
-        9.53,
-        9.56,
-        9.59,
-        9.62,
-        9.65,
-        9.68,
-        9.71,
-        9.74,
-        9.77,
-        9.8,
-        9.83,
-        9.86
+        9.4,
+        9.6
+      ],
+      "note": "the language highlight sweeping across the five flags: one gesture"
+    },
+    {
+      "type": "typing-texture",
+      "t": 10.1,
+      "dur": 1.95,
+      "strokes": [
+        10.1,
+        10.175,
+        10.25,
+        10.325,
+        10.4,
+        10.6,
+        10.675,
+        10.75,
+        10.825,
+        10.9,
+        11.05,
+        11.09,
+        11.13,
+        11.17,
+        11.21,
+        11.25,
+        11.29,
+        11.33,
+        11.37,
+        11.41,
+        11.45,
+        11.49,
+        11.53,
+        11.57,
+        11.61,
+        11.65,
+        11.69,
+        11.73,
+        11.77,
+        11.81,
+        11.85,
+        11.89,
+        11.93
       ],
       "note": "one soft texture for the 33 keystrokes of first name, last name and e-mail"
     },
     {
       "type": "lock-click",
-      "t": 10.2,
+      "t": 12.25,
       "note": "GDPR padlock closes"
     },
     {
       "type": "tap",
-      "t": 12
+      "t": 13.3
     },
     {
       "type": "tap",
-      "t": 13.5
+      "t": 14.5
     },
     {
       "type": "page-swoosh",
-      "t": 13.55,
+      "t": 14.55,
       "dur": 0.45
     },
     {
       "type": "swipe-no",
-      "t": 14.325,
-      "dur": 0.7,
-      "accent": 14.445,
+      "t": 15.38,
+      "dur": 0.8,
+      "accent": 15.5,
       "step": 0,
       "of": 8,
       "pan": -0.55
     },
     {
       "type": "swipe-no",
-      "t": 15.023,
-      "dur": 0.55,
-      "accent": 15.143,
+      "t": 16.38,
+      "dur": 0.6,
+      "accent": 16.5,
       "step": 1,
       "of": 8,
       "pan": -0.55
     },
     {
       "type": "swipe-yes",
-      "t": 15.57,
+      "t": 17.38,
       "dur": 0.4,
-      "accent": 15.69,
+      "accent": 17.5,
       "step": 2,
       "of": 8,
       "pan": 0.55
     },
     {
       "type": "swipe-yes",
-      "t": 16.07,
+      "t": 17.88,
       "dur": 0.4,
-      "accent": 16.19,
+      "accent": 18,
       "step": 3,
       "of": 8,
       "pan": 0.55
     },
     {
       "type": "swipe-yes",
-      "t": 16.57,
+      "t": 18.38,
       "dur": 0.4,
-      "accent": 16.69,
+      "accent": 18.5,
       "step": 4,
       "of": 8,
       "pan": 0.55
     },
     {
       "type": "swipe-no",
-      "t": 17.07,
+      "t": 18.88,
       "dur": 0.4,
-      "accent": 17.19,
+      "accent": 19,
       "step": 5,
       "of": 8,
       "pan": -0.55
     },
     {
       "type": "swipe-no",
-      "t": 17.57,
+      "t": 19.38,
       "dur": 0.4,
-      "accent": 17.69,
+      "accent": 19.5,
       "step": 6,
       "of": 8,
       "pan": -0.55
     },
     {
       "type": "swipe-no",
-      "t": 18.07,
+      "t": 19.88,
       "dur": 0.4,
-      "accent": 18.19,
+      "accent": 20,
       "step": 7,
       "of": 8,
       "pan": -0.55
     },
     {
       "type": "reveal-whoosh",
-      "t": 18.5,
+      "t": 20,
       "dur": 0.8,
       "note": "the scan screen opens"
     },
     {
       "type": "scan-riser",
-      "t": 18.7,
-      "dur": 1.3,
+      "t": 20.3,
+      "dur": 1.7,
       "note": "one tonal riser replaces the eleven counter ticks; it thins to an inhale in the 0.25 s of air before the hit"
     },
     {
       "type": "counter-hit",
-      "t": 20,
+      "t": 22,
       "note": "★ the 98 % bloom: a bright glass C chord and a sub swell, no confetti; the first, smaller peak"
     },
     {
       "type": "whoosh-pullback",
-      "t": 20.1,
+      "t": 22.1,
       "dur": 0.9
     },
     {
       "type": "tap",
-      "t": 22
+      "t": 24
     },
     {
       "type": "success-chime",
-      "t": 22.35,
+      "t": 24.35,
       "note": "pleasant two-note success"
     },
     {
       "type": "whoosh-swap",
-      "t": 23,
+      "t": 25.6,
       "dur": 0.9,
       "note": "iPad leaves left, iPhone arrives right"
     },
     {
       "type": "notif-ping",
-      "t": 24.1,
+      "t": 27,
       "note": "glassy two-note notification ding"
     },
     {
       "type": "swoosh-open",
-      "t": 25,
+      "t": 27.6,
       "dur": 0.5
     },
     {
       "type": "zoom-whoosh",
-      "t": 27.2,
+      "t": 31.4,
       "dur": 0.8
     },
     {
       "type": "code-ding",
-      "t": 28,
+      "t": 32.2,
       "note": "bright bell as the discount code lights up"
     },
     {
       "type": "whoosh-down",
-      "t": 29.2,
+      "t": 33.4,
       "dur": 0.7
     },
     {
       "type": "store-ticks",
-      "t": 30.6,
+      "t": 34.8,
       "times": [
-        30.6,
-        30.85,
-        31.1
+        34.8,
+        35.1,
+        35.4
       ],
       "note": "three consent ticks, one rising gesture"
     },
     {
       "type": "page-swoosh",
-      "t": 32.5,
-      "dur": 0.45,
+      "t": 37.4,
+      "dur": 0.5,
       "note": "the screen pushes from the lead list to the dashboard"
     },
     {
       "type": "store-ticks",
-      "t": 33.55,
+      "t": 38.6,
       "times": [
-        33.55,
-        34.2
+        38.6,
+        39.6
       ],
       "note": "Store A, Store B: two ticks, the second higher"
     },
     {
       "type": "crm-land",
-      "t": 35.85,
+      "t": 41.3,
       "strength": 1,
       "note": "the first lead lands in its CRM row: one soft pluck"
     },
     {
       "type": "crm-land",
-      "t": 37,
+      "t": 42.5,
       "strength": 0.7,
       "note": "the next one lands (quieter)"
     },
     {
-      "type": "whoosh-in",
-      "t": 37.75,
-      "dur": 0.6,
-      "note": "the dashboard is pushed back as the system diagram arrives"
+      "type": "whoosh-swap",
+      "t": 43.6,
+      "dur": 0.7,
+      "note": "the tablet leaves, the consultant's phone arrives"
+    },
+    {
+      "type": "callout-in",
+      "t": 45.4,
+      "note": "the search ring"
+    },
+    {
+      "type": "tap",
+      "t": 47
+    },
+    {
+      "type": "page-swoosh",
+      "t": 47.1,
+      "dur": 0.5,
+      "note": "list to guide"
+    },
+    {
+      "type": "callout-in",
+      "t": 49.8,
+      "note": "the manager's video"
+    },
+    {
+      "type": "callout-in",
+      "t": 52.1,
+      "note": "the manager's advice"
+    },
+    {
+      "type": "whoosh-down",
+      "t": 53.5,
+      "dur": 0.7
     },
     {
       "type": "node-run",
-      "t": 38,
+      "t": 54,
       "times": [
-        38,
-        38.4,
-        38.8,
-        39.2,
-        39.4
+        54,
+        54.4,
+        54.8,
+        55.2,
+        55.4
       ],
       "note": "five nodes as one run of plucks"
     },
     {
       "type": "tile-bloom",
-      "t": 39.8,
+      "t": 55.8,
       "times": [
-        39.8,
-        40,
-        40.2
+        55.8,
+        56,
+        56.2
       ],
       "note": "three tiles as one bloom"
     },
     {
       "type": "lock-click",
-      "t": 40.55,
+      "t": 56.55,
       "step": 0,
       "note": "RLS"
     },
     {
       "type": "lock-click",
-      "t": 40.95,
+      "t": 56.95,
       "step": 1,
       "note": "MFA"
     },
     {
       "type": "room-tone",
-      "t": 41.5,
-      "dur": 7,
+      "t": 57.5,
+      "dur": 5.9,
       "fade_in": 0.8,
       "fade_out": 1.4,
-      "note": "the shop returns under the bag and the handshake and rings out under the signature: the opening's room, closing the circle"
+      "note": "the shop returns under the bag and the handshake and rings out under the end card: the opening's room, closing the circle"
     },
     {
       "type": "whoosh-in",
-      "t": 41.5,
+      "t": 57.5,
       "dur": 0.7,
       "note": "the diagram is pushed back as the bag hand-off photo fades in"
     },
     {
       "type": "bag-rustle",
-      "t": 42,
+      "t": 58,
       "dur": 0.5,
       "note": "paper bag changes hands: soft paper rustle + rope-handle creak + a very low, warm thump (real, tactile, quiet)"
     },
     {
       "type": "redeem-ding",
-      "t": 42.25,
+      "t": 58.25,
       "note": "the 'redeemed in store' chip pops: bright glassy two-note ding"
     },
     {
       "type": "photo-whoosh",
-      "t": 43.4,
+      "t": 59.4,
       "dur": 0.6,
       "note": "soft air as the photo crosses to the handshake"
     },
     {
       "type": "handshake",
-      "t": 44,
+      "t": 60,
       "note": "★ the hands meet on the downbeat: a dry skin / cloth clasp (nothing bright) + the big warm resolved C chord (the music's)"
     },
     {
       "type": "motif",
-      "t": 46,
-      "note": "★ the sonic motif complete: G4 - A4 - C5 - E5 on the held Cadd9"
+      "t": 61,
+      "note": "★ the sonic motif complete: G4 - A4 - C5 - E5, on the logo, over the held chord"
     },
     {
       "type": "sparkle",
-      "t": 47.2,
+      "t": 63.4,
       "dur": 1.5,
       "note": "a single glint"
     }

@@ -131,12 +131,14 @@ def cue_seed(cues_sfx: list, idx: int) -> int:
 # music and were masked; only the hook pops, chimes and hits stood out. BOOST_DB raises those types (dB, on top of LEVEL; the synthesis and the
 # seeds are untouched), BOOST_AT a single cue (type, time) that is weaker than its siblings. Target: >= ~+4..+7 dB over the music.
 BOOST_DB = {
-    "key": 6.5, "lock-click": 9.0, "card-in": 7.0, "swipe-no": 5.0, "swipe-yes": 5.0, "device-settle": 7.0, "typing-texture": 6.5,
-    "caption-pop": 3.0, "node-on": 3.0, "packet": 3.0, "tap": 2.5, "tile-on": 2.0,
-    "whoosh-swap": 10.0, "whoosh-down": 7.0, "whoosh-up": 2.5, "reveal-whoosh": 4.5,
-    "photo-whoosh": 6.5, "scroll-soft": 10.0, "handshake": 6.0, "screen-wake": 2.5,
+    # direction A: the music is a quiet bed, so most of the v2 boosts (made for loud drops) are gone; margins aimed at +6..+10 dB for
+    # actions, +12..+16 dB for the hits, measured by the report's "SFX clarity" table
+    "typing-texture": 14.0, "lock-click": -1.0, "swipe-no": 0.0, "swipe-yes": 0.0, "device-settle": 2.0, "whoosh-swap": 4.0, "whoosh-down": 3.0,
+    "photo-whoosh": 3.0, "handshake": 3.0, "reveal-whoosh": 1.0, "notif-ping": -5.0, "code-ding": -6.0, "redeem-ding": -6.0, "lock-on": -6.0,
+    "sparkle": -7.0, "sparkle-up": -3.0, "bag-rustle": -6.0, "logo-hit": -2.0, "counter-hit": -2.0, "store-ticks": -2.0, "node-run": 1.0, "motif": 3.0, "motif-q": 2.0,
+    "crm-land": 2.0, "callout-in": -3.0, "tile-bloom": -4.0,
 }
-BOOST_AT = {("zoom-whoosh", 6.85): 9.0}   # the fly-into-the-screen whoosh sits under the loud drop-A music; the e-mail zoom at 31.4 s does not
+BOOST_AT = {("tile-bloom", 0.1): -4.0}   # the fly-into-the-screen whoosh sits under the loud drop-A music; the e-mail zoom at 31.4 s does not
 
 
 # Peak level (dBFS, pre-master) of each one-shot on the SFX bus - the relative balance of the whole film.

@@ -255,7 +255,7 @@ def harmony_audit(log: list[dict], harm: th.Harmony) -> dict:
             continue
         n_events += 1
         for tt, m in e["notes"]:
-            ch = harm.at(min(tt + 1e-3, 44.49))
+            ch = harm.at(min(tt + 1e-3, float(harm.bars[-1]["to"]) - 0.01))
             cls = th.pc_class(ch, m)
             counts[cls] += 1
             if e["strict"] and cls in ("pass", "out"):
@@ -329,6 +329,7 @@ def run(ctx: dict, qa_dir: Path, build_dir: Path, args) -> dict:
     rep: dict = {}
 
     # loudness: ffmpeg on the delivered WAV and on the MP3 (decoded)
+    rep["duration"] = float(cues["duration"])
     rep["wav"] = ff_ebur128(ff, wav)
     rep["mp3"] = ff_ebur128(ff, mp3)
     mp3_pcm = ff_decode(ff, mp3, build_dir / "mp3_decoded.wav")
@@ -346,7 +347,8 @@ def run(ctx: dict, qa_dir: Path, build_dir: Path, args) -> dict:
     rep["head"] = {"first_sample": [float(wav_pcm[0, 0]), float(wav_pcm[0, 1])], "rms_0_100ms": float(dsp.rms_db(wav_pcm[:secs(0.1)])),
                    "rms_100_300ms": float(dsp.rms_db(wav_pcm[secs(0.1):secs(0.3)])), "first_above_minus60_ms": float(1000 * np.argmax(np.max(np.abs(wav_pcm), axis=1) > 1e-3) / SR)}
     rep["tail"] = {"last_100ms_max": float(np.max(np.abs(wav_pcm[-secs(0.1):]))), "last_sample": [float(wav_pcm[-1, 0]), float(wav_pcm[-1, 1])],
-                   "level_at_43_5": float(dsp.rms_db(wav_pcm[secs(43.4):secs(43.6)])), "level_at_44_2": float(dsp.rms_db(wav_pcm[secs(44.1):secs(44.3)]))}
+                   "level_at_43_5": float(dsp.rms_db(wav_pcm[secs(cues["duration"] - 1.1):secs(cues["duration"] - 0.9)])),
+                   "level_at_44_2": float(dsp.rms_db(wav_pcm[secs(cues["duration"] - 0.4):secs(cues["duration"] - 0.2)]))}
     # phone simulation: 2nd-order HP @ 350 Hz + LP @ 10 kHz (small speaker)
     ph = dsp.lp(dsp.hp(wav_pcm, 350.0, 2), 10000.0, 2)
     rep["phone"] = {"lufs_full": rep["own_lufs"], "lufs_phone": dsp.lufs_integrated(ph), "main_band_fraction": energy_fraction(wav_pcm, 150, 6000),
@@ -365,7 +367,7 @@ def run(ctx: dict, qa_dir: Path, build_dir: Path, args) -> dict:
     rep["stem_scale_db"] = ctx["stem_scale_db"]
     rep["stem_peaks"] = {"music": float(dsp.lin2db(np.max(np.abs(music)))), "sfx": float(dsp.lin2db(np.max(np.abs(sfxs))))}
     import mix as _mix
-    ui_types = {"tile-pop", "key", "tap", "chip-tick", "check-tick", "lock-click", "card-in", "count-tick", "node-on", "packet", "tile-on", "chip-pop", "caption-pop", "callout-in", "confirm"}
+    ui_types = {"tile-pop", "key", "tap", "chip-tick", "check-tick", "lock-click", "card-in", "count-tick", "node-on", "packet", "tile-on", "chip-pop", "caption-pop", "callout-in", "confirm", "store-ticks", "typing-texture", "crm-land", "node-run", "tile-bloom"}
     ui_peaks = []
     for e in log:
         if e["type"] in ui_types:
@@ -376,11 +378,16 @@ def run(ctx: dict, qa_dir: Path, build_dir: Path, args) -> dict:
 
     # spectrograms (ffmpeg showspectrumpic)
     ff_spectrogram(ff, wav, qa_dir / "spectrogram.png")
+    sec_t = {s_["name"]: (float(s_["from"]), float(s_["to"])) for s_ in cues["sections"]}
+    t98 = next((e["t"] for e in log if e["type"] == "counter-hit"), 0.0)
     ff_spectrogram(ff, wav, qa_dir / "spectrogram_0-6s.png", 0, 6)
-    ff_spectrogram(ff, wav, qa_dir / "spectrogram_19.5-23s.png", 19.5, 3.5)
-    ff_spectrogram(ff, wav, qa_dir / "spectrogram_26-34s.png", 26, 8)
-    ff_spectrogram(ff, wav, qa_dir / "spectrogram_33.5-44.5s.png", 33.5, 11)
-    ff_spectrogram(ff, wav, qa_dir / "spectrogram_37-41s.png", 37, 4)
+    ff_spectrogram(ff, wav, qa_dir / "spectrogram_98.png", max(t98 - 2.5, 0), 6)
+    if "email" in sec_t:
+        ff_spectrogram(ff, wav, qa_dir / "spectrogram_email.png", sec_t["email"][0], min(sec_t["email"][1] - sec_t["email"][0], 12))
+    if "system" in sec_t:
+        ff_spectrogram(ff, wav, qa_dir / "spectrogram_system.png", sec_t["system"][0], sec_t["system"][1] - sec_t["system"][0])
+    if "human" in sec_t:
+        ff_spectrogram(ff, wav, qa_dir / "spectrogram_closing.png", sec_t["human"][0] - 2, cues["duration"] - sec_t["human"][0] + 2)
     try:
         plot_overview(wav_pcm, music, sfxs, cues, qa_dir / "loudness-and-spectrum.png")
         plot_closing(wav_pcm, music, sfxs, log, cues, qa_dir / "closing-scenes.png")
@@ -404,7 +411,7 @@ def run(ctx: dict, qa_dir: Path, build_dir: Path, args) -> dict:
 
 
 # ------------------------------------------------------------------------------------------- grid check
-def grid_table(log: list[dict], t_from: float = 34.0, bar: float = 2.0, sixteenth: float = 0.125) -> list[dict]:
+def grid_table(log: list[dict], t_from: float = 54.0, bar: float = 2.0, sixteenth: float = 0.125) -> list[dict]:
     """Where the late cues fall on the 120 BPM grid: bar.beat position and the distance to the nearest 16th note (ms, + = late)."""
     rows = []
     for e in log:
@@ -434,12 +441,14 @@ def landmark_loudness(master: np.ndarray, log: list[dict]) -> list[dict]:
 
 
 # ------------------------------------------------------------------------------------------- plots / report
-def plot_closing(master, music, sfxs, log, cues, out: Path, t0: float = 33.5) -> None:
+def plot_closing(master, music, sfxs, log, cues, out: Path, t0: float | None = None) -> None:
     """Spectrogram + momentary loudness of the last scenes (system -> human -> handshake -> end card) with the cue markers."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     t1 = cues["duration"]
+    if t0 is None:
+        t0 = next((float(s_["from"]) for s_ in cues["sections"] if s_["name"] == "system"), 33.5)
     fig = plt.figure(figsize=(18, 8.5))
     ax1 = fig.add_axes([0.05, 0.42, 0.93, 0.54])
     x = 0.5 * (master[:, 0] + master[:, 1])
@@ -523,7 +532,7 @@ def collect_warnings(r: dict) -> list[str]:
         w.append(f"integrated loudness {r['wav']['I']:.1f} LUFS is outside -14 +-1")
     if r["wav"]["TP"] > -1.0 or r["mp3"]["TP"] > -1.0:
         w.append(f"true peak above -1 dBTP (wav {r['wav']['TP']:.2f}, mp3 {r['mp3']['TP']:.2f})")
-    if r["wav_len"] != r["mp3_len"] or r["wav_len"] != int(round(44.5 * SR)):
+    if r["wav_len"] != r["mp3_len"] or r["wav_len"] != int(round(r["duration"] * SR)):
         w.append(f"length mismatch (wav {r['wav_len']}, mp3 {r['mp3_len']})")
     if r["mono_loss_total"] < -3.0:
         w.append(f"mono downmix loses {r['mono_loss_total']:.1f} dB")
@@ -574,7 +583,7 @@ def write_report(r: dict, path: Path, args) -> None:
     add(f"| Integrated loudness | **{w['I']:.1f} LUFS** | {m['I']:.1f} LUFS | -14 +-1 |")
     add(f"| True peak | **{w['TP']:.1f} dBTP** | {m['TP']:.1f} dBTP | <= -1.0 |")
     add(f"| Loudness range | {w['LRA']:.1f} LU (short-term {w['LRA_low']:.1f} .. {w['LRA_high']:.1f} LUFS) | {m['LRA']:.1f} LU | - |")
-    add(f"| Length | {r['wav_len']} samples = {r['wav_len'] / SR:.3f} s | {r['mp3_len']} samples = {r['mp3_len'] / SR:.3f} s | 44.500 s |")
+    add(f"| Length | {r['wav_len']} samples = {r['wav_len'] / SR:.3f} s | {r['mp3_len']} samples = {r['mp3_len'] / SR:.3f} s | {r['duration']:.3f} s |")
     add(f"| Sample peak | {r['sample_peak']:.2f} dBFS | | < 0 |")
     add(f"| Clipped samples (full scale) | {r['clipped_samples']} | | 0 |")
     add(f"| DC offset L / R | {r['dc'][0]:+.2e} / {r['dc'][1]:+.2e} (raw, 1.0 = FS) | | ~0 |")
@@ -583,7 +592,7 @@ def write_report(r: dict, path: Path, args) -> None:
     t = r["tail"]
     hd = r["head"]
     add(f"| Head | first sample {hd['first_sample']}; RMS {hd['rms_0_100ms']:.1f} dBFS over 0-100 ms and {hd['rms_100_300ms']:.1f} dBFS over 100-300 ms; first sample above -60 dBFS at {hd['first_above_minus60_ms']:.1f} ms | | sound from t = 0 |")
-    add(f"| Tail | RMS {t['level_at_43_5']:.1f} dBFS @43.5 s, {t['level_at_44_2']:.1f} dBFS @44.2 s; last 100 ms max |x| = {t['last_100ms_max']:.1e}; last sample {t['last_sample']} | | silence at 44.5 s |")
+    add(f"| Tail | RMS {t['level_at_43_5']:.1f} dBFS 1.1 s before the end, {t['level_at_44_2']:.1f} dBFS 0.4 s before the end; last 100 ms max |x| = {t['last_100ms_max']:.1e}; last sample {t['last_sample']} | | silence at {r['duration']:.1f} s |")
     ph = r["phone"]
     add(f"| Phone-speaker simulation (HP 350 Hz + LP 10 kHz) | {ph['lufs_phone']:.1f} LUFS ({ph['lufs_phone'] - ph['lufs_full']:+.1f} LU vs full range) | | usable |")
     add(f"| Energy 150 Hz - 6 kHz / < 150 Hz / > 8 kHz | {100 * ph['main_band_fraction']:.0f} % / {100 * ph['below_150']:.0f} % / {100 * ph['above_8k']:.2f} % | | main energy 150-6k |")

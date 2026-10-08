@@ -29,6 +29,7 @@ sys.path.insert(0, str(HERE))
 import dsp  # noqa: E402
 import mix  # noqa: E402
 import music  # noqa: E402
+import music_a  # noqa: E402
 import sfx  # noqa: E402
 import theory  # noqa: E402
 from dsp import SR, secs  # noqa: E402
@@ -60,8 +61,9 @@ def remix(args) -> None:
     """Re-master from the exported stems (no synthesis): sum them with optional trims, run the same master chain, write the files."""
     t0 = time.time()
     out_dir = Path(args.out_dir)
-    music, sr = sf.read(out_dir / "stems" / "music.wav", dtype="float64")
-    sfxs, _ = sf.read(out_dir / "stems" / "sfx.wav", dtype="float64")
+    stems_dir = out_dir / ("stems" if args.name == "soundtrack" else f"stems-{args.name}")
+    music, sr = sf.read(stems_dir / "music.wav", dtype="float64")
+    sfxs, _ = sf.read(stems_dir / "sfx.wav", dtype="float64")
     assert sr == SR and music.shape == sfxs.shape
     pre = music * dsp.db2lin(args.music_gain_db) + sfxs * dsp.db2lin(args.sfx_gain_db)
     master, info = mix.master_chain(pre, len(pre), target_lufs=args.target_lufs, ceiling_db=args.ceiling_db)
@@ -86,10 +88,11 @@ def build(args) -> dict:
 
     log(f"cues: {len(cues['sfx'])} sfx, {len(harm.bars)} bars, {cues['duration']} s")
     irs = mix.ir_bank()
-    log("composing + rendering music")
-    sc = music.compose(cues, harm)
+    log(f"composing + rendering music (direction {args.direction.upper()})")
+    mix.RECALIBRATE = True                                    # the arrangement is new: every bus is calibrated to its target
+    sc = music_a.compose_a(cues, harm, args.direction)
     raw = music.render_music(sc, harm, cues, n)
-    mus = mix.process_music(sc, raw, cues, n, irs)
+    mus = mix.process_music_a(sc, raw, cues, n, irs)
     log("rendering sound design")
     rendered = sfx.render_sfx(cues, harm, n)
     sfxm = mix.process_sfx(rendered, n, irs, sfx_gain_db=args.sfx_gain_db)
@@ -105,10 +108,12 @@ def build(args) -> dict:
 
     out_dir = Path(args.out_dir)
     (out_dir / "stems").mkdir(parents=True, exist_ok=True)
-    wav = out_dir / "soundtrack.wav"
-    mp3 = out_dir / "soundtrack.mp3"
-    sf.write(out_dir / "stems" / "music.wav", music_stem, SR, subtype="PCM_24")
-    sf.write(out_dir / "stems" / "sfx.wav", sfx_stem, SR, subtype="PCM_24")
+    wav = out_dir / f"{args.name}.wav"
+    mp3 = out_dir / f"{args.name}.mp3"
+    stems_dir = out_dir / ("stems" if args.name == "soundtrack" else f"stems-{args.name}")
+    stems_dir.mkdir(parents=True, exist_ok=True)
+    sf.write(stems_dir / "music.wav", music_stem, SR, subtype="PCM_24")
+    sf.write(stems_dir / "sfx.wav", sfx_stem, SR, subtype="PCM_24")
     ffmpeg = find_ffmpeg(args.ffmpeg)
 
     log("mastering")
@@ -147,7 +152,9 @@ def main():
     ap.add_argument("--build-dir", default=str(VIDEO_ROOT / "audio" / "build"))
     ap.add_argument("--ffmpeg", default=None, help="ffmpeg with libmp3lame, ebur128, showspectrumpic (default: $FFMPEG or PATH)")
     ap.add_argument("--target-lufs", type=float, default=-14.0)
-    ap.add_argument("--ceiling-db", type=float, default=-1.3, help="true-peak limiter ceiling in dBFS")
+    ap.add_argument("--ceiling-db", type=float, default=-1.6, help="true-peak limiter ceiling in dBFS (-1.6 leaves >= 0.5 dB after an AAC 128k re-encode)")
+    ap.add_argument("--direction", default="a", choices=["a", "b"], help="a = Minimal pulse (the chosen direction), b = Confident build (A/B listening files only)")
+    ap.add_argument("--name", default="soundtrack", help="output name: <out-dir>/<name>.wav/.mp3 (stems in stems/ or stems-<name>/)")
     ap.add_argument("--music-gain-db", type=float, default=0.0, help="music bus trim before the master (balance vs sfx)")
     ap.add_argument("--sfx-gain-db", type=float, default=0.0, help="sfx bus trim before the master")
     ap.add_argument("--skip-qa", action="store_true")

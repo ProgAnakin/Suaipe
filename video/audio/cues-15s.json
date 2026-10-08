@@ -18,13 +18,13 @@
         "to": 5.5
       },
       {
-        "master": 15.5,
+        "master": 17,
         "join": 5.5,
-        "to": 11
+        "to": 11.5
       },
       {
-        "master": 45.5,
-        "join": 11,
+        "master": 61,
+        "join": 11.5,
         "to": 15
       }
     ]
@@ -54,30 +54,36 @@
       {
         "bar": 4,
         "from": 4.5,
-        "to": 6,
+        "to": 5.5,
         "chord": "G"
       },
       {
         "bar": 5,
-        "from": 6,
-        "to": 8,
+        "from": 5.5,
+        "to": 6.5,
         "chord": "Am"
       },
       {
         "bar": 6,
-        "from": 8,
-        "to": 10,
+        "from": 6.5,
+        "to": 8.5,
         "chord": "F"
       },
       {
         "bar": 7,
-        "from": 10,
-        "to": 11.5,
-        "chord": "C"
+        "from": 8.5,
+        "to": 10.5,
+        "chord": "G"
       },
       {
         "bar": 8,
-        "from": 11.5,
+        "from": 10.5,
+        "to": 12.5,
+        "chord": "C"
+      },
+      {
+        "bar": 9,
+        "from": 12.5,
         "to": 15,
         "chord": "Cadd9"
       }
@@ -105,51 +111,73 @@
     {
       "name": "swipes",
       "from": 5.5,
-      "to": 8,
+      "to": 8.5,
       "brief": "The swipes are the rhythm: tuned yes (rising, right) and no (falling, left) phrases over a pad and the pulse; no keys."
     },
     {
       "name": "scan",
-      "from": 8,
-      "to": 10,
+      "from": 8.5,
+      "to": 10.5,
       "brief": "A tonal riser, the pad opens, everything cuts for 0.25 s of air before the 98 %."
     },
     {
       "name": "match",
-      "from": 10,
-      "to": 11,
+      "from": 10.5,
+      "to": 11.5,
       "brief": "The 98 % bloom on C: the first, smaller peak. A rolled felt chord, a glass shimmer, then calm."
     },
     {
       "name": "resolve",
-      "from": 11,
-      "to": 11.5,
-      "brief": "★ The handshake: the film's one big resolved C chord, full and warm, no cymbal."
+      "from": 11.5,
+      "to": 12.5,
+      "brief": "★ The handshake: the film's one big resolved C chord, full and warm, no cymbal; the motif completes on the logo at 61.0."
     },
     {
       "name": "signature",
-      "from": 11.5,
+      "from": 12.5,
       "to": 15,
-      "brief": "Cadd9 rings; the motif completes at 46.0; the last 1.5 s are still and the tail fades to true silence."
+      "brief": "Cadd9 rings; the last second is still and the tail fades to true silence."
     }
   ],
   "sfx": [
     {
       "type": "riser-a",
       "t": 0,
-      "dur": 3.5,
-      "note": "tension riser, peaks at 3.5 (the light gathers); the picture holds for 0.25 s of air before the hit"
+      "dur": 2,
+      "note": "tension riser, ends exactly at lock-on"
+    },
+    {
+      "type": "tile-bloom",
+      "t": 0.1,
+      "times": [
+        0.1,
+        0.175,
+        0.25,
+        0.325,
+        0.4,
+        0.475,
+        0.55,
+        0.625,
+        0.7,
+        0.775
+      ],
+      "note": "the ten gadget cards as ONE rising cascade"
     },
     {
       "type": "lock-on",
       "t": 2,
-      "note": "★ the light pulses once: a soft pitched ping + low thump"
+      "note": "★ product chosen: a soft pitched ping + low thump"
     },
     {
       "type": "whoosh-out",
       "t": 2,
-      "dur": 0.7,
-      "note": "the light fades out: air"
+      "dur": 0.9,
+      "note": "the other cards fly outward: air"
+    },
+    {
+      "type": "sparkle-up",
+      "t": 2.5,
+      "dur": 0.8
     },
     {
       "type": "riser-b",
@@ -160,7 +188,7 @@
     {
       "type": "logo-hit",
       "t": 4,
-      "note": "★ sub boom + glassy C chord (with upper harmonics for phones) + air; the pulse begins after it"
+      "note": "★ sub boom + glassy C chord (with a low-mid body for phones) + air; the pulse begins after it"
     },
     {
       "type": "room-tone",
@@ -171,65 +199,59 @@
       "note": "the shop under the hand-off photograph; it gives way to the interface as the camera enters the screen"
     },
     {
-      "type": "zoom-whoosh",
-      "t": 4.5,
-      "dur": 0.5999999999999996,
-      "note": "camera flies into the tablet screen"
-    },
-    {
       "type": "tap",
       "t": 5.5
     },
     {
       "type": "swipe-yes",
-      "t": 5.57,
+      "t": 5.88,
       "dur": 0.4,
-      "accent": 5.69,
+      "accent": 6,
       "step": 2,
       "of": 8,
       "pan": 0.55
     },
     {
       "type": "swipe-yes",
-      "t": 6.07,
+      "t": 6.38,
       "dur": 0.4,
-      "accent": 6.19,
+      "accent": 6.5,
       "step": 3,
       "of": 8,
       "pan": 0.55
     },
     {
       "type": "swipe-yes",
-      "t": 6.57,
+      "t": 6.88,
       "dur": 0.4,
-      "accent": 6.69,
+      "accent": 7,
       "step": 4,
       "of": 8,
       "pan": 0.55
     },
     {
       "type": "swipe-no",
-      "t": 7.07,
+      "t": 7.38,
       "dur": 0.4,
-      "accent": 7.19,
+      "accent": 7.5,
       "step": 5,
       "of": 8,
       "pan": -0.55
     },
     {
       "type": "swipe-no",
-      "t": 7.57,
+      "t": 7.88,
       "dur": 0.4,
-      "accent": 7.69,
+      "accent": 8,
       "step": 6,
       "of": 8,
       "pan": -0.55
     },
     {
       "type": "swipe-no",
-      "t": 8.07,
+      "t": 8.38,
       "dur": 0.4,
-      "accent": 8.19,
+      "accent": 8.5,
       "step": 7,
       "of": 8,
       "pan": -0.55
@@ -242,36 +264,36 @@
     },
     {
       "type": "scan-riser",
-      "t": 8.7,
-      "dur": 1.3,
+      "t": 8.8,
+      "dur": 1.7,
       "note": "one tonal riser replaces the eleven counter ticks; it thins to an inhale in the 0.25 s of air before the hit"
     },
     {
       "type": "counter-hit",
-      "t": 10,
+      "t": 10.5,
       "note": "★ the 98 % bloom: a bright glass C chord and a sub swell, no confetti; the first, smaller peak"
     },
     {
       "type": "whoosh-pullback",
-      "t": 10.1,
+      "t": 10.6,
       "dur": 0.9
-    },
-    {
-      "type": "room-tone",
-      "t": 11,
-      "dur": 3,
-      "fade_in": 0.4,
-      "fade_out": 1.4,
-      "note": "the shop returns under the bag and the handshake and rings out under the signature: the opening's room, closing the circle"
     },
     {
       "type": "motif",
       "t": 11.5,
-      "note": "★ the sonic motif complete: G4 - A4 - C5 - E5 on the held Cadd9"
+      "note": "★ the sonic motif complete: G4 - A4 - C5 - E5, on the logo, over the held chord"
+    },
+    {
+      "type": "room-tone",
+      "t": 11.5,
+      "dur": 2.4,
+      "fade_in": 0.4,
+      "fade_out": 1.4,
+      "note": "the shop returns under the bag and the handshake and rings out under the end card: the opening's room, closing the circle"
     },
     {
       "type": "sparkle",
-      "t": 12.7,
+      "t": 13.9,
       "dur": 1.5,
       "note": "a single glint"
     }

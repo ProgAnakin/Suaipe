@@ -17,6 +17,7 @@ MUSIC_TARGET = {
     "pad": ("rms", -24.0), "drone": ("rms", -25.0), "hi": ("rms", -37.0), "final": ("rms", -23.0),
     "arp": ("rms", -27.5), "keys": ("rms", -27.5), "lead": ("rms", -30.0), "fx": ("rms", -37.0),
     "soft": ("rms", -26.0),           # the quiet drum-less pad of the `human` section (only bus without a v1 ancestor)
+    "pulse": ("peak", -13.5),         # direction A: the tuned half-time thump
 }
 TRIM_DB: dict[str, float] = {}
 
@@ -266,6 +267,146 @@ def process_music(sc: mu.Score, raw: dict, cues: dict, n: int, irs: dict) -> dic
 
 def reverb_cached(x: np.ndarray, ir: np.ndarray) -> np.ndarray:
     return dsp.reverb(x, ir)
+
+
+# ------------------------------------------------------------------------------------------- direction A
+def sfx_ducks_a(cues: dict) -> dict[str, list]:
+    """Duck windows (t0, t1, depth_lin, attack_s, release_s) per bus group for direction A, derived from the cue sheet at run time."""
+    by: dict[str, list] = {}
+    for e in cues["sfx"]:
+        by.setdefault(e["type"], []).append(e)
+    mid, low, keys, hf = [], [], [], []
+    for e in by.get("typing-texture", []):                                    # leave air for the patter
+        t0, t1 = float(e["t"]), float(e["t"]) + float(e.get("dur", 0.0))
+        w = (t0 - 0.1, t1 + 0.15, float(db2lin(-5.0)), 0.08, 0.35)
+        mid.append(w)
+        keys.append(w)
+        hf.append((t0 - 0.1, t1 + 0.15, float(db2lin(-9.0)), 0.08, 0.35))
+    for name, depth, post, to_keys in (("success-chime", -3.5, 0.9, False), ("notif-ping", -5.0, 0.8, True), ("code-ding", -5.0, 1.0, True),
+                                       ("redeem-ding", -4.0, 0.4, True)):
+        for e in by.get(name, []):
+            t = float(e["t"])
+            w = (t - 0.02, t + post, float(db2lin(depth)), 0.02, 0.5)
+            mid.append(w)
+            if to_keys:
+                keys.append(w)
+    for e in by.get("bag-rustle", []):                                         # the real, close sound: the music steps back
+        t = float(e["t"])
+        w = (t - 0.05, t + 0.50, float(db2lin(-9.0)), 0.03, 0.35)
+        mid.append(w)
+        keys.append(w)
+    for name in ("store-ticks", "node-run", "tile-bloom", "crm-land", "callout-in"):
+        for e in by.get(name, []):
+            ts = [float(x) for x in e.get("times", [e["t"]])]
+            keys.append((min(ts) - 0.05, max(ts) + 0.45, float(db2lin(-4.0)), 0.03, 0.3))
+    for name, depth in (("logo-hit", -4.0), ("counter-hit", -4.5)):
+        for e in by.get(name, []):
+            t = float(e["t"])
+            mid.append((t, t + 0.08, float(db2lin(depth)), 0.004, 0.6))
+            low.append((t, t + 0.40, float(db2lin(-10.0)), 0.004, 0.7))
+    for name in ("motif", "motif-q"):                                           # the motif is heard: the music's own bells and keys step back
+        for e in by.get(name, []):
+            t = float(e["t"])
+            keys.append((t - 0.05, t + 1.6, float(db2lin(-5.0)), 0.03, 0.5))
+    return {"mid": mid, "low": low, "keys": keys, "hf": hf}
+
+
+def _uniq_curve(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    out: dict[float, float] = {}
+    for t, v in points:
+        out[round(float(t), 3)] = float(v)
+    return sorted(out.items())
+
+
+def process_music_a(sc: mu.Score, raw: dict, cues: dict, n: int, irs: dict) -> dict:
+    """Direction A: turn the raw instrument stems into the mixed music stem. Driven by the Score (sections, pad_cut, macro), not by names."""
+    st = raw["stems"]
+    sec = sc.sections
+    dur = float(cues["duration"])
+    ducks = sfx_ducks_a(cues)
+    c_mid = mu.duck_curve(n, ducks["mid"])
+    c_low = mu.duck_curve(n, ducks["low"])
+    c_keys = mu.duck_curve(n, ducks["keys"])
+    c_hf = mu.duck_curve(n, ducks["hf"]) * c_mid
+    gap = air_gap_curve(n, sc.air_gaps)
+    # the pad breathes with the pulse: a soft, slow dip on every thump (a heartbeat under the chords)
+    p_pad = mu.duck_curve(n, [(t, t + 0.002, float(db2lin(-2.5 * min(1.0, v / 0.8))), 0.004, 0.35) for t, v, m in sc.pulses]) if sc.pulses else np.ones(n)
+    kicks = sc.kicks                                                                    # (direction B only)
+    p_kick = pump_curve(n, kicks, -4.0, 0.18) if kicks else np.ones(n)
+    buses: dict[str, np.ndarray] = {}
+    one = lambda c: c[:, None]
+
+    buses["kick"] = dsp.hp(st["kick"], 28, 2)
+    buses["clap"] = dsp.hp(st["clap"], 300, 2) * one(c_mid)
+    buses["snare"] = st["snare"] * one(c_mid)
+    buses["hat"] = dsp.hp(st["hat"], 5200, 2) * one(c_hf)
+    buses["shaker"] = dsp.hp(st["shaker"], 3800, 2) * one(c_hf)
+    buses["rim"] = st["rim"]
+    buses["pulse"] = dsp.lp(st["pulse"], 600, 2) * one(c_low)
+    buses["bass"] = dsp.lp(st["bass"], 2600, 2) * one(c_low * p_kick)
+    buses["sub"] = dsp.lp(st["sub"], 130, 2) * one(c_low * p_kick)
+    buses["heart"] = dsp.lp(st["heart"], 420, 2)
+
+    # pad: the cutoff follows the arrangement (sc.pad_cut), the gate only exists in the system section
+    fc = dsp.smooth_curve(_uniq_curve(sc.pad_cut), n, kind="exp")
+    pad = dsp.hp(dsp.sweep(st["pad_raw"], "lp", fc, 0.85), 140, 2)
+    gate_g = mu.gate_curve(n, sc.gates, floor=0.22) if sc.gates else np.ones(n)
+    gate_mix = np.ones(n)
+    if "system" in sec and sc.gates:
+        a, z = sec["system"]
+        inside = np.zeros(n)
+        inside[secs(a):secs(z) + secs(0.4)] = 1.0
+        gate_mix = 1.0 - inside * (1.0 - gate_g)
+    buses["pad"] = pad * one(p_pad * c_mid * p_kick * gate_mix)
+    h_end = sec["hook"][1] if "hook" in sec else 4.0
+    dr = dsp.sweep(st["drone_raw"], "lp", dsp.smooth_curve([(0, 130), (h_end, 1900)], n, kind="exp"), 1.4)
+    buses["drone"] = dsp.sat(dr * 1.4, 1.2) * one(c_mid)
+    buses["hi"] = dsp.hp(dsp.lp(st["hi_raw"], 9000, 2), 500, 2) * one(c_mid * p_pad ** 0.5)
+    t_f = sec["resolve"][0] if "resolve" in sec else dur - 4.0
+    fin = dsp.sweep(st["final_raw"], "lp", dsp.smooth_curve([(t_f, 6500), (t_f + 2.0, 3400), (dur, 900)], n, kind="exp"), 0.8)
+    buses["final"] = dsp.hp(fin, 120, 2)
+    arp = dsp.hp(dsp.lp(st["arp"], 7200, 2), 200, 2)
+    arp_dry = arp * one(c_mid)
+    echo_in = dsp.hp(dsp.lp(st["arp_mono"], 7200, 2), 200, 2) * c_mid
+    echo = dsp.pingpong(echo_in, 0.375, feedback=0.40, taps=8, lp_hz=3600.0, hp_hz=260.0)
+    for t0, t1 in sc.echo_cuts:
+        u = np.clip((np.arange(n) / SR - t0) / (t1 - t0), 0.0, 1.0)
+        echo = echo * (0.5 + 0.5 * np.cos(np.pi * u))[:, None]
+    buses["arp"] = arp_dry + 0.42 * echo
+    buses["keys"] = dsp.hp(dsp.lp(st["keys"], 3400, 2), 140, 2) * one(c_keys)
+    lead = dsp.hp(dsp.lp(st["lead"], 9000, 2), 280, 2)
+    lead_echo = dsp.pingpong(lead[:, 0], 0.375, feedback=0.35, taps=5, lp_hz=4200.0, hp_hz=300.0, start_side=1)
+    buses["lead"] = (lead + 0.3 * lead_echo) * one(c_keys)
+    buses["fx"] = st["fx"]
+    if "human" in sec:
+        h0, h1 = sec["human"]
+        fcs = dsp.smooth_curve(_uniq_curve([(0, 800), (h0, 800), (h0 + 0.9, 1200), (h1 - 0.5, 2200), (h1 + 0.2, 3600), (dur, 3600)]), n, kind="exp")
+    else:
+        fcs = np.full(n, 3000.0)
+    buses["soft"] = dsp.hp(dsp.sweep(st["soft_raw"], "lp", fcs, 0.85), 130, 2) * one(c_mid)
+
+    # every bus calibrated to its mix target (the arrangement is new: nothing is frozen), then the macro curve
+    gains_db = {k: bus_gain_db(k, buses[k]) for k in buses if np.any(buses[k])}
+    for k in list(buses):
+        if k in gains_db:
+            buses[k] = buses[k] * db2lin(gains_db[k])
+        buses[k] = buses[k] * one(gap)
+
+    sends = {"room": np.zeros(n), "plate": np.zeros(n), "hall": np.zeros(n)}
+    for k, targets in MUSIC_SENDS.items():
+        if k not in buses:
+            continue
+        m = 0.5 * (buses[k][:, 0] + buses[k][:, 1])
+        for rv, g in targets.items():
+            sends[rv] += m * g
+    wet = np.zeros((n, 2))
+    for rv in sends:
+        wet += reverb_cached(sends[rv], irs[rv]) * REVERB_RETURN[rv]
+    dry = sum(buses.values())
+    macro = db2lin(dsp.smooth_curve(_uniq_curve(sc.macro), n))
+    gap_wet = 1.0 - (1.0 - db2lin(-12.0)) * (1.0 - gap)
+    stem = (dry + wet * one(gap_wet)) * one(macro)
+    return {"stem": stem, "buses": buses, "wet": wet, "sends": sends, "gap": gap, "gains_db": gains_db, "macro": macro}
 
 
 # ------------------------------------------------------------------------------------------- sfx bus
