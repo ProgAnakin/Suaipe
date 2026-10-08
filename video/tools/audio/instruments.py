@@ -107,14 +107,14 @@ def rim(rng: np.random.Generator) -> np.ndarray:
 
 
 # ------------------------------------------------------------------------------------------- bass
-def sub(freq: float, dur: float, vel: float = 1.0, release: float = 0.12) -> np.ndarray:
+def sub(freq: float, dur: float, vel: float = 1.0, release: float = 0.12, attack_ms: float = 7.0) -> np.ndarray:
     """Clean sub: sine with a whisper of saturation."""
     n = secs(dur + release)
     t = np.arange(n) / SR
     y = np.sin(TWO_PI * freq * t)
     y = dsp.sat(y * 1.1, 1.15)
     env = np.ones(n)
-    a = ms(7)
+    a = ms(attack_ms)
     env[:a] = dsp.cos_ramp(a)
     r = secs(release)
     env[n - r:] = dsp.cos_ramp(r)[::-1]
@@ -122,7 +122,7 @@ def sub(freq: float, dur: float, vel: float = 1.0, release: float = 0.12) -> np.
 
 
 def bass(freq: float, dur: float, vel: float = 1.0, release: float = 0.07, bright: float = 1.0,
-         rng: np.random.Generator | None = None) -> np.ndarray:
+         rng: np.random.Generator | None = None, attack_ms: float = 4.0) -> np.ndarray:
     """Round, saturated bass: fundamental + 2nd/3rd harmonics (decaying) + a soft filtered saw; drive adds 120-800 Hz body."""
     n = secs(dur + release)
     t = np.arange(n) / SR
@@ -132,7 +132,7 @@ def bass(freq: float, dur: float, vel: float = 1.0, release: float = 0.07, brigh
             y += a * bright * np.exp(-t / tau) * np.sin(TWO_PI * freq * k * t)       # phase 0: odd-symmetric -> no DC after tanh
     y = np.tanh(1.7 * y) / np.tanh(1.7)
     env = np.ones(n)
-    a = ms(4)
+    a = ms(attack_ms)
     env[:a] = dsp.cos_ramp(a)
     r = secs(release)
     env[n - r:] = dsp.cos_ramp(r)[::-1]

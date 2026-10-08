@@ -16,23 +16,43 @@ MUSIC_TARGET = {
     "rim": ("peak", -25.0), "bass": ("rms", -28.0), "sub": ("rms", -42.0), "heart": ("peak", -16.0),
     "pad": ("rms", -24.0), "drone": ("rms", -25.0), "hi": ("rms", -37.0), "final": ("rms", -23.0),
     "arp": ("rms", -27.5), "keys": ("rms", -27.5), "lead": ("rms", -30.0), "fx": ("rms", -37.0),
+    "soft": ("rms", -27.0),           # the quiet drum-less pad of the `human` section (only bus without a v1 ancestor)
 }
 TRIM_DB: dict[str, float] = {}
+
+# The gains (dB) that the targets above produced for the arrangement of bars 1-17 + the groove (the "v1" master the picture was cut to).
+# They are FROZEN: re-deriving them from the stems would re-balance the whole film every time the closing scenes change (the loudest bus
+# of an arrangement moves its mean level), and the first 33 s must stay identical. `generate.py --recalibrate` derives them afresh.
+FROZEN_GAINS_DB = {
+    "kick": -10.068502798672169, "clap": -14.290021462901468, "snare": -18.776746009947193, "hat": -16.747584354719187,
+    "shaker": -19.486216586089462, "rim": -16.821292140529984, "bass": -23.437592312834216, "sub": -36.7254604351375,
+    "heart": -20.262354813781887, "pad": -6.7375112739602905, "drone": -12.63898721533998, "hi": -12.642167965410117,
+    "final": -12.428056651456668, "arp": -9.114965276802963, "keys": -14.907190513566233, "lead": -17.64484897597135,
+    "fx": -15.149448217550916,
+}
+RECALIBRATE = False
 
 
 def macro_points(sec: dict, duration: float) -> list[tuple[float, float]]:
     """Section macro curve of the whole music stem (time s, dB): the dynamic arc of the film - quiet hook, big drops, warm breakdown,
-    a bigger end chord and its ring-out - anchored to the section boundaries of the cue sheet."""
-    d_a, d_b, cnt, em, sy, out = sec["drop-A"][0], sec["drop-B"], sec["counter"][0], sec["email"], sec["system"], sec["outro"][0]
+    a quiet human pause that lifts into the film's big resolving chord, and its ring-out - anchored to the section boundaries of the cue sheet."""
+    d_a, d_b, cnt, em, sy, hu, out = (sec["drop-A"][0], sec["drop-B"], sec["counter"][0], sec["email"], sec["system"], sec["human"],
+                                      sec["outro"][0])
     return [(0.0, -6.0), (d_a - 0.1, -1.0), (d_a, 0.0), (cnt, 0.0), (d_b[0], 0.5), (d_b[1] - 0.1, 0.5), (d_b[1] + 0.1, -3.5),
-            (em[1] - 0.1, -2.0), (sy[0] + 0.1, 0.0), (sy[1] - 0.1, 0.5), (out, 3.5), (out + 0.35, 3.5), (out + 0.9, 0.0), (duration, -24.0)]
+            (em[1] - 0.1, -2.0), (sy[0] + 0.1, 0.0), (sy[1] - 0.1, 0.5),
+            (hu[0] + 0.4, HUMAN_DB[0]), (out - 1.0, HUMAN_DB[1]), (out - 0.1, HUMAN_DB[2]),
+            (out, OUTRO_BUMP_DB), (out + 0.35, OUTRO_BUMP_DB), (out + 0.9, 0.0), (duration, -24.0)]
+
+
+HUMAN_DB = (-2.0, -1.5, 0.0)       # macro (dB) of the quiet scene: at its start, a second before the downbeat, just before it
+OUTRO_BUMP_DB = 3.0                # the resolving chord's first 350 ms
 # return levels of the shared reverbs (linear)
 REVERB_RETURN = {"room": 1.0, "plate": 1.0, "hall": 1.0}
 MUSIC_SENDS = {  # bus -> {reverb: send gain}
     "clap": {"room": 0.35}, "snare": {"room": 0.30}, "hat": {"room": 0.10}, "rim": {"room": 0.3, "plate": 0.2},
     "pad": {"hall": 0.28}, "drone": {"hall": 0.20}, "hi": {"hall": 0.55, "plate": 0.2}, "final": {"hall": 0.30},
     "arp": {"plate": 0.22}, "keys": {"plate": 0.30, "hall": 0.1}, "lead": {"plate": 0.35, "hall": 0.30},
-    "fx": {"hall": 0.2},
+    "fx": {"hall": 0.2}, "soft": {"hall": 0.25, "plate": 0.10},
 }
 
 
@@ -59,6 +79,8 @@ def active_rms_db(x: np.ndarray, frame_s: float = 0.1, floor_db: float = -45.0) 
 
 
 def bus_gain_db(name: str, x: np.ndarray) -> float:
+    if name in FROZEN_GAINS_DB and not RECALIBRATE:
+        return float(FROZEN_GAINS_DB[name] + TRIM_DB.get(name, 0.0))
     kind, target = MUSIC_TARGET[name]
     ref = lin2db(np.max(np.abs(x))) if kind == "peak" else active_rms_db(x)
     return float(target - ref + TRIM_DB.get(name, 0.0))
@@ -95,7 +117,10 @@ def sfx_ducks(cues: dict) -> dict[str, list]:
     cluster("success-chime", -3.5, pre=0.02, post=0.9, att=0.02, rel=0.5)
     cluster("notif-ping", -5.0, pre=0.02, post=0.8, groups=("keys", "mid"), att=0.02, rel=0.5)
     cluster("code-ding", -5.0, pre=0.02, post=1.0, groups=("keys", "mid"), att=0.02, rel=0.6)
-    for name, depth_db, post in (("logo-hit", -4.0, 0.08), ("counter-hit", -4.5, 0.08), ("logo-hit-soft", -3.0, 0.08)):
+    cluster("redeem-ding", -4.0, pre=0.02, post=0.6, groups=("keys", "mid"), att=0.02, rel=0.5)
+    cluster("bag-rustle", -6.0, pre=0.05, post=0.55, groups=("keys", "mid"), att=0.03, rel=0.35)   # the real, close sound: the music steps back
+    # (the soft logo accent at the end is only a secondary accent on the ringing chord: it ducks nothing, so the chord is never 'restarted')
+    for name, depth_db, post in (("logo-hit", -4.0, 0.08), ("counter-hit", -4.5, 0.08)):
         for t in t_of(name):
             mid.append((t, t + post, float(db2lin(depth_db)), 0.004, 0.6))
             low.append((t, t + 0.40, float(db2lin(-10.0)), 0.004, 0.7))
@@ -177,7 +202,7 @@ def process_music(sc: mu.Score, raw: dict, cues: dict, n: int, irs: dict) -> dic
     pad = dsp.hp(pad, 140, 2)
     gate_g = mu.gate_curve(n, sc.gates, floor=0.22) if sc.gates else np.ones(n)
     in_sys = np.zeros(n)
-    in_sys[secs(S("system")[0]):secs(S("system")[1])] = 1.0
+    in_sys[secs(S("system")[0]):secs(S("system")[1]) + secs(0.4)] = 1.0       # (the gated pad's release is still ringing just after the stop)
     gate_mix = 1.0 - in_sys * (1.0 - gate_g)
     buses["pad"] = pad * gain("pad") * (p_pad * c_mid * gate_mix)[:, None]
     # drone (intro): dark, rising
@@ -198,6 +223,9 @@ def process_music(sc: mu.Score, raw: dict, cues: dict, n: int, irs: dict) -> dic
     arp_dry = arp * gain("arp") * arp_g[:, None]
     echo_in = dsp.hp(dsp.lp(st["arp_mono"], 7200, 2), 200, 2) * gain("arp") * arp_g
     echo = dsp.pingpong(echo_in, 0.375, feedback=0.40, taps=8, lp_hz=3600.0, hp_hz=260.0)
+    for t0, t1 in sc.echo_cuts:                                             # clean stop: the repeats of the last notes die out
+        u = np.clip((np.arange(n) / SR - t0) / (t1 - t0), 0.0, 1.0)
+        echo = echo * (0.5 + 0.5 * np.cos(np.pi * u))[:, None]
     buses["arp"] = arp_dry + 0.42 * echo
     # --- keys / lead
     keys = dsp.hp(dsp.lp(st["keys"], 3400, 2), 140, 2)
@@ -206,6 +234,10 @@ def process_music(sc: mu.Score, raw: dict, cues: dict, n: int, irs: dict) -> dic
     lead_echo = dsp.pingpong(lead[:, 0] * gain("lead"), 0.375, feedback=0.35, taps=5, lp_hz=4200.0, hp_hz=300.0, start_side=1)
     buses["lead"] = lead * gain("lead") + 0.3 * lead_echo
     buses["fx"] = st["fx"] * gain("fx")
+    # human scene: quiet drum-less pad; its slowly opening filter is the lift into the downbeat (no riser noise)
+    h0, h1 = S("human")
+    fcs = dsp.smooth_curve([(0, 800), (h0, 800), (h0 + 1.4, 1200), (h1 - 0.6, 2200), (h1 + 0.2, 3600), (cues["duration"], 3600)], n, kind="exp")
+    buses["soft"] = dsp.hp(dsp.sweep(st["soft_raw"], "lp", fcs, 0.85), 130, 2) * gain("soft") * c_mid[:, None]
 
     # --- calibrate every bus to its mix target, then apply the section macro curve
     gains_db = {k: bus_gain_db(k, buses[k]) for k in buses}

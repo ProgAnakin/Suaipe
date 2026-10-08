@@ -6,6 +6,10 @@ render_music() -> stereo stems per instrument group (+ reverb sends), ready for 
 Palette: tuned clean kick with click, soft clap/snare, off-beat hats + quiet shaker, round saturated bass over a clean sub,
 warm detuned saw pad (filter automation), marimba-ish plucked arpeggio with ping-pong delay, warm electric-piano keys for the
 e-mail breakdown, and a restrained glass bell lead for the big moments. Everything is chord-locked to cues.json.
+
+Closing scenes: the techy groove of the `system` section stops cleanly (nothing is played from `system.to - 0.1`), the `human`
+section is a quiet drum-less pad + felt e-piano on the dominant that leans on the C to come, and the `outro` opens with the
+film's big resolving chord (pad stack + rolled e-piano + soft bass/sub, no kick, no cymbal) exactly on its first downbeat.
 """
 from __future__ import annotations
 
@@ -42,6 +46,10 @@ ARP = {
 KEYS = {"Am": [57, 60, 64, 67, 71], "G": [55, 59, 62, 64, 67], "C": [60, 64, 67, 71, 74],
         "F": [53, 57, 60, 64, 67], "Cadd9": [60, 62, 64, 67, 71]}
 
+SOFT = {   # the quiet 'human' bar: open voicings of the chord that closes the section, plus the same chord leaning on its fourth
+    "G": {"pad": [43, 50, 55, 59, 62, 64], "lean": [43, 48, 50, 55, 62, 67], "keys": [55, 62, 71, 74], "keys_lean": [55, 60, 62, 67]},
+}
+
 BASS_PATTERNS = {   # (step, length in 16ths, degree)
     "long": [(0, 12, "r")],
     "pedal": [(0, 15, "r")],
@@ -64,17 +72,18 @@ class Score:
     hats: list = field(default_factory=list)       # (t, vel, open)
     shakers: list = field(default_factory=list)    # (t, vel)
     rims: list = field(default_factory=list)       # (t, vel)
-    bass: list = field(default_factory=list)       # (t, dur, midi, vel)
-    subs: list = field(default_factory=list)       # (t, dur, midi, vel)
+    bass: list = field(default_factory=list)       # (t, dur, midi, vel[, attack_ms])
+    subs: list = field(default_factory=list)       # (t, dur, midi, vel[, attack_ms])
     arps: list = field(default_factory=list)       # (t, dur, midi, vel, reg)
     keys: list = field(default_factory=list)       # (t, dur, midi, vel)
     leads: list = field(default_factory=list)      # (t, dur, midi, vel, tau)
-    pads: list = field(default_factory=list)       # dict(t0, t1, notes, gain, attack, release, layer)
+    pads: list = field(default_factory=list)       # dict(t0, t1, notes, gain, attack, release, layer in pad|drone|hi|final|soft)
     swells: list = field(default_factory=list)     # dict(t0, t1, f_lo, f_hi, q, shape, gain, tail)
     hearts: list = field(default_factory=list)     # (t, vel)
     gates: list = field(default_factory=list)      # (t0, t1) pad gate windows (system section)
     sections: dict = field(default_factory=dict)   # name -> (from, to)
     air_gaps: list = field(default_factory=list)   # (t0, t1) everything but reverb tails cut
+    echo_cuts: list = field(default_factory=list)  # (t0, t1) the arp ping-pong repeats fade out over this window (clean stop)
     roll_hits: list = field(default_factory=list)
 
 
@@ -139,11 +148,12 @@ def compose(cues: dict, harm: Harmony) -> Score:
     def add_sub(b, vel=0.9, step=0, dur=1.9):
         sc.subs.append((S(b, step), dur - step * STEP, SUB_ROOT[chords[b]], vel))
 
-    def add_pad(b, gain=1.0, attack=0.25, release=0.45, layer="pad", extra_hi=False, span=1):
+    def add_pad(b, gain=1.0, attack=0.25, release=0.45, layer="pad", extra_hi=False, span=1, t1=None):
         ch = chords[b]
-        sc.pads.append(dict(t0=S(b), t1=S(b + span), notes=PAD[ch], gain=gain, attack=attack, release=release, layer=layer))
+        t_end = S(b + span) if t1 is None else t1
+        sc.pads.append(dict(t0=S(b), t1=t_end, notes=PAD[ch], gain=gain, attack=attack, release=release, layer=layer))
         if extra_hi:
-            sc.pads.append(dict(t0=S(b), t1=S(b + span), notes=PAD_HI[ch], gain=gain * 0.55, attack=attack, release=release, layer="hi"))
+            sc.pads.append(dict(t0=S(b), t1=t_end, notes=PAD_HI[ch], gain=gain * 0.55, attack=attack, release=release, layer="hi"))
 
     def add_kicks(b, steps=(0, 4, 8, 12), vel=0.9, kind="norm", skip=()):
         for s in steps:
@@ -295,38 +305,71 @@ def compose(cues: dict, harm: Harmony) -> Score:
     ee = sec["email"][1]
     sc.swells.append(dict(t0=ee - 0.65, t1=ee - 0.02, f_lo=1500.0, f_hi=9500.0, q=1.0, shape=1.8, gain=0.20, tail=0.0))
 
-    # ---------------------------------------------------------------- system (bars 18-20)
+    # ---------------------------------------------------------------- system (bars 18-19, 34.0-37.5): staccato, techy; stops cleanly
     syst = bars_of("system")
+    stop = sec["system"][1] - 0.1            # the diagram is pushed away (whoosh-in) and the groove ends with it: nothing is played from here
+    mark = {k: len(getattr(sc, k)) for k in ("kicks", "claps", "snares", "hats", "shakers", "rims", "bass", "subs", "arps")}
     mask_g = [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0]       # always open on the beats: the pad pulses with the node-on cues
     mask_a = [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0]
     for i, b in enumerate(syst):
-        add_pad(b, 0.95 + 0.08 * i, attack=0.12, release=0.2, extra_hi=(i == 2))
+        t_end = min(S(b + 1), stop)
+        add_pad(b, 0.95 + 0.08 * i, attack=0.12, release=0.25 if t_end < S(b + 1) else 0.2, extra_hi=False, t1=t_end)
         for s, on in enumerate(mask_g):
-            if on:
+            if on and S(b, s) < stop - 1e-6:
                 sc.gates.append((S(b, s) - 0.004, S(b, s) + 0.105))
         add_kicks(b, vel=0.86, kind="tight")
         add_backbeat(b, 0.40 + 0.06 * i)
         add_bass(b, "rolling" if i != 1 else "drive", 0.85)
         add_sub(b, 0.7)
-        add_hats(b, 0.40, sixteenths=True, ghost=0.18 + 0.03 * i, open_steps=(14,) if i == 2 else ())
+        add_hats(b, 0.40, sixteenths=True, ghost=0.18 + 0.03 * i)
         add_arps(b, 0.92, 1, 0.56 + 0.04 * i, 3 + (i % 2), 8, offset=i + 2, mask=mask_a)
-    t_roll0 = S(syst[-1], 8)
-    se = sec["system"][1]
-    snare_roll(sc, t_roll0, se - 0.08, d0=0.125, ratio=0.93, v0=0.28, v1=0.9)
-    sc.swells.append(dict(t0=se - 2.0, t1=se - 0.1, f_lo=600.0, f_hi=9000.0, q=1.2, shape=2.2, gain=0.40, tail=0.0))
-    sc.air_gaps.append((se - 0.08, se))
+    # the picture's cues here (nodes 0.4 s apart, tiles 0.2 s, lock-clicks) are off the 120 BPM grid: pitched / clap hits that would flam
+    # with one of them (12-70 ms apart) are left out; exact coincidences and clearly separate hits stay.
+    ui_t = np.array(sorted(float(e["t"]) for e in cues["sfx"] if e["type"] in ("node-on", "packet", "tile-on", "lock-click", "caption-pop")))
+    for name in ("arps", "claps"):
+        lst = getattr(sc, name)
+        lst[mark[name]:] = [x for x in lst[mark[name]:]
+                            if not np.any((np.abs(ui_t - x[0]) > 0.012) & (np.abs(ui_t - x[0]) < 0.070))]
+    for name, i0 in mark.items():                                    # hard stop: drop everything from `stop`, shorten notes that cross it
+        lst = getattr(sc, name)
+        kept = []
+        for x in lst[i0:]:
+            if x[0] >= stop - 1e-6:
+                continue
+            if name in ("bass", "subs", "arps") and x[0] + x[1] > stop:
+                x = (x[0], stop - x[0]) + tuple(x[2:])
+            kept.append(x)
+        lst[i0:] = kept
+    sc.echo_cuts.append((stop + 0.20, stop + 0.50))                  # the arp repeats of the last notes die out under the whoosh
 
-    # ---------------------------------------------------------------- outro (bars 21-22 + tail)
+    # ---------------------------------------------------------------- human (37.6-40.0): drum-less, warm and quiet; leans on the C to come
+    h0, h1 = sec["human"]
+    hb = int((h1 - 1e-6) // BAR)                                     # its closing bar (G)
+    ch = chords[hb]
+    voic = SOFT.get(ch, {"pad": PAD[ch], "lean": PAD[ch], "keys": KEYS[ch], "keys_lean": KEYS[ch]})
+    sc.pads.append(dict(t0=h0 + 0.15, t1=h1 - 0.5, notes=voic["pad"], gain=1.0, attack=0.60, release=0.55, layer="soft"))
+    sc.pads.append(dict(t0=h1 - 0.55, t1=h1 + 0.05, notes=voic["lean"], gain=0.85, attack=0.35, release=0.45, layer="soft"))
+    sc.pads.append(dict(t0=h0 + 0.6, t1=h1 - 0.1, notes=PAD_HI[ch], gain=0.7, attack=1.0, release=0.6, layer="hi"))
+    sc.subs.append((S(hb), h1 - S(hb) - 0.45, SUB_ROOT[ch], 0.5, 120.0))
+    # felt e-piano: one rolled chord in the gap after the redeem-ding, the same chord on its fourth, then a C pickup into the downbeat
+    for t_k, notes_k, vel_k, dur_k in ((h1 - 1.0, voic["keys"], 0.36, 1.2), (h1 - 0.5, voic["keys_lean"], 0.32, 0.6)):
+        for j, m in enumerate(notes_k):
+            sc.keys.append((t_k + 0.022 * j, dur_k, m, vel_k * (1.0 - 0.06 * j)))
+    sc.keys.append((h1 - 0.25, 0.4, 72, 0.30))
+
+    # ---------------------------------------------------------------- outro (40.0): THE big resolving C chord, no drums
     o0 = sec["outro"][0]
     final = [48, 55, 60, 64, 67, 72, 76, 79]
-    sc.pads.append(dict(t0=o0, t1=o0 + 2.0, notes=final, gain=1.35, attack=0.03, release=0.6, layer="final"))
-    sc.pads.append(dict(t0=o0, t1=o0 + 2.0, notes=PAD_HI["C"], gain=0.8, attack=0.05, release=0.6, layer="hi"))
+    sc.pads.append(dict(t0=o0, t1=o0 + 2.0, notes=final, gain=1.35, attack=0.08, release=0.6, layer="final"))
+    sc.pads.append(dict(t0=o0, t1=o0 + 2.0, notes=PAD_HI["C"], gain=0.8, attack=0.10, release=0.6, layer="hi"))
     sc.pads.append(dict(t0=o0 + 2.0, t1=dur, notes=PAD["Cadd9"] + [74], gain=1.5, attack=0.5, release=2.0, layer="final"))   # Cadd9 bloom
     sc.pads.append(dict(t0=o0 + 2.0, t1=dur, notes=PAD_HI["Cadd9"], gain=0.9, attack=0.6, release=2.0, layer="hi"))
-    sc.kicks.append((o0, 1.0, "big"))
-    sc.bass.append((o0, 3.2, 48, 0.85))
-    sc.subs.append((o0 + 0.25, 4.0, 36, 0.8))
-    sc.leads += [(o0, 1.9, 84, 0.52, 1.6), (o0 + 2.05, 2.0, 86, 0.48, 1.8), (o0 + 3.0, 1.0, 88, 0.36, 1.4)]
+    for j, m in enumerate((48, 55, 60, 64, 67, 72)):                 # the e-piano rolls the chord (14 ms per note): a warm hammer, not a hit
+        sc.keys.append((o0 + 0.014 * j, 2.6, m, 0.40 - 0.015 * j))
+    sc.keys += [(o0 + 2.0, 1.8, 67, 0.30), (o0 + 2.03, 1.8, 74, 0.26)]                      # the 9th of the Cadd9 bar
+    sc.bass.append((o0, 3.4, 48, 0.80, 18.0))
+    sc.subs.append((o0, 4.2, 36, 0.75, 60.0))
+    sc.leads += [(o0, 1.9, 84, 0.46, 1.6), (o0 + 2.05, 2.0, 86, 0.48, 1.8), (o0 + 3.0, 1.0, 88, 0.36, 1.4)]
     return sc
 
 
@@ -429,12 +472,12 @@ def render_music(sc: Score, harm: Harmony, cues: dict, n: int) -> dict:
 
     # ------------------------------------------------ bass / sub / heartbeat
     bb = np.zeros((n, 2))
-    for t, d, m, v in sc.bass:
-        place(bb, dsp.stereo(ins.bass(float(mtof(m)), d, v)), t)
+    for t, d, m, v, *att in sc.bass:
+        place(bb, dsp.stereo(ins.bass(float(mtof(m)), d, v, attack_ms=att[0] if att else 4.0)), t)
     st["bass"] = bb
     sbb = np.zeros((n, 2))
-    for t, d, m, v in sc.subs:
-        place(sbb, dsp.stereo(ins.sub(float(mtof(m)), d, v)), t)
+    for t, d, m, v, *att in sc.subs:
+        place(sbb, dsp.stereo(ins.sub(float(mtof(m)), d, v, attack_ms=att[0] if att else 7.0)), t)
     st["sub"] = sbb
     hr = np.zeros((n, 2))
     for t, v in sc.hearts:
@@ -451,14 +494,15 @@ def render_music(sc: Score, harm: Harmony, cues: dict, n: int) -> dict:
     drone_raw = np.zeros((n, 2))
     hi_raw = np.zeros((n, 2))
     final_raw = np.zeros((n, 2))
+    soft_raw = np.zeros((n, 2))
     for p in sc.pads:
         dur = p["t1"] - p["t0"]
         bank = ins.pad_voice_bank(p["notes"], dur, p["attack"], p["release"], rng,
                                   detune_cents=9.0 if p["layer"] != "drone" else 14.0, spread=0.5,
                                   sub_octave=(p["layer"] in ("pad", "final")))
-        tgt = {"pad": pad_raw, "drone": drone_raw, "hi": hi_raw, "final": final_raw}[p["layer"]]
+        tgt = {"pad": pad_raw, "drone": drone_raw, "hi": hi_raw, "final": final_raw, "soft": soft_raw}[p["layer"]]
         place(tgt, bank, p["t0"], p["gain"] * (0.8 if p["layer"] == "hi" else 1.0))
-    st["pad_raw"], st["drone_raw"], st["hi_raw"], st["final_raw"] = pad_raw, drone_raw, hi_raw, final_raw
+    st["pad_raw"], st["drone_raw"], st["hi_raw"], st["final_raw"], st["soft_raw"] = pad_raw, drone_raw, hi_raw, final_raw, soft_raw
 
     # ------------------------------------------------ arps (marimba-ish plucks) + ping-pong delay
     ab = np.zeros((n, 2))

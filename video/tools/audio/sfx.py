@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 import numpy as np
+from scipy import signal
 
 import dsp
 import synth as sy
@@ -32,6 +33,7 @@ class Shot:
     notes: list = field(default_factory=list)      # [(seconds after accent, midi)] for the harmony audit
     kind: str = "onset"                     # QA: 'onset' (transient) | 'peak' (envelope maximum) | 'end' (riser end) | 'swell' (starts at the cue)
     strict: bool = False                    # harmony audit: True = must be chord tones / consonant extensions
+    send_src: np.ndarray | None = None      # what feeds the reverbs, if not the whole shot (e.g. keep a dry clasp out of the reverb)
 
 
 @dataclass
@@ -88,12 +90,24 @@ def finish(y: np.ndarray, peak_db: float, fade_in_ms: float = 1.5, fade_out_ms: 
     return y
 
 
+def finish_pair(y: np.ndarray, wet: np.ndarray, peak_db: float, fade_in_ms: float = 1.5, fade_out_ms: float = 6.0):
+    """Like finish(), but also returns the reverb-feed `wet` scaled/faded identically (so it stays aligned with the shot)."""
+    y = np.array(y, dtype=float)
+    w = np.array(wet, dtype=float)
+    dsp.edge_fades(y, fade_in_ms, fade_out_ms)
+    dsp.edge_fades(w, fade_in_ms, fade_out_ms)
+    pk = np.max(np.abs(y))
+    g = dsp.db2lin(peak_db) / pk if pk > 0 else 1.0
+    return y * g, w * g
+
+
 def mono(y: np.ndarray) -> np.ndarray:
     return y if y.ndim == 1 else 0.5 * (y[:, 0] + y[:, 1])
 
 
-def seed_for(name: str, idx: int) -> int:
-    return zlib.crc32(f"{name}:{idx}".encode()) & 0xFFFFFFFF
+def seed_for(name: str, t: float) -> int:
+    """Per-cue RNG seed from the cue's type and time (ms): adding or moving *other* cues never re-rolls a sound."""
+    return zlib.crc32(f"{name}:{round(t * 1000)}".encode()) & 0xFFFFFFFF
 
 
 # Peak level (dBFS, pre-master) of each one-shot on the SFX bus - the relative balance of the whole film.
@@ -105,7 +119,9 @@ LEVEL = {
     "reveal-whoosh": -7, "riser-count": -8, "count-tick": -7, "counter-hit": -1.5, "confetti-pop": -9,
     "whoosh-pullback": -10, "success-chime": -7, "whoosh-swap": -11, "notif-ping": -7, "swoosh-open": -17,
     "scroll-soft": -22, "zoom-whoosh": -10, "code-ding": -6, "whoosh-down": -12, "node-on": -9, "packet": -13,
-    "tile-on": -9, "whoosh-in": -8, "logo-hit-soft": -6, "chip-pop": -8, "sparkle": -12,
+    "tile-on": -9, "whoosh-in": -13, "logo-hit-soft": -11, "chip-pop": -8, "sparkle": -12,
+    # closing scenes (hand-off photos)
+    "screen-wake": -13, "bag-rustle": -11, "redeem-ding": -9, "photo-whoosh": -21, "handshake": -9,
 }
 
 # reverb sends (linear gain into the shared room / plate / hall reverbs)
@@ -121,6 +137,8 @@ SEND = {
     "tile-on": {"plate": 0.30}, "logo-hit-soft": {"hall": 0.40}, "chip-pop": {"plate": 0.30}, "sparkle": {"hall": 0.40},
     "whoosh-out": {"plate": 0.12}, "whoosh-pullback": {"plate": 0.15}, "whoosh-swap": {"plate": 0.12},
     "caption-pop": {"plate": 0.20}, "riser-a": {"hall": 0.12}, "riser-b": {"hall": 0.10},
+    "screen-wake": {"plate": 0.40}, "bag-rustle": {"room": 0.03}, "redeem-ding": {"plate": 0.30}, "photo-whoosh": {"plate": 0.08},
+    "handshake": {"plate": 0.45, "hall": 0.25},
 }
 
 
@@ -756,16 +774,16 @@ def whoosh_down(c: Ctx) -> Shot:
 @sfx("node-on")
 def node_on(c: Ctx) -> Shot:
     step, of = c.ev.get("step", 0), c.ev.get("of", 5)
-    seq = th.chord_midi("Am", 4) + [m + 12 for m in th.chord_midi("Am", 4)]     # A4 C5 E5 A5 C6 E6
+    base = th.chord_midi(c.chord, 4)
+    seq = base + [m + 12 for m in base]                                  # Am: A4 C5 E5 A5 C6 E6
     m = seq[min(step, len(seq) - 1)]
-    chord_m = m
     f = float(mtof(m))
     pl = sy.harmonic_pluck(f, 0.5, tau=0.16, n_partials=9, tilt=1.2, damp=1.0, attack_ms=2.5, rng=c.rng)
     gl = sy.glass(f, 0.4, tau=0.12, bright=0.8, glide=0.02, glide_tau=0.006, attack_ms=1.5, rng=c.rng)
     pan_v = -0.5 + 1.0 * step / max(of - 1, 1)
     cv = Canvas(0.52)
     cv.add(pl, 0, 0.8, pan_v * 0.6).add(gl, 0, 0.35, pan_v * 0.6)
-    return Shot(finish(cv.y, LEVEL["node-on"]), 0, notes=[(0, chord_m)], strict=True)
+    return Shot(finish(cv.y, LEVEL["node-on"]), 0, notes=[(0, m)], strict=True)
 
 
 @sfx("packet")
@@ -788,10 +806,10 @@ def packet(c: Ctx) -> Shot:
 
 @sfx("tile-on")
 def tile_on(c: Ctx) -> Shot:
+    """Soft bloom per dashboard tile, rising A5 -> C6 -> F6; each note is the nearest tone of the chord of its own bar
+    (the three tiles straddle the Am -> F change at 36.0)."""
     step = c.ev.get("step", 0)
-    tones = th.chord_midi(c.chord, 5)             # F5 A5 C6 for F major (octave of the root = 5)
-    seq = [tones[0], tones[1], tones[2]]
-    m = seq[min(step, 2)]
+    m = th.nearest_tone(c.chord, [note("A5"), note("C6"), note("F6")][min(step, 2)])
     f = float(mtof(m))
     gl = sy.glass(f, 0.8, tau=0.24, bright=0.9, glide=0.025, glide_tau=0.01, attack_ms=2.0, rng=c.rng)
     pl = sy.harmonic_pluck(f, 0.5, tau=0.12, n_partials=6, tilt=1.4, damp=1.2, attack_ms=3.0, rng=c.rng)
@@ -802,22 +820,33 @@ def tile_on(c: Ctx) -> Shot:
 
 @sfx("whoosh-in")
 def whoosh_in(c: Ctx) -> Shot:
+    """The system diagram is pushed back as the next photo fades in: a soft receding sweep (bright -> dark) that peaks right at the cue
+    and has died away before the next sound (the bag rustle) starts."""
     dur = float(c.ev["dur"])
     n = secs(dur)
-    peak = min(0.786 * dur, dur - 0.05)                   # peak just before the end-card hit, tail ducks under it
-    f = dsp.smooth_curve([(0, 300), (dur, 6500)], n, kind="exp")
-    env = sy.bump(n, peak, pow_up=2.0, pow_down=2.5)
-    width = np.linspace(1.0, 0.1, n)                       # the diagram collapses to the centre
-    y = sy.noise_whoosh(c.rng, dur, f, 1.3, env, width=width, lp_hz=8500, hp_hz=180)
-    return Shot(finish(y, LEVEL["whoosh-in"], 6.0, 20.0), secs(peak), target=c.t + peak, kind="peak")
+    peak = 0.16
+    f = dsp.smooth_curve([(0, 4800), (dur, 650)], n, kind="exp")
+    env = sy.bump(n, peak, pow_up=1.2, pow_down=2.1)
+    width = np.linspace(0.9, 0.35, n)
+    y = sy.noise_whoosh(c.rng, dur, f, 1.0, env, width=width, lp_hz=7500, hp_hz=200)
+    return Shot(finish(y, LEVEL["whoosh-in"], 4.0, 25.0), secs(peak), target=c.t + peak, kind="peak")
 
 
 @sfx("logo-hit-soft")
 def logo_hit_soft(c: Ctx) -> Shot:
-    glass_notes = [(note("C5"), 0.0, 1.0), (note("G5"), -0.3, 0.8), (note("E6"), 0.3, 0.6), (note("C6"), 0.0, 0.6)]
-    cv = impact(c.rng, 4.8, note("C2"), size=0.62, sub_tau=0.42, glass_notes=glass_notes, glass_tau=1.4, air=0.07, air_tau=1.2,
-                glass_attack_ms=6.0, click=0.5)
-    return Shot(finish(cv.y, LEVEL["logo-hit-soft"], 1.5, 120.0), 0, notes=[(0, m) for m, _, _ in glass_notes] + [(0, note("C2"))], strict=True)
+    """Secondary logo accent on top of the C chord that is already ringing: a soft low 'tuk', two glass notes (G5 + C6, the logo's
+    colours) and a breath of air. No chord, no boom - the handshake already carried the weight."""
+    L = 3.6
+    m_lo = th.nearest_tone(c.chord, note("C3"))
+    tuk = sy.thump(float(mtof(m_lo)), 0.4, drop=0.35, drop_tau=0.02, tau=0.12, drive=1.5, attack_ms=3.0)
+    g5 = sy.glass(float(mtof(note("G5"))), L, tau=1.2, bright=0.8, attack_ms=4.0, rng=c.rng)
+    c6 = sy.glass(float(mtof(note("C6"))), L, tau=1.5, bright=0.8, attack_ms=4.0, rng=c.rng)
+    n = secs(L)
+    air = dsp.hp(c.rng.standard_normal((n, 2)), 4000, 2) * dsp.attack_decay(n, 14, 0.8)[:, None]
+    cv = Canvas(L)
+    cv.add(g5, 0, 0.75, -0.2).add(c6, 0, 0.60, 0.2).add(tuk, 0, 0.45, 0.0)
+    cv.y += air * 0.035
+    return Shot(finish(cv.y, LEVEL["logo-hit-soft"], 2.0, 150.0), 0, notes=[(0, note("G5")), (0, note("C6")), (0, m_lo)], strict=True)
 
 
 @sfx("chip-pop")
@@ -850,6 +879,150 @@ def sparkle(c: Ctx) -> Shot:
     return Shot(finish(cv.y, LEVEL["sparkle"], 1.5, 120.0), 0, notes=[(float(t), m) for t, m in zip(times, midis)])
 
 
+# =========================================================================================== CLOSING SCENES (hand-off photos)
+@sfx("screen-wake")
+def screen_wake(c: Ctx) -> Shot:
+    """The kiosk screen lights up on the photographed tablet: a soft, rising two-note glass chime (E5 -> G5; chord tones of the C and
+    G bars it straddles) with a breath of light on top - much rounder and quieter than the logo hit."""
+    gap = 0.11
+    m1 = th.nearest_tone(c.chord, note("E5"))
+    m2 = th.nearest_tone(c.chord_at(c.t + gap + 1e-4), note("G5"))
+    f1, f2 = float(mtof(m1)), float(mtof(m2))
+    g1 = sy.glass(f1, 0.9, tau=0.14, bright=0.75, glide=0.012, glide_tau=0.010, attack_ms=3.0, rng=c.rng)
+    g2 = sy.glass(f2, 1.4, tau=0.30, bright=0.80, glide=0.012, glide_tau=0.010, attack_ms=3.0, rng=c.rng)
+    halo = sy.glass(f2 * 2.0, 0.9, tau=0.15, bright=0.5, attack_ms=8.0, rng=c.rng)
+    dur = float(c.ev.get("dur", 0.6))
+    n_air = secs(dur)
+    air = dsp.bp(c.rng.standard_normal((n_air, 2)), 3200, 8500, 2) * sy.bump(n_air, 0.55 * dur, 1.5, 1.2)[:, None] * 0.04
+    cv = Canvas(1.6)
+    cv.add(g1, 0, 0.80, -0.12).add(g2, gap, 1.0, 0.12).add(halo, gap, 0.20, 0.25).add(air, 0, 1.0)
+    return Shot(finish(cv.y, LEVEL["screen-wake"], 2.0, 70.0), 0, notes=[(0, m1), (gap, m2), (gap, m2 + 12)], strict=True)
+
+
+@sfx("bag-rustle")
+def bag_rustle(c: Ctx) -> Shot:
+    """A close, dry paper-shopping-bag hand-off: the grab (a crunch of paper), settling crinkles, a rope-handle creak and a low warm
+    thump when the bag lands in the other hand. Pure noise (no musical pitch), band-limited to 190 Hz - 6.5 kHz.
+
+    The crinkle is a sparse random train of micro-bursts (the density follows the gesture) convolved with two short decaying-noise
+    kernels; the creak is a stick-slip pulse train through a swept resonant band-pass; the thump is band-passed noise."""
+    rng = c.rng
+    dur = float(c.ev.get("dur", 0.5))
+    L = dur + 0.18
+    n = secs(L)
+    t = np.arange(n) / SR
+
+    def blob(t0, w, a):
+        return a * np.exp(-0.5 * ((t - t0) / w) ** 2)
+
+    g = 0.05 + np.exp(-t / 0.04) + blob(0.17, 0.04, 0.70) + blob(0.30, 0.05, 0.55) + blob(0.43, 0.04, 0.30)   # grab, then three settling handfuls
+    g *= np.clip(1.0 - np.maximum(t - dur, 0.0) / 0.18, 0.0, 1.0)
+
+    k_len = dsp.ms(4.0)
+    kernels = []
+    for scale in (0.6e-3, 1.2e-3):
+        kk = rng.standard_normal(k_len) * np.exp(-np.arange(k_len) / (SR * scale))
+        kernels.append(kk / np.sqrt(np.sum(kk ** 2)))
+
+    def crinkle(rate: float) -> np.ndarray:
+        idx = np.flatnonzero(rng.random(n) < rate * g / SR)
+        imp = np.zeros(n)
+        imp[idx] = np.exp(rng.normal(-0.2, 0.85, len(idx))) * np.sqrt(g[idx]) * rng.choice([-1.0, 1.0], len(idx))
+        imp[dsp.ms(0.6)] = 1.6                                  # the first crunch: a definite onset at the cue
+        pick = rng.random(n) < 0.5
+        out = np.zeros(n)
+        for sel, kern in ((pick, kernels[0]), (~pick, kernels[1])):
+            out += signal.fftconvolve(imp * sel, kern)[:n]
+        return out
+
+    crk = dsp.bp(np.stack([crinkle(1300.0), crinkle(1300.0)], axis=1), 1500, 6200, 2)
+    crk /= np.max(np.abs(crk)) + 1e-12
+
+    wob = dsp.lp(rng.standard_normal(n), 25, 2)
+    wob = 0.6 + 0.4 * (wob - wob.min()) / (np.ptp(wob) + 1e-12)
+    body = dsp.bp(rng.standard_normal(n), 280, 1300, 2) * g ** 1.3 * wob
+    body /= np.max(np.abs(body)) + 1e-12
+
+    pulses = np.zeros(n)
+    pos = secs(0.10)
+    while pos < secs(0.33):
+        pulses[pos] = rng.uniform(0.4, 1.0)
+        pos += int(SR * rng.uniform(0.006, 0.016))
+    creak = dsp.sweep(pulses, "bp", dsp.smooth_curve([(0.10, 700.0), (0.33, 1150.0)], n, kind="exp"), 3.5)
+    creak *= np.sin(np.pi * np.clip((t - 0.10) / 0.23, 0.0, 1.0)) ** 1.5
+    creak /= np.max(np.abs(creak)) + 1e-12
+
+    cv = Canvas(L)
+    cv.add(crk, 0, 0.85).add(dsp.stereo(body), 0, 0.14).add(dsp.stereo(creak), 0, 0.22)
+    th_n = secs(0.12)
+    thump_b = dsp.bp(rng.standard_normal(th_n), 190, 520, 2) * dsp.attack_decay(th_n, 1.5, 0.032)
+    slap = sy.bp_noise(rng, 0.03, 700, 2200, 0.008, attack_ms=0.8)
+    cv.add(thump_b / (np.max(np.abs(thump_b)) + 1e-12), 0.004, 0.45).add(slap / (np.max(np.abs(slap)) + 1e-12), 0.004, 0.22)
+    y = dsp.lp(dsp.hp(cv.y, 190, 2), 6500, 4)
+    return Shot(finish(y, LEVEL["bag-rustle"], 1.0, 30.0), 0, kind="onset")
+
+
+@sfx("redeem-ding")
+def redeem_ding(c: Ctx) -> Shot:
+    """'Code redeemed' chip: a bright, quick two-note glass ding, third -> fifth of the G chord (B5 -> D6) with a short tail - it is
+    a rising minor third (notif-ping is a rising fifth, code-ding a single long G6 bell), plucked and sheened by a high octave."""
+    gap = 0.085
+    m1 = th.nearest_tone(c.chord, note("B5"))
+    m2 = th.nearest_tone(c.chord_at(c.t + gap + 1e-4), note("D6"))
+    f1, f2 = float(mtof(m1)), float(mtof(m2))
+    g1 = sy.glass(f1, 0.55, tau=0.11, bright=1.5, glide=0.02, glide_tau=0.006, attack_ms=0.9, rng=c.rng)
+    g2 = sy.glass(f2, 0.95, tau=0.22, bright=1.6, glide=0.02, glide_tau=0.006, attack_ms=0.9, rng=c.rng)
+    sheen = sy.glass(f2 * 2.0, 0.4, tau=0.07, bright=1.0, attack_ms=0.9, rng=c.rng)
+    tick = sy.bp_noise(c.rng, 0.012, 3500, 9000, 0.0016, attack_ms=0.7) * 0.18
+    cv = Canvas(1.1)
+    cv.add(g1, 0, 0.85, -0.15).add(g2, gap, 1.0, 0.15).add(sheen, gap, 0.25, 0.25).add(tick, 0, 1.0)
+    return Shot(finish(cv.y, LEVEL["redeem-ding"], 1.0, 80.0), 0, notes=[(0, m1), (gap, m2), (gap, m2 + 12)], strict=True)
+
+
+@sfx("photo-whoosh")
+def photo_whoosh(c: Ctx) -> Shot:
+    """Soft air as the photo crosses to the handshake: a slow, broad, low-level swell that has faded to nothing by the handshake."""
+    dur = float(c.ev["dur"])
+    n = secs(dur)
+    peak = 0.58 * dur
+    f = dsp.smooth_curve([(0, 900.0), (dur, 3000.0)], n, kind="exp")
+    env = sy.bump(n, peak, pow_up=1.6, pow_down=1.6)
+    y = sy.noise_whoosh(c.rng, dur, f, 0.7, env, width=0.8, lp_hz=5200, hp_hz=450)
+    return Shot(finish(y, LEVEL["photo-whoosh"], 40.0, 90.0), secs(peak), target=c.t + peak, kind="peak")
+
+
+@sfx("handshake")
+def handshake(c: Ctx) -> Shot:
+    """The hands meet on the downbeat. The SFX part is a soft, dry skin/cloth clasp (very short, low-mid) plus a warm glass bloom of
+    the C chord and a small glint of sparkle (both through the reverbs); the big resolving C chord itself is the music's. No boom,
+    no cymbal."""
+    rng = c.rng
+    L = 3.2
+    skin = sy.bp_noise(rng, 0.14, 250, 1400, 0.016, attack_ms=1.2)
+    cloth = sy.bp_noise(rng, 0.14, 1500, 4500, 0.026, attack_ms=4.0)
+    pat = sy.thump(185.0, 0.10, drop=0.25, drop_tau=0.008, tau=0.022, drive=1.0, attack_ms=1.5)
+    cl = Canvas(0.16)
+    cl.add(skin, 0, 1.0, -0.05).add(cloth, 0, 0.16, 0.1).add(pat, 0, 0.5, 0.0)
+    clasp = cl.y / (np.max(np.abs(cl.y)) + 1e-12)
+
+    bloom = Canvas(L)
+    chord = ((note("C5"), 0.55, -0.15), (note("G5"), 0.45, 0.20), (note("E6"), 0.28, 0.10), (note("C6"), 0.22, -0.05))
+    for m, lv, p in chord:
+        bloom.add(sy.glass(float(mtof(m)), L, tau=1.3, bright=0.7, attack_ms=40.0, rng=rng), 0, lv, p)
+    k = 7
+    u = (np.arange(k) + rng.uniform(0, 0.8, k)) / k
+    times = 0.06 + 0.55 * u ** 1.3
+    pool = [m for m in th.penta_run(note("G6"), 8) if m % 12 in (0, 2, 4, 7) and m <= note("G7")]
+    midis = [pool[int(rng.integers(0, len(pool)))] for _ in range(k)]
+    _glints(rng, bloom, times, midis, 0.45 * (1 - u) ** 1.2 + 0.10, tau=0.12, bright=0.9, max_len=0.8)
+    wet = bloom.y * 0.55
+    dry = np.zeros((secs(L), 2))
+    dry[: len(clasp)] = clasp
+    audio, send = finish_pair(dry + wet, wet, LEVEL["handshake"], 1.0, 150.0)
+    notes = [(0, m) for m, _, _ in chord] + [(float(tt), m) for tt, m in zip(times, midis)]
+    return Shot(audio, 0, notes=notes, strict=True, send_src=send)
+
+
 # =========================================================================================== placement
 def render_sfx(cues: dict, harm: Harmony, n_total: int, verbose: bool = False):
     """Render every cue; returns dict(dry=(N,2), room/plate/hall sends=(N,), log=[...], shots=[(ev, Shot, start)])."""
@@ -867,14 +1040,15 @@ def render_sfx(cues: dict, harm: Harmony, n_total: int, verbose: bool = False):
             raise KeyError(f"no sound designer for cue type '{name}'")
         nth = seen.get(name, 0)
         seen[name] = nth + 1
-        ctx = Ctx(ev=ev, rng=np.random.default_rng(seed_for(name, idx)), harm=harm, nth=nth, count=counts[name], index=idx)
+        ctx = Ctx(ev=ev, rng=np.random.default_rng(seed_for(name, float(ev["t"]))), harm=harm, nth=nth, count=counts[name], index=idx)
         shot = REG[name](ctx)
         target = shot.target if shot.target is not None else float(ev.get("accent", ev["t"]))
         start = secs(target) - shot.accent
         dsp.mix_into(dry, shot.audio, start, 1.0)
         shots.append((ev, shot, start))
-        for bus, g in {**SEND.get(name, {})}.items():
-            dsp.mix_into(sends[bus], mono(shot.audio), start, g)
+        src = shot.audio if shot.send_src is None else shot.send_src
+        for bus, g in SEND.get(name, {}).items():
+            dsp.mix_into(sends[bus], mono(src), start, g)
         log.append({"index": idx, "type": name, "t": float(ev["t"]), "target": target, "start_sample": start,
                     "accent_sample": start + shot.accent, "kind": shot.kind, "strict": shot.strict,
                     "peak_db": float(dsp.lin2db(np.max(np.abs(shot.audio)))), "len_s": len(shot.audio) / SR,

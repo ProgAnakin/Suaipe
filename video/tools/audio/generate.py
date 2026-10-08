@@ -75,6 +75,7 @@ def remix(args) -> None:
 
 def build(args) -> dict:
     t_start = time.time()
+    mix.RECALIBRATE = bool(args.recalibrate)
     cues = json.loads(Path(args.cues).read_text())
     assert cues["sampleRate"] == SR, "cue sheet sample rate must be 48 kHz"
     n = secs(cues["duration"])
@@ -140,6 +141,8 @@ def main():
     ap.add_argument("--music-gain-db", type=float, default=0.0, help="music bus trim before the master (balance vs sfx)")
     ap.add_argument("--sfx-gain-db", type=float, default=0.0, help="sfx bus trim before the master")
     ap.add_argument("--skip-qa", action="store_true")
+    ap.add_argument("--recalibrate", action="store_true",
+                    help="derive the music bus gains from the rendered stems instead of using the frozen ones (changes the whole mix)")
     ap.add_argument("--from-stems", action="store_true",
                     help="no synthesis: re-balance and re-master the exported stems (use with --music-gain-db / --sfx-gain-db)")
     ap.add_argument("--remix-name", default="soundtrack_remix.wav", help="output file name for --from-stems (written next to the stems' folder)")
