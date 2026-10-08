@@ -1,5 +1,7 @@
 # Script — Suaipe film v3 · BRIEF v2, phase 2 (approved with changes)
 
+> **Superseded.** This is the script of the 50 s "B2B career" cut (v3, commit `7a4d486`), which carried the author's name. The current film is **v4** (`README.md`): the calm v2 structure plus the Manager & Stats and Consultants scenes, with no name — its copy lives in `src/timeline.ts`.
+
 Status: **approved 2026-10-08** with the changes in section 0. Phase 3 (implementation) follows this document.
 All on-screen copy is English. Times are seconds on the 120 BPM grid (beat 0.5 s, bar 2.0 s; `B12.3` = bar 12, beat 3 = 23.0 s).
 

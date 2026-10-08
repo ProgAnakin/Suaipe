@@ -1,5 +1,7 @@
 # Audit — Suaipe film (master 44.5 s, 4:5, 60 fps) · BRIEF v2, phase 1
 
+> **Historical (phase 1 of BRIEF v2).** Written for the 44.5 s film. The current film is **v4** (64.5 s, `README.md`): it restores v2's pacing and adds the Manager & Stats and Consultants scenes; the P0/P1 findings below were resolved there (no cities or store count, sample data labelled, a quieter sound).
+
 Audited file: `out/suaipe-film.mp4` (the build with the real 960 × 1280 photos and the re-balanced effects; 81 MB, −14.0 LUFS).
 Nothing in the code was changed for this audit. Measurements are reproducible:
 

@@ -37,7 +37,7 @@ The app is used by two people standing in a shop, and a film made only of screen
 - **Disclosure.** The post says the in-store hands are AI-generated and the screens are the real app (`video/LINKEDIN.md`).
 - **Trade-off.** The film now depends on four binary images (a few hundred KB) and on a tablet quad (`HANDOFF_QUAD`, measured by `tools/people/measure_quad.py`) that must be re-measured if the hand-off image is regenerated.
 
-## Addendum 2 (2026-10) — the "B2B career" version: the film sells the person who built it
+## Addendum 2 (2026-10) — the "B2B career" version: the film sells the person who built it *(superseded by Addendum 3)*
 
 The film is also a portfolio piece for its author. It was re-cut (BRIEF v2, `video/BRIEF-v2.md`; the approved script is `video/qa/SCRIPT.md`) around one argument — *a simple idea, born from watching the shop floor, gives a store more contact with its customers and the data that comes with it* — and ends on the author's name. Consequences for the project:
 
@@ -47,3 +47,15 @@ The film is also a portfolio piece for its author. It was re-cut (BRIEF v2, `vid
 - **Disclosure.** Besides the post, the last frame carries a deliberately tiny line: "In-store scenes are AI-generated illustrations."
 - **Craft rules enforced by scripts.** A single motion vocabulary (`video/src/lib/motion.ts`), a four-size type scale and a player-safe area (`video/src/theme.ts`), and QA scripts under `video/scripts/qa/` (reading time, speed continuity at every transition, luminance pops, contrast and phone-width legibility, audio density and re-encode tests).
 - **Sound.** The direction (atmosphere, two alternatives, the sonic motif, the effect hierarchy) is proposed in `video/qa/SOUND.md`; the generator in `video/tools/audio` is re-planned for the 25-bar structure after that choice.
+
+## Addendum 3 (2026-10) — v4: the calm product film, now with the whole product
+
+The 50 s career cut was reviewed against the 44.5 s film it replaced, and the project owner preferred the earlier one: it shows the app itself, with more calm. The decision:
+
+- **v2 is the base again.** Hook, lock-up, iPad flow, e-mail, human close and end card are restored to v2's pacing and look (the code of the 50 s cut that is still useful is kept: the Manager & Stats scene, the system diagram, the shared caption scrim, the call-out and chip components).
+- **Two scenes are added, nothing is removed:** *Manager & Stats* (the real `/manager` lead list and `/stats` store dashboards, with consent ticks and leads landing in a CRM) and *Consultants* (the real `/consulente` training app: the product library, a product guide with the manager's video, insights and advice — the point of the area is onboarding new consultants and refreshing them before a customer arrives). The film is **64.5 s**. Each new scene is a camera that holds one subject while the content moves under it, so the film keeps v2's slow, readable rhythm.
+- **Captures.** `video/tools/capture/consult.mjs` joins `admin.mjs`: the same injected, MFA-verified session and mocked Supabase, with fictional guides (EN/IT) and a generated video poster. Every staff or consultant screen carries a **Sample data** chip, and the screens run off the bottom of the frame under a soft fade (nothing small sits under the player's controls).
+- **No name, no city, no count.** The end card lists the four areas of the product (iPad kiosk · Manager · Stats · Consultants) under "Built for the whole store." The film promises only what the app does today: the consultants' "Files & manuals" tab is still *Coming soon* in the product and is not shown as a feature. The AI-generated in-store stills keep their near-invisible disclosure line on the end card.
+- **Sound.** Direction A, "Minimal pulse" (`video/qa/SOUND.md`): no drums, 65 effects in 64.5 s (the old mix had 153 in 44.5 s), one big resolved chord at the handshake and the complete motif on the logo. `video/tools/audio` composes the master and a separate 15 s arrangement from cue sheets derived from `timeline.ts` / `cutdown.ts`.
+- **Tooling.** `scripts/render-preview.sh` (resumable half-resolution previews) and `scripts/audio-previews.sh` (the listening package) shorten the picture ↔ sound loop; the QA scripts derive transitions and copy timing from `timeline.ts`, so none carries a hand-copied list.
+
