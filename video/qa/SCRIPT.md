@@ -1,27 +1,25 @@
-# Script — Suaipe film v3 · BRIEF v2, phase 2
+# Script — Suaipe film v3 · BRIEF v2, phase 2 (approved with changes)
 
-Proposal only: nothing has been implemented. Phase 3 starts after the choices in section 10.
+Status: **approved 2026-10-08** with the changes in section 0. Phase 3 (implementation) follows this document.
 All on-screen copy is English. Times are seconds on the 120 BPM grid (beat 0.5 s, bar 2.0 s; `B12.3` = bar 12, beat 3 = 23.0 s).
 
 ---
 
-## 0. What this script is built from
+## 0. Decisions taken and facts
 
-**Facts you gave** (section 3 of the brief, your reply):
-
-| fact | how it is used |
+| # | decision |
 |---|---|
-| Name: Costanzo Annichini | signature card |
-| The products in the app are fictional, unbranded replicas of products you already sell | product packshots/names may stay on screen; no real brand appears |
-| No real photos of the store (you do not want trouble with your workplace) | the in-store scenes stay AI-generated and are **labelled as illustrations** (small line in the film + in the post) |
-| Real metrics live in the app's `/manager` | not available to me and employer data anyway → **no result figure anywhere in the film**; the dashboards are shown as UI with clearly labelled sample data |
-| The point: from an idea and observation you create more value for retail — CRM, data, several effects — with an idea that looks simple and creates more contact with the public *because* it is simple | this is the film's thesis (section 1); there is no "hire me" line because you did not supply one |
+| 1 | Hook **H2** — "A customer walks in. The store rarely learns who." |
+| 2 | Signature line **P3** — "Simple ideas create contact. Contact creates data." plus a *slightly indicative* call to action (default: "Let's talk retail.") |
+| 3 | **Add** a scene, **remove none**: the system-diagram scene stays; a new *Store value* scene is added. The old end card becomes the *Signature* (same slot) |
+| 4 | Stores, cities (fictional) and the store count stay out of the film: "multi-store" only |
+| 5 | The AI-illustration line stays in the film, **very small, almost invisible**, and fully visible in the post |
+| 6 | Length **50.0 s** = 25 bars (the brief suggested 40–46 s; this is your call) |
+| 7 | All copy approved as written (section 4) |
 
-**Blank / not used:** current title, target title, positioning line (you left it blank = I propose three, section 8), explicit CTA, extra subtitle languages.
+**Facts supplied:** name *Costanzo Annichini*; the products in the app are fictional, unbranded replicas of products you sell; no real store photos (you do not want trouble at work) → the in-store scenes stay AI-generated and are labelled as illustrations; the real metrics are in `/manager` and belong to the store → **no result figure anywhere in the film**, dashboards are shown with labelled sample data; the thesis: *a simple idea, born from observation, gives retail more contact and more data (CRM and more), precisely because it is simple.*
 
-**Facts policy.** A number or claim may appear only if (a) you supplied it or (b) it is a product fact visible in the repository (8 quiz cards, 1 match, 1 unique code, per-store dashboards, consent stored with each lead, a relay to a CRM sheet). Result figures (conversion, leads, time saved) are excluded. Removed from the current film: **"under two minutes"** (no source), **"2FA on staff dashboards"** (only `/manager` and `/stats` have MFA), **"Live in 4 retail stores" and the four city chips**, **"Suaipe Milano"** in the e-mail ticket (re-captured with a neutral store name), the `REACT · SUPABASE · PWA` line.
-
-**Assumption to confirm (⛔ 4):** you answered about products only, and you do not want trouble at work → I treat store names, cities and the store *count* as **not cleared**. The film says "multi-store" at most.
+**Facts policy.** A number or claim appears only if you supplied it or it is a product fact visible in the repository (8 quiz cards, 1 match, 1 unique code, per-store dashboards, consent stored with each lead, a relay to a CRM sheet, MFA on `/manager` and `/stats`, row-level security on every table). Not in the film any more: "under two minutes", "2FA on staff dashboards" (the System caption now says what is true), "Live in 4 retail stores", the four city chips, "Suaipe Milano" in the e-mail ticket (re-captured with a neutral store name), the `REACT · SUPABASE · PWA` line. Not used because not supplied: current/target job title.
 
 ---
 
@@ -29,46 +27,28 @@ All on-screen copy is English. Times are seconds on the 120 BPM grid (beat 0.5 s
 
 > **A simple idea, built from what you see on the shop floor, gives retail more contact with its customers — and the data that comes with it.**
 
-The film now argues that in four moves: (1) the store rarely learns who walked in; (2) a question and eight swipes get a customer to *play* instead of filling in a form; (3) the store gets a consented lead, a per-store view and a CRM row; (4) the sale is still closed by a person. The name comes last.
+Argument in four moves: (1) the store rarely learns who walked in; (2) a question and eight swipes make the customer *play* instead of filling in a form; (3) the store gets a consented lead, a per-store view, a CRM row — and it is built properly; (4) the sale is still closed by a person. The name comes last.
 
-| | today (v2.3, 44.5 s) | v3 (46 s) |
+| | today (44.5 s) | v3 (50 s) |
 |---|---|---|
-| keep | lock-up, hand-off photo + fly-in, real-drag swipes, counter / 98 % beat, e-mail code zoom, bag + handshake close, defocus into the end card | same assets, re-timed |
+| keep | lock-up, hand-off photo + fly-in, real-drag swipes, counter / 98 % beat, e-mail code zoom, **system diagram**, bag + handshake close, defocus into the closing card | same assets, re-timed |
 | shorten | typing (2.0 → 1.4 s), tutorial, e-mail scroll, success screen, swipe caption (5.8 → 3.0 s) | |
-| cut | tile-wall hook lines, "5 languages" call-out, system-diagram scene, store count/cities, tech line, "under two minutes" | |
-| new | hook (store + a moving light), **store-value block** (3 beats), **signature card**, tiny AI-illustration line, "sample data" labels | |
-
-Total length 46.0 s = 23 bars (+1.5 s on the 44.5 s master, inside the ±5 s you set).
+| fix | system caption (true MFA statement), "×4 stores" chip → "multi-store", "2FA" chips → "MFA", bottom tile row out of the player's covered strip | |
+| new | hook (store photo + a moving light), **Store-value scene**, **Signature** (name, thesis, CTA), tiny illustration line, "sample data" labels | |
 
 ---
 
-## 2. Three hooks (pick one)
+## 2. Hook — H2 (chosen)
 
-First frame (0.00 s) carries the message in all three.
-
-### H1 — "Too many gadgets. Too few hands."
-* **On screen:** "Too many gadgets." (0.1–2.2 s) → "Too few hands." (1.6–3.7 s).
-* **Visual:** today's wall of ten product cards over the store photo; at "hands" the wall freezes, then the flash into the lock-up. Pays off later with the hands (hand-off, bag, handshake).
-* **Why it works for B2B-sales readers:** names a staffing/time limit every store manager recognises, in 5 words; cheapest to build (reuses the hook).
-* **Weakness:** still reads as a shopper's problem; "few hands" is a generalisation.
-
-### H2 — "A customer walks in. The store rarely learns who." ★ recommended
-* **On screen:** "A customer walks in." (0.0–3.0 s), "The store rarely learns who." (1.0–3.7 s).
-* **Visual:** the store photo, sharp (not blurred), slow push-in. A soft cyan light — the customer; no faces needed — walks the aisle from the left edge, reaches the counter at 1.0 s, pulses once at 2.0 s and fades out: the unknown. A 0.25 s air gap at 3.75 s, then the flash.
-* **Why it works:** it states, in the first 2 s and in the vocabulary of CRM and first-party data, the exact problem the rest of the film solves; it is your thesis in problem form. It is the only option where *contact* is the subject.
-* **Weakness / risk:** "rarely" is a premise, not a statistic (defensible: a store without an identification step does not learn who visited; say "I observed…" in an interview, not "studies show"); needs one new animation (low risk).
-
-### H3 — "Nobody fills in a form. Everybody swipes."
-* **On screen:** "Nobody fills in a form." (0.0–2.6 s) → "Everybody swipes." (1.6–3.7 s).
-* **Visual:** opens on the hand-off photo (dark tablet in two hands); the screen wakes on "swipes" with the first card.
-* **Why it works:** the insight of the whole project in 6 words (friction vs play); best thumbnail (human + tablet).
-* **Weakness:** the problem is implied, not shown; "nobody/everybody" are rhetorical absolutes; reorders the film (photo before the lock-up) → biggest rebuild.
-
-**Recommendation: H2.** Reading check (rule 0.6 s + 0.3 s/word): H1 3 w/2.1 s, 3 w/2.1 s ✓ · H2 4 w/3.0 s, 5 w/2.7 s ✓ · H3 5 w/2.6 s, 2 w/2.1 s ✓.
+* **On screen:** "A customer walks in." (0.0–3.0 s), "The store rarely learns who." (1.0–3.7 s). Both are on screen/legible by the first frame.
+* **Visual:** the store photo, sharp (not blurred), slow push-in. A soft cyan light — the customer; no faces — walks the aisle from the left edge, reaches the counter at 1.0 s, pulses once at 2.0 s and fades out: the unknown. A 0.25 s air gap at 3.75 s, then the flash into the lock-up.
+* **Why it works:** it states the problem the rest of the film solves, in the first 2 s, in the vocabulary of CRM and first-party data; it is your thesis in problem form.
+* **Caveat:** "rarely" is a premise, not a statistic. In an interview: "that is what I see on the floor", not "studies show".
+* Not chosen: H1 "Too many gadgets. Too few hands." (kept as the fallback), H3 "Nobody fills in a form. Everybody swipes." (its idea survives as T4, "A game, not a form.").
 
 ---
 
-## 3. Structure (master, 46.0 s)
+## 3. Structure (master, 50.0 s)
 
 | # | block | time | bars | what it must do |
 |---|---|---|---|---|
@@ -77,14 +57,15 @@ First frame (0.00 s) carries the message in all three.
 | 3 | Experience | 6.0–23.0 | 4–12 | hand-off → form with consent → 8 swipes → 98 % → "I want it" |
 | 4 | Customer value | 23.0–30.0 | 12–15 | personal e-mail + unique code |
 | 5 | **Store value** (new) | 30.0–38.0 | 16–19 | consented lead → per-store view → CRM row |
-| 6 | Human close | 38.0–42.0 | 20–21 | bag + handshake: "people close the sale" |
-| 7 | **Signature** (new) | 42.0–46.0 | 22–23 | name + thesis line, last 1.5 s still |
+| 6 | System (kept) | 38.0–42.0 | 20–21 | how it is built: multi-store, row-level security, MFA where it matters |
+| 7 | Human close | 42.0–46.0 | 22–23 | bag + handshake: "people close the sale" |
+| 8 | **Signature** | 46.0–50.0 | 24–25 | name, thesis, soft CTA; the last 1.5 s still |
 
 ---
 
-## 4. All on-screen copy (master) and reading time
+## 4. All on-screen copy and reading time
 
-Rule: on-screen time ≥ 0.6 s + 0.3 s per word, ≤ 7 words per line, no "!", no empty buzzwords. Longest line here is 5 words.
+Rule: on-screen time ≥ 0.6 s + 0.3 s per word, ≤ 7 words per line, no "!", no empty buzzwords. Longest line here is 6 words.
 
 | id | block | text | words | on screen | needed | verdict |
 |---|---|---|---|---|---|---|
@@ -98,20 +79,23 @@ Rule: on-screen time ≥ 0.6 s + 0.3 s per word, ≤ 7 words per line, no "!", n
 | V1 | Store value | Every claimed match becomes a lead. | 6 | 30.2–32.8 s (2.6) | 2.4 s | ok (tight) |
 | V2 | Store value | See what sells, store by store. | 6 | 32.8–35.4 s (2.6) | 2.4 s | ok (tight) |
 | V3 | Store value | Leads land in the CRM. | 5 | 35.4–37.8 s (2.4) | 2.1 s | ok |
-| C2 | Human (chip) | Redeemed in store | 3 | 38.4–40.0 s (1.6) | 1.5 s | ok (tight) |
-| T7 | Human | Technology opens the conversation. / People close the sale. | 8 (4 + 4) | 38.2–41.8 s (3.6) | 3.0 s | ok |
-| S1 | Signature | Costanzo Annichini | 2 | 42.0–46.0 s (4.0) | 1.2 s | ok |
-| S2 | Signature | Simple ideas create contact. / Contact creates data. | 7 (4 + 3) | 42.6–45.6 s (3.0) | 2.7 s | ok |
-| S3 | Signature (tiny) | In-store scenes are AI-generated illustrations. | 5 | 43.4–45.8 s (2.4) | 2.1 s | ok |
+| V4 | System | Multi-store. Row-level security on every table. | 6 | 38.0–41.6 s (3.6) | 2.4 s | ok |
+| T7 | Human | Technology opens the conversation. / People close the sale. | 8 (4 + 4) | 42.2–45.8 s (3.6) | 3.0 s | ok |
+| C2 | Human (chip) | Redeemed in store | 3 | 42.4–44.0 s (1.6) | 1.5 s | ok (tight) |
+| S1 | Signature | Costanzo Annichini | 2 | 46.0–50.0 s (4.0) | 1.2 s | ok |
+| S2 | Signature | Simple ideas create contact. / Contact creates data. | 7 (4 + 3) | 46.6–49.4 s (2.8) | 2.7 s | ok (tight) |
+| S4 | Signature (CTA) | Let's talk retail. | 3 | 47.8–49.9 s (2.1) | 1.5 s | ok |
+| S3 | Signature (tiny, near-invisible by choice) | In-store scenes are AI-generated illustrations. | 5 | 47.2–49.8 s | exempt | — |
 
-Every line passes; five are tight (spare < 0.25 s) and will be given real hold in phase 3 by shortening animation, not by adding words.
-Truth check of each line: T1/T2 premise (see H2); T3/T4/T5 product design; C1 `consent_given_at` is stored with each session; T6 personalised e-mail + a code redeemable in store; V1 a lead row exists only after the customer claims the match; V2 the dashboards are per store and rank products; V3 the relay writes each lead to a CRM sheet; C2 `mark_code_redeemed`; T7 your argument; S2 your thesis; S3 disclosure.
+Every line passes; six are tight (spare < 0.25 s) and get their hold in phase 3 by shortening animation, not by adding words. S3 is exempt from the reading rule on purpose (your decision 5); it is set at 14–16 px, ~40 % opacity, and the post carries the real disclosure.
+Truth check: T1/T2 premise (see section 2); T3/T4/T5 product design; C1 `consent_given_at` is stored with each session; T6 personalised e-mail + a code redeemable in store; V1 a lead row exists only after the customer claims the match; V2 per-store dashboards with product ranking; V3 the relay writes each lead to a CRM sheet; V4 row-level security on every table, MFA on `/manager` and `/stats` (the diagram's chips sit on exactly those two tiles); C2 `mark_code_redeemed`; T7 your argument; S2 your thesis.
+CTA alternatives if you prefer another wording (all soft): "Curious how? Let's talk." · "Open to the conversation." · "Say hello."
 
 ---
 
 ## 5. Beat sheet (master, 120 BPM)
 
-`★` = one of the five "signature" sounds allowed by the brief (4 used). Picture and sound are one row on purpose.
+`★` = one of the five "signature" sounds allowed by the brief (four used). Picture and sound share a row on purpose.
 
 | time | bar.beat | block | picture | sound |
 |---|---|---|---|---|
@@ -119,7 +103,7 @@ Truth check of each line: T1/T2 premise (see H2); T3/T4/T5 product design; C1 `c
 | 1.00 | 1.3 | Hook | T2 rises; the light reaches the counter | heartbeat accent |
 | 2.00 | 2.1 | Hook | the light pulses once and fades; photo dims 15 % | suspended chord; one soft "air" for the fade |
 | 3.50 | 2.4 | Hook | text at full contrast; light gathers at centre | tonal riser peaks |
-| 3.75 | — | Hook | hold | **air gap** (0.25 s of near-silence) |
+| 3.75 | — | Hook | hold | **air gap** (0.25 s near-silence) |
 | 4.00 | 3.1 | Idea | flash-through → logo + ring; wordmark assembles 4.15–4.6 | ★ **logo hit** + sonic motif, first half |
 | 4.50 | 3.2 | Idea | T3 under the wordmark | shimmer |
 | 5.50 | 3.4 | Idea | lock-up parts toward the centre | soft whoosh-in |
@@ -127,16 +111,16 @@ Truth check of each line: T1/T2 premise (see H2); T3/T4/T5 product design; C1 `c
 | 6.50 | 4.2 | Experience | screen wakes; T4 rises | screen-wake chime |
 | 7.00–7.55 | 4.3–4.4 | Experience | fly-in → match-cut to the flat iPad | zoom whoosh |
 | 8.00 | 5.1 | Experience | tap TAP TO START; welcome form | tap |
-| 8.50–9.90 | 5.2–5.4 | Experience | name, surname, e-mail typed fast | **one** soft typing gesture (not 33 clicks) |
+| 8.50–9.90 | 5.2–5.4 | Experience | name, surname, e-mail typed fast | **one** soft typing gesture |
 | 10.00 | 6.1 | Experience | consent ticked; C1 appears (to 12.4) | consent click |
 | 12.00 | 7.1 | Experience | tap START THE GAME | tap |
 | 12.25–13.25 | 7.2–7.4 | Experience | tutorial card | — |
 | 13.50 | 7.4 | Experience | tap I'M READY | tap |
 | 14.00 | 8.1 | Experience | card 1 enters; T5 (14.2–17.2) | groove enters, light |
-| 14.25–18.25 | 8.1–10.1 | Experience | eight real swipes | "yes" rises/opens and pans right; "no" falls/closes and pans left |
+| 14.25–18.25 | 8.1–10.1 | Experience | eight real swipes | "yes" rises/opens, pans right; "no" falls/closes, pans left |
 | 18.50 | 10.2 | Experience | scanning ring 0 % | one tonal riser (replaces 13 ticks) |
 | 19.75 | 10.4 | Experience | ring at 98 % | **air gap** 0.25 s |
-| 20.00 | 11.1 | Match | **98 % hit**, confetti, product card | ★ **98 % hit** (full chord stack) — or held back if the sound direction keeps the biggest moment for the end |
+| 20.00 | 11.1 | Match | **98 % hit**, confetti, product card | ★ **98 % hit** (or held back if the sound direction keeps the biggest moment for the end) |
 | 22.00 | 12.1 | Match | tap I WANT IT → success | success chime |
 | 23.00 | 12.3 | Transition | whip: iPad leaves left, iPhone arrives | whoosh-swap (pan L → R) |
 | 24.50 | 13.2 | Customer value | notification "Your match is ready" | notification ping |
@@ -147,16 +131,21 @@ Truth check of each line: T1/T2 premise (see H2); T3/T4/T5 product design; C1 `c
 | 30.00 | 16.1 | Store value | manager view with sample leads slides in; V1; consent badges pop in on rows | firm steady pulse; ticks **grouped** per cluster |
 | 32.50 | 17.2 | Store value | funnel + product ranking; V2 | — |
 | 35.25 | 18.3 | Store value | one lead flies into a CRM row; V3 | one soft "land" pluck |
-| 37.75 | 19.4 | Store value | photo cut (≤ 0.25 s) | soft whoosh-in; pulse stops cleanly |
-| 38.00 | 20.1 | Human | bag hand-off photo; T7 from 38.2 | bag rustle; room tone up |
-| 38.50 | 20.2 | Human | chip C2 "Redeemed in store" + code | redeem ding |
-| 40.00 | 21.1 | Human | **cut on the beat** to the handshake; clasp bloom | ★ **handshake**: dry clasp + warm resolved chord, no cymbal |
-| 41.00 | 21.3 | Human | defocus begins | — |
-| 42.00 | 22.1 | Signature | S1 over the defocused handshake | ★ **sonic motif completes** on the held chord |
-| 42.60 | 22.2 | Signature | S2 | — |
-| 43.40 | 22.4 | Signature | S3 (tiny) | one sparkle |
-| 44.00–45.50 | 23.1–23.4 | Signature | nothing moves | chord rings out, fades |
-| 46.00 | 24.1 | — | end | silence |
+| 37.75 | 19.4 | Store value → System | dashboard pushes back as the first node arrives | soft whoosh-in; pulse continues |
+| 38.00–39.40 | 20.1–20.4 | System | five nodes + data packets build (as today, +4.0 s) | staccato arps + gated pad; node plucks as a run |
+| 39.80–40.20 | 20.4–21.1 | System | three dashboard tiles; "MFA" chips on Manager and Stats only | tile bloom as **one** gesture |
+| 40.55, 40.95 | 21.2, 21.3 | System | "RLS" and "MFA" chips pop | two soft clicks |
+| 41.50 | 21.4 | System → Human | photo cut (0.5 s) | pulse stops cleanly |
+| 42.00 | 22.1 | Human | bag hand-off photo; T7 from 42.2; room tone up | bag rustle |
+| 42.50 | 22.2 | Human | chip C2 "Redeemed in store" + code | redeem ding |
+| 44.00 | 23.1 | Human | **cut on the beat** to the handshake; clasp bloom | ★ **handshake**: dry clasp + warm resolved chord, no cymbal |
+| 45.00 | 23.3 | Human | defocus begins | — |
+| 46.00 | 24.1 | Signature | S1 over the defocused handshake | ★ **sonic motif completes** on the held chord |
+| 46.60 | 24.2 | Signature | S2 | — |
+| 47.20 | 24.3 | Signature | S3 (tiny) | one sparkle |
+| 47.80 | 24.4 | Signature | S4 (CTA) | — |
+| 48.50–49.50 | 25.2–25.4 | Signature | nothing moves | chord rings out, fades |
+| 50.00 | 26.1 | — | end | silence |
 
 ---
 
@@ -168,11 +157,12 @@ Truth check of each line: T1/T2 premise (see H2); T3/T4/T5 product design; C1 `c
 | Idea | recognition, relief | first resolution; motif half | logo hit ★, shimmer | 3 |
 | Experience | play, momentum | light groove, controlled build; swipes lead the rhythm | taps; **distinct swipe yes / no**; one tonal scan riser; 98 % ★ | ~24 |
 | Customer value | warm, personal | low-passed e-piano breakdown | notification ping; code ding | 3–4 |
-| Store value | competent, steady | firm regular pulse, staccato arps, confident harmony | grouped ticks; one "land" pluck | 4–5 |
-| Human | warm, human | pad + felt piano, no drums, room tone, "lift" into 40.0 | bag rustle; redeem ding; handshake clasp ★ | 3 |
+| Store value | competent, steady | firm regular pulse, confident harmony | grouped ticks; one "land" pluck | 4–5 |
+| System | precise, calm | staccato arps + gated pad (as today), less busy | node pluck run; tile bloom; two clicks | 6–7 |
+| Human | warm, human | pad + felt piano, no drums, room tone, "lift" into 44.0 | bag rustle; redeem ding; handshake clasp ★ | 3 |
 | Signature | quiet pride, closure | resolved chord holds; motif completes | motif ★; one sparkle | 2 |
 
-**Event budget:** ≈ 45–60 events (today 153, of which 108 are "texture"), none above 4 per second except grouped gestures, four ★ sounds. Practical changes: typing, counter ticks and tile pops become *gestures*; the whooshes keep their +3…+6 dB margin over the music; the 3 sub-heavy hits get upper harmonics so they survive a phone speaker. Room tone of a shop under the photos (hand-off and close) rhymes the start and the end.
+**Event budget:** ≈ 55–70 events (today 153, of which 108 are "texture"), none above 4 per second except grouped gestures, four ★ sounds. Typing, counter ticks, tile pops and node plucks become *gestures*; whooshes keep their +3…+6 dB margin over the music; the three sub-heavy hits get upper harmonics so they survive a phone speaker. A shop room tone under the photos (hand-off and close) rhymes start and end.
 
 ---
 
@@ -189,43 +179,33 @@ Truth check of each line: T1/T2 premise (see H2); T3/T4/T5 product design; C1 `c
 | 8.00 | 5.1 | scan ring | riser |
 | 9.75 | — | 98 % | air gap |
 | 10.00 | 6.1 | **98 % hit**, product card | ★ hit |
-| 12.00 | 7.1 | K3 "Costanzo Annichini"; K4 "Simple ideas create contact. / Contact creates data." (12.2–15.0) | ★ motif completes on a resolved chord |
+| 12.00 | 7.1 | K3 "Costanzo Annichini"; K4 "Simple ideas create contact. / Contact creates data." (12.0–14.8); K5 "Let's talk retail." (13.2–15.0) | ★ motif completes on a resolved chord |
 | 13.00–15.00 | 7.3–8.3 | still | chord rings; ≥ 1 s tail to silence |
 
-Cut-down copy check: K1 3 w/2.0 s ✓ (1.5) · K2 4 w/3.8 s ✓ (1.8) · K3 2 w/3.0 s ✓ (1.2) · K4 7 w/2.8 s ✓ (2.7, tight).
-No e-mail, store-value or human block: it is the "idea → play → match → who made it" cut for comments and stories.
+Copy check: K1 3 w/2.0 s ✓ (1.5) · K2 4 w/3.8 s ✓ (1.8) · K3 2 w/3.0 s ✓ (1.2) · K4 7 w/2.8 s ✓ (2.7, tight) · K5 3 w/1.8 s ✓ (1.5).
+No e-mail, store-value, system or human block: it is the "idea → play → match → who made it" cut for comments and stories.
 
 ---
 
-## 8. Signature: three positioning / closing lines
+## 8. Signature card
 
-| option | line | note |
-|---|---|---|
-| P1 | "I sell on the floor. I build what it needs." (10 w, two lines) | personal, the seller-who-builds duality; first-person |
-| P2 | "From the shop floor to first-party data." (7 w) | domain-forward; keywords for retail-tech readers |
-| P3 ★ | "Simple ideas create contact. Contact creates data." (7 w, two lines) | your thesis in your own rhythm; no jargon but "data" |
-
-Recommend **P3 on the card**, P1 as the first line of the post, P2 as a subtitle in the post. No job title appears (you gave none); if you want one, give it and I add it under the name. The tiny disclosure line sits under it: "In-store scenes are AI-generated illustrations."
+Name (S1) over the defocused handshake; the thesis (S2) under it; a soft CTA (S4); the near-invisible illustration line (S3) at the very bottom of the safe area. No job title (not supplied). Alternative closing lines kept for the post: "From the shop floor to first-party data." · "I sell on the floor. I build what it needs."
 
 ---
 
-## 9. Implementation notes and risks (phase 3 preview)
+## 9. Phase 3 plan (increments, one commit each) and risks
 
-* **New captures (largest risk).** `/manager` "Sessions & Codes" and `/stats` (funnel, product ranking) must be captured through `tools/capture` with a mocked Supabase and *sample* data, labelled "sample data", with a neutral store name; PIN / MFA have to be bypassed by the harness. If that proves infeasible I will say so rather than draw a mock-up (your brief forbids mock-ups of app screens); the fallback would be a clearly labelled illustrative graphic, which needs your OK.
-* **E-mail capture:** regenerate with a neutral store name (removes "Suaipe Milano").
-* **Timeline:** `timeline.ts` is rewritten to the sheet above; everything stays on the 120 BPM grid; audio cues regenerate from it.
-* **Hook light:** one new Remotion animation (a glow following a path over the photo); no new image generation.
-* **Reused unchanged:** the five photos and the real-drag swipe recordings (their lengths, 0.4–0.8 s, are why the swipes block cannot be shorter than ~4.4 s).
-* **Cut-down:** a second composition (`Root.tsx`) reusing the scenes with its own timeline and cue sheet.
+1. `timeline.ts` rewritten to the sheet above (50 s, 8 blocks), cue sheet regenerated; empty Store-value and Signature scenes so the film still renders end to end.
+2. Motion vocabulary in `lib/motion.ts` (documented), 4-size type scale + margins/safe area in `theme.ts`.
+3. New hook (H2).
+4. Idea + Experience re-timed (no language call-out, faster typing, 2.4 s consent call-out, shorter tutorial; fix the 5.4 near-cut, the 20.00 flash, the 7.0 fly-in resolve).
+5. Customer value: neutral store name in the e-mail capture, caption, shorter scroll.
+6. Captures for Store value (`/manager` Sessions & Codes, `/stats`) with sample data. **Largest risk**: the capture harness has to get past PIN / MFA. If it cannot, I say so before drawing anything; a clearly labelled illustrative graphic would need your OK (your brief forbids app-screen mock-ups).
+7. Store-value scene.
+8. System scene: true caption, "multi-store" chip, "MFA" chips, bottom row inside the safe area, re-timed to 38.0–42.0.
+9. Human close re-timed, chip text.
+10. Signature scene.
+11. Transition continuity, QA loop (`scripts/qa/*`), sheets and stills.
+12. Cover, then the 15 s composition.
 
----
-
-## 10. Decisions needed (⛔ checkpoint)
-
-1. **Hook:** H1, **H2 (recommended)** or H3.
-2. **Signature line:** P1, P2 or **P3 (recommended)**; and whether to show a job title / an explicit CTA (default: none).
-3. **Retire the System scene** (jargon: Edge Function, RLS, 2FA) and replace it with the Store-value block — a whole-scene removal, so it needs your yes. The stack and the security facts move to the post.
-4. **Stores, cities and the store count stay out of the film** ("multi-store" only) — confirm.
-5. **Tiny AI-illustration line in the film** + the same in the post — confirm.
-6. **Length 46.0 s** (+1.5 s) — confirm.
-7. Anything in the copy you want to change (every line is in section 4).
+Then phase 4 (sound): `SOUND.md` with two directions → your choice → implementation → A/B files → your listening feedback → final render, `LINKEDIN.md`, README/ADR.
