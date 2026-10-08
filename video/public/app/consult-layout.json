@@ -1,0 +1,178 @@
+{
+  "viewport": {
+    "width": 430,
+    "height": 932
+  },
+  "dpr": 3,
+  "note": "DOM rects in CSS px of the 430 x 932 viewport (the guide: of the tall page); the stills are 3x",
+  "list": {
+    "header": {
+      "x": 0,
+      "y": 0,
+      "w": 430,
+      "h": 61.5
+    },
+    "langSwitch": {
+      "x": 299.0625,
+      "y": 15.25,
+      "w": 74.9375,
+      "h": 30
+    },
+    "search": {
+      "x": 16,
+      "y": 81.5,
+      "w": 398,
+      "h": 42
+    },
+    "rows": [
+      {
+        "text": "Aeris Glow – High-Speed Hair Dryer",
+        "x": 16,
+        "y": 139.5,
+        "w": 398,
+        "h": 62
+      },
+      {
+        "text": "Aurae Pulse Pro",
+        "x": 16,
+        "y": 209.5,
+        "w": 398,
+        "h": 62
+      },
+      {
+        "text": "Brevia GoPress – Portable Espresso Maker",
+        "x": 16,
+        "y": 279.5,
+        "w": 398,
+        "h": 62
+      },
+      {
+        "text": "Echobox Riff – Retro Bluetooth Speaker",
+        "x": 16,
+        "y": 349.5,
+        "w": 398,
+        "h": 62
+      },
+      {
+        "text": "Lumio Air – Portable Mini Projector",
+        "x": 16,
+        "y": 419.5,
+        "w": 398,
+        "h": 62
+      },
+      {
+        "text": "Lunaring Halo – Smart Ring",
+        "x": 16,
+        "y": 489.5,
+        "w": 398,
+        "h": 62
+      },
+      {
+        "text": "Nimbus Sip – Smart Bottle",
+        "x": 16,
+        "y": 559.5,
+        "w": 398,
+        "h": 62
+      },
+      {
+        "text": "Pulsar Recover X – Massage Gun",
+        "x": 16,
+        "y": 629.5,
+        "w": 398,
+        "h": 62
+      },
+      {
+        "text": "Vibewave Open – Open-Ear Earbuds",
+        "x": 16,
+        "y": 699.5,
+        "w": 398,
+        "h": 62
+      },
+      {
+        "text": "Voltik SnapCell – Magnetic Power Bank",
+        "x": 16,
+        "y": 769.5,
+        "w": 398,
+        "h": 62
+      }
+    ]
+  },
+  "guide": {
+    "pageHeight": 1338,
+    "title": {
+      "x": 16,
+      "y": 117.5,
+      "w": 398,
+      "h": 28
+    },
+    "updated": {
+      "x": 16,
+      "y": 145.5,
+      "w": 398,
+      "h": 16
+    },
+    "customer": {
+      "x": 16,
+      "y": 177.5,
+      "w": 398,
+      "h": 183
+    },
+    "video": {
+      "x": 16,
+      "y": 376.5,
+      "w": 398,
+      "h": 274.75
+    },
+    "sections": [
+      {
+        "title": "What the customer sees",
+        "x": 16,
+        "y": 177.5,
+        "w": 398,
+        "h": 183
+      },
+      {
+        "title": "Product video",
+        "x": 16,
+        "y": 376.5,
+        "w": 398,
+        "h": 274.75
+      },
+      {
+        "title": "Product description",
+        "x": 16,
+        "y": 667.25,
+        "w": 398,
+        "h": 138.25
+      },
+      {
+        "title": "Insight 1",
+        "x": 16,
+        "y": 821.5,
+        "w": 398,
+        "h": 115.5
+      },
+      {
+        "title": "Insight 2",
+        "x": 16,
+        "y": 953,
+        "w": 398,
+        "h": 115.5
+      },
+      {
+        "title": "Manager's advice",
+        "x": 16,
+        "y": 1084.5,
+        "w": 398,
+        "h": 115.5
+      },
+      {
+        "title": "Files & manuals",
+        "x": 16,
+        "y": 1216,
+        "w": 398,
+        "h": 102
+      }
+    ]
+  }
+}

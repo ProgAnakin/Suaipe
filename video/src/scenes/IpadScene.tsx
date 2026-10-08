@@ -4,7 +4,7 @@ import { CameraMotionBlur } from "@remotion/motion-blur";
 import { IPAD_BODY, IpadFrame } from "../components/Devices";
 import { Callout } from "../components/Callout";
 import { ConfettiBurst } from "../components/Confetti";
-import { IconLock } from "../components/Icons";
+import { IconGlobe, IconLock } from "../components/Icons";
 import { SCREEN } from "../theme";
 import { CHAPTER, IPAD } from "../timeline";
 import { LAYOUT } from "../layout";
@@ -41,10 +41,12 @@ const IpadWorld: React.FC = () => {
   const { tx, ty } = camTranslate(cam, SCREEN.w, SCREEN.h);
   const at = (u: number, v: number) => screenToCanvas(cam, SCREEN.w, SCREEN.h, { x: IPAD_BODY.cx, y: IPAD_BODY.cy }, u, v);
 
-  const glow = 0.28 + 0.5 * beatPulse(t, IPAD.handoff.out, IPAD.counterHit + 0.5, 6) + 0.7 * hit(t, IPAD.counterHit, 5);
-  const sheen = 0.05 + 0.9 * prog(t, CHAPTER.ipad.from, IPAD.exit);
+  const glow = 0.28 + 0.5 * beatPulse(t, 6, 21, 6) + 0.7 * hit(t, IPAD.counterHit, 5);
+  const sheen = 0.05 + 0.9 * prog(t, 5.6, 26.4);
 
-  // the consent call-out follows the camera
+  // call-outs follow the camera
+  const lang = LAYOUT.welcome.chipsRow;
+  const langC = at(lang.u, lang.v);
   const gdpr = LAYOUT.welcome.consentRow;
   const gdprC = at(gdpr.u, gdpr.v);
 
@@ -57,6 +59,17 @@ const IpadWorld: React.FC = () => {
         </IpadFrame>
       </AbsoluteFill>
 
+      <Callout
+        x={langC.x}
+        y={langC.y}
+        w={lang.w * SCREEN.w * cam.z}
+        h={lang.h * SCREEN.h * cam.z}
+        label="5 languages"
+        icon={<IconGlobe size={28} stroke={2.4} />}
+        p={callP(t, IPAD.callLang)}
+        side="below"
+        radius={18}
+      />
       <Callout
         x={gdprC.x}
         y={gdprC.y}
@@ -79,7 +92,7 @@ const IpadOverlays: React.FC<{ t: number; cam: Cam }> = ({ t, cam }) => {
   const ringC = { x: 540, y: 650 };
   return (
     <AbsoluteFill>
-      <SwipeDots t={t} landed={SWIPES.map((sw) => sw.accent)} from={IPAD.swipes[0].enter + 0.15} to={IPAD.counterStart + 0.1} y={262} yesIdx={new Set(SWIPES.flatMap((sw, i) => (sw.dir > 0 ? [i] : [])))} />
+      <SwipeDots t={t} landed={SWIPES.map((sw) => sw.accent)} from={14.9} to={20.1} y={262} yesIdx={new Set(SWIPES.flatMap((sw, i) => (sw.dir > 0 ? [i] : [])))} />
 
       {/* flashes: reveal of the result screen, and the 98 % hit */}
       <AbsoluteFill style={{ opacity: 0.8 * flashEnv(t, IPAD.counterStart, 0.1, 9), background: "radial-gradient(circle at 50% 48%, rgba(255,255,255,.95), rgba(120,220,255,.5) 34%, rgba(59,130,246,0) 70%)", mixBlendMode: "screen", pointerEvents: "none" }} />

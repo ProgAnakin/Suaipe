@@ -19,7 +19,7 @@ const TICKET_V = (STATUS_H + TICKET.y - SCROLL_MAX + TICKET.h / 2) / IPHONE.scre
 
 const BANNER = { x: 16, y: 336, w: IPHONE.screenW - 32, h: 170, r: 30 };
 
-const StatusBar: React.FC<{ show: number }> = ({ show }) => (
+export const StatusBar: React.FC<{ show: number }> = ({ show }) => (
   <div style={{ position: "absolute", left: 0, top: 0, width: "100%", height: STATUS_H, zIndex: 20, fontFamily: FONT }}>
     <div style={{ position: "absolute", inset: 0, background: COLORS.bg, opacity: show }} />
     <div style={{ position: "absolute", left: 38, top: 15, fontWeight: 700, fontSize: 19, color: COLORS.text, opacity: show }}>9:41</div>

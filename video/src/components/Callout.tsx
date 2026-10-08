@@ -33,6 +33,7 @@ export const Callout: React.FC<CalloutProps> = ({ x, y, w, h, label, icon, p, si
   const labelW = 120 + label.length * 19.5;
   const lx = clamp(x - labelW / 2, 28, WIDTH - 28 - labelW);
   const ly = labelTop ?? (side === "below" ? y + rh / 2 + 44 : y - rh / 2 - 44 - labelH);
+  const hasLabel = label.length > 0;
   const stemFrom = side === "below" ? y + rh / 2 : y - rh / 2;
   const stemTo = side === "below" ? ly : ly + labelH;
   const labelP = EASE.out(prog(p, 0.12, 0.62));
@@ -67,7 +68,7 @@ export const Callout: React.FC<CalloutProps> = ({ x, y, w, h, label, icon, p, si
           filter="url(#callout-glow)"
         />
         <rect x={x - rw / 2} y={y - rh / 2} width={rw} height={rh} rx={radius} fill={`rgba(34,211,238,${0.07 * draw})`} />
-        <line
+        {hasLabel && <line
           x1={clamp(x, lx + 40, lx + labelW - 40)}
           y1={stemFrom}
           x2={clamp(x, lx + 40, lx + labelW - 40)}
@@ -77,9 +78,9 @@ export const Callout: React.FC<CalloutProps> = ({ x, y, w, h, label, icon, p, si
           strokeLinecap="round"
           opacity={labelP}
           strokeDasharray="1 9"
-        />
+        />}
       </svg>
-      <div
+      {hasLabel && <div
         style={{
           position: "absolute",
           left: lx,
@@ -120,7 +121,7 @@ export const Callout: React.FC<CalloutProps> = ({ x, y, w, h, label, icon, p, si
           {icon}
         </span>
         {label}
-      </div>
+      </div>}
     </>
   );
 };

@@ -70,7 +70,7 @@ export const ScreenContent: React.FC<{ t: number }> = ({ t }) => {
     const style = layerStyle(t, l);
     if (l.key === "attract") {
       // idle "breathing" so the held attract screen never feels frozen
-      style.transform = `${style.transform ?? ""} scale(${1 + 0.022 * EASE.inOutSoft(prog(t, IPAD.handoff.in, IPAD.tap1 + 0.4))})`;
+      style.transform = `${style.transform ?? ""} scale(${1 + 0.022 * prog(t, 5.4, 8.4)})`;
     }
     const filter =
       l.key === "result-plate" && plateFocus > 0.01

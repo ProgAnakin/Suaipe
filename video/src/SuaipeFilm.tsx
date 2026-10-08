@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, useVideoConfig } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { Audio } from "@remotion/media";
 import "./fonts";
@@ -8,19 +8,21 @@ import { Backdrop } from "./components/Backdrop";
 import { Captions } from "./components/Caption";
 import { FilmGrade } from "./components/FilmGrade";
 import { defocus, dropOut, flashThrough, passthrough, photoCut, swapSlide } from "./presentations";
+import { ConsultScene } from "./scenes/ConsultScene";
+import { EndScene } from "./scenes/EndScene";
 import { HookScene } from "./scenes/HookScene";
 import { HumanScene } from "./scenes/HumanScene";
 import { IpadScene } from "./scenes/IpadScene";
 import { LockupScene } from "./scenes/LockupScene";
 import { PhoneScene } from "./scenes/PhoneScene";
-import { SignatureScene } from "./scenes/SignatureScene";
 import { StoreScene } from "./scenes/StoreScene";
 import { SystemScene } from "./scenes/SystemScene";
-import { CHAPTER, sec } from "./timeline";
+import { CHAPTER, END, sec } from "./timeline";
+import { EASE, prog } from "./lib/motion";
 
 export type FilmProps = {
   withAudio: boolean;
-  /** Show only these burned-in captions (indices into CAPTIONS); omit for all. The 15 s cut-down re-uses the master and keeps one. */
+  /** Show only these burned-in captions (indices into CAPTIONS); omit for all. */
   captionsOnly?: ReadonlyArray<number>;
 };
 
@@ -30,47 +32,48 @@ export type FilmProps = {
  */
 export const SuaipeFilm: React.FC<FilmProps> = ({ withAudio, captionsOnly }) => {
   const { fps } = useVideoConfig();
+  const frame = useCurrentFrame();
+  const t = frame / fps;
   const f = (s: number) => sec(s, fps);
   const C = CHAPTER;
+
+  // the film opens cold (no dip from black, so the very first frame is already on-brand) and fades out at the end
+  const black = EASE.in(prog(t, END.fadeOut[0], END.fadeOut[1]));
+
+  const seq = (name: string, c: { from: number; to: number }, scene: React.ReactNode) => (
+    <TransitionSeries.Sequence name={name} durationInFrames={f(c.to) - f(c.from)} premountFor={fps}>
+      {scene}
+    </TransitionSeries.Sequence>
+  );
+  const trans = (presentation: ReturnType<typeof flashThrough>, a: { to: number }, b: { from: number }) => (
+    <TransitionSeries.Transition presentation={presentation} timing={linearTiming({ durationInFrames: f(a.to) - f(b.from) })} />
+  );
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#070a1a" }}>
       <Backdrop />
       <TransitionSeries>
-        <TransitionSeries.Sequence name="Hook" durationInFrames={f(C.hook.to) - f(C.hook.from)} premountFor={fps}>
-          <HookScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={flashThrough()} timing={linearTiming({ durationInFrames: f(C.hook.to) - f(C.lockup.from) })} />
-        <TransitionSeries.Sequence name="Lock-up" durationInFrames={f(C.lockup.to) - f(C.lockup.from)} premountFor={fps}>
-          <LockupScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={passthrough()} timing={linearTiming({ durationInFrames: f(C.lockup.to) - f(C.ipad.from) })} />
-        <TransitionSeries.Sequence name="iPad flow" durationInFrames={f(C.ipad.to) - f(C.ipad.from)} premountFor={fps}>
-          <IpadScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={swapSlide()} timing={linearTiming({ durationInFrames: f(C.ipad.to) - f(C.phone.from) })} />
-        <TransitionSeries.Sequence name="iPhone e-mail" durationInFrames={f(C.phone.to) - f(C.phone.from)} premountFor={fps}>
-          <PhoneScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={dropOut()} timing={linearTiming({ durationInFrames: f(C.phone.to) - f(C.store.from) })} />
-        <TransitionSeries.Sequence name="Store value" durationInFrames={f(C.store.to) - f(C.store.from)} premountFor={fps}>
-          <StoreScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={passthrough()} timing={linearTiming({ durationInFrames: f(C.store.to) - f(C.system.from) })} />
-        <TransitionSeries.Sequence name="System" durationInFrames={f(C.system.to) - f(C.system.from)} premountFor={fps}>
-          <SystemScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={photoCut()} timing={linearTiming({ durationInFrames: f(C.system.to) - f(C.human.from) })} />
-        <TransitionSeries.Sequence name="Human close" durationInFrames={f(C.human.to) - f(C.human.from)} premountFor={fps}>
-          <HumanScene />
-        </TransitionSeries.Sequence>
-        <TransitionSeries.Transition presentation={defocus()} timing={linearTiming({ durationInFrames: f(C.human.to) - f(C.signature.from) })} />
-        <TransitionSeries.Sequence name="Signature" durationInFrames={f(C.signature.to) - f(C.signature.from)} premountFor={fps}>
-          <SignatureScene />
-        </TransitionSeries.Sequence>
+        {seq("Hook", C.hook, <HookScene />)}
+        {trans(flashThrough(), C.hook, C.lockup)}
+        {seq("Lock-up", C.lockup, <LockupScene />)}
+        {trans(passthrough(), C.lockup, C.ipad)}
+        {seq("iPad flow", C.ipad, <IpadScene />)}
+        {trans(swapSlide(), C.ipad, C.phone)}
+        {seq("iPhone e-mail", C.phone, <PhoneScene />)}
+        {trans(dropOut(), C.phone, C.store)}
+        {seq("Store value", C.store, <StoreScene />)}
+        {trans(swapSlide(), C.store, C.consult)}
+        {seq("Consultants", C.consult, <ConsultScene />)}
+        {trans(dropOut(), C.consult, C.system)}
+        {seq("System", C.system, <SystemScene />)}
+        {trans(photoCut(), C.system, C.human)}
+        {seq("Human close", C.human, <HumanScene />)}
+        {trans(defocus(), C.human, C.end)}
+        {seq("End card", C.end, <EndScene />)}
       </TransitionSeries>
       <Captions only={captionsOnly} />
       <FilmGrade />
+      <AbsoluteFill style={{ backgroundColor: "#070a1a", opacity: black, pointerEvents: "none" }} />
       {withAudio && <Audio src={SOUNDTRACK} premountFor={fps} />}
     </AbsoluteFill>
   );

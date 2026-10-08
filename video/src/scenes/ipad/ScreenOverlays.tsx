@@ -67,11 +67,18 @@ const swipeFinger = (t: number): Finger | null => {
 export const ScreenOverlays: React.FC<{ t: number }> = ({ t }) => {
   const fingers = [...TAPS.map((tp) => tapFinger(t, tp)), swipeFinger(t)].filter((f): f is Finger => !!f);
 
+  // language chips: a highlight hops IT → EN → PT → ES → FR on the beat
+  const chipIdx = IPAD.chipTicks.reduce((acc, tt, i) => (t >= tt ? i : acc), -1);
+  const chipsOn = chipIdx >= 0 && t < IPAD.callLang[1] + 0.1;
+  const chipBox = chipsOn ? boxPx(LAYOUT.welcome.chips[chipIdx]) : null;
+  const chipPop = chipsOn ? hit(t, IPAD.chipTicks[chipIdx], 9) : 0;
+  const chipFade = 1 - clamp((t - (IPAD.callLang[1] - 0.2)) / 0.3);
+
   // flash on the pressed button
   const flashes = TAPS.map((tp) => ({ b: boxPx(tp.box), a: hit(t, tp.at, 10) * (t >= tp.at ? 1 : 0) }));
 
   // product-card shine while the camera visits it
-  const shine = prog(t, IPAD.counterHit + 1.0, IPAD.counterHit + 1.75);
+  const shine = prog(t, 23.0, 23.75);
   const pc = boxPx(LAYOUT.result.productCard);
 
   // success pulse around the envelope
@@ -80,8 +87,7 @@ export const ScreenOverlays: React.FC<{ t: number }> = ({ t }) => {
 
   // attract screen: the "TAP TO START" button glows invitingly until it is pressed
   const ab = boxPx(LAYOUT.attract.startBtn);
-  const inv0 = IPAD.handoff.out - 0.2;
-  const inviting = t > inv0 && t < IPAD.tap1 + 0.2 ? (0.4 + 0.6 * (0.5 + 0.5 * Math.sin((t - inv0) * 6.5))) * clamp((t - inv0) / 0.4) * (1 - clamp((t - IPAD.tap1) / 0.2)) : 0;
+  const inviting = t > 6.0 && t < IPAD.tap1 + 0.2 ? (0.4 + 0.6 * (0.5 + 0.5 * Math.sin((t - 6.0) * 6.5))) * clamp((t - 6.0) / 0.4) * (1 - clamp((t - IPAD.tap1) / 0.2)) : 0;
 
   return (
     <>
@@ -100,6 +106,24 @@ export const ScreenOverlays: React.FC<{ t: number }> = ({ t }) => {
           }}
         />
       )}
+      {chipBox && (
+        <div
+          style={{
+            position: "absolute",
+            left: chipBox.x - 4,
+            top: chipBox.y - 3,
+            width: chipBox.w + 8,
+            height: chipBox.h + 6,
+            borderRadius: 12,
+            border: "1.5px solid rgba(94,234,212,.95)",
+            boxShadow: `0 0 ${12 + 16 * chipPop}px rgba(34,211,238,${0.6 + 0.35 * chipPop}), inset 0 0 12px rgba(94,234,212,.35)`,
+            background: `rgba(94,234,212,${0.1 + 0.18 * chipPop})`,
+            opacity: chipFade,
+            transform: `scale(${1 + 0.12 * chipPop})`,
+          }}
+        />
+      )}
+
       {flashes.map((f, i) =>
         f.a > 0.01 ? (
           <div key={i} style={{ position: "absolute", left: f.b.x, top: f.b.y, width: f.b.w, height: f.b.h, borderRadius: 14, background: `rgba(255,255,255,${0.38 * f.a})`, mixBlendMode: "screen" }} />

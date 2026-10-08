@@ -11,7 +11,8 @@ import { HumanScene } from "./scenes/HumanScene";
 import { IpadScene } from "./scenes/IpadScene";
 import { LockupScene } from "./scenes/LockupScene";
 import { PhoneScene } from "./scenes/PhoneScene";
-import { SignatureScene } from "./scenes/SignatureScene";
+import { EndScene } from "./scenes/EndScene";
+import { ConsultScene } from "./scenes/ConsultScene";
 import { StoreScene } from "./scenes/StoreScene";
 import { SystemScene } from "./scenes/SystemScene";
 import { CUT_DURATION_S } from "./cutdown";
@@ -32,7 +33,8 @@ const PhonePreview = stage(PhoneScene);
 const SystemPreview = stage(SystemScene);
 const HumanPreview = stage(HumanScene);
 const StorePreview = stage(StoreScene);
-const SignaturePreview = stage(SignatureScene);
+const EndPreview = stage(EndScene);
+const ConsultPreview = stage(ConsultScene);
 const len = (c: { from: number; to: number }) => sec(c.to - c.from);
 
 export const RemotionRoot: React.FC = () => {
@@ -58,7 +60,8 @@ export const RemotionRoot: React.FC = () => {
         <Composition id="StoreValue" component={StorePreview} durationInFrames={len(CHAPTER.store)} fps={FPS} width={WIDTH} height={HEIGHT} />
         <Composition id="System" component={SystemPreview} durationInFrames={len(CHAPTER.system)} fps={FPS} width={WIDTH} height={HEIGHT} />
         <Composition id="HumanClose" component={HumanPreview} durationInFrames={len(CHAPTER.human)} fps={FPS} width={WIDTH} height={HEIGHT} />
-        <Composition id="Signature" component={SignaturePreview} durationInFrames={len(CHAPTER.signature)} fps={FPS} width={WIDTH} height={HEIGHT} />
+        <Composition id="Consultants" component={ConsultPreview} durationInFrames={len(CHAPTER.consult)} fps={FPS} width={WIDTH} height={HEIGHT} />
+        <Composition id="EndCard" component={EndPreview} durationInFrames={len(CHAPTER.end)} fps={FPS} width={WIDTH} height={HEIGHT} />
       </Folder>
     </>
   );

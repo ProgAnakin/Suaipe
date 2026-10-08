@@ -61,3 +61,9 @@ export const IconKey = (p: P) => (
 export const IconUser = (p: P) => (
   <svg {...base(p)}><circle cx="12" cy="8.2" r="3.8" /><path d="M4.5 20.5c.6-4 3.6-6.2 7.5-6.2s6.9 2.2 7.5 6.2" /></svg>
 );
+export const IconSearch = (p: P) => (
+  <svg {...base(p)}><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5L21 21" /></svg>
+);
+export const IconVideo = (p: P) => (
+  <svg {...base(p)}><rect x="3" y="6" width="13" height="12" rx="2.5" /><path d="M16 10.5l5-3v9l-5-3" /></svg>
+);

@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import { LogoMark } from "../components/LogoMark";
-import { COLORS, FONT, GRADIENT_SOFT, TYPE } from "../theme";
+import { COLORS, FONT, GRADIENT_SOFT } from "../theme";
 import { CHAPTER, LOCKUP } from "../timeline";
 import { EASE, clamp, hit, lerp, pop, prog, rng, seg, useSceneTime } from "../lib/motion";
 
@@ -25,7 +25,7 @@ export const LockupScene: React.FC = () => {
   const gap = lerp(86, 20, spread);
   const lineP = EASE.out(prog(t, H + 0.75, H + 1.35));
   const tagP = EASE.out(prog(t, LOCKUP.tagline, LOCKUP.tagline + 0.6));
-  const exitP = seg(t, LOCKUP.exit, CHAPTER.lockup.to, EASE.inOut);
+  const exitP = seg(t, LOCKUP.exit, 6.2, EASE.inOut);
   const ring = prog(t, H, H + 0.9);
   const sheen = prog(t, LOCKUP.shimmer, LOCKUP.shimmer + 0.85);
 
@@ -91,7 +91,7 @@ export const LockupScene: React.FC = () => {
         <LogoMark size={250} glow={0.55 + 0.3 * hit(t, H, 4)} sheen={sheen > 0 && sheen < 1 ? sheen : -1} aberration={16 * hit(t, H, 14)} />
       </div>
 
-      <div style={{ position: "absolute", left: 0, top: 640, width: "100%", display: "flex", justifyContent: "center", gap, fontFamily: FONT, fontWeight: 700, fontSize: TYPE.display, lineHeight: 1 }}>
+      <div style={{ position: "absolute", left: 0, top: 640, width: "100%", display: "flex", justifyContent: "center", gap, fontFamily: FONT, fontWeight: 700, fontSize: 138, lineHeight: 1 }}>
         {LETTERS.map((c, i) => {
           const p = pop(t, H + 0.1 + 0.05 * i, fps, { damping: 12, stiffness: 170 });
           return (
@@ -122,16 +122,16 @@ export const LockupScene: React.FC = () => {
           width: "100%",
           textAlign: "center",
           fontFamily: FONT,
-          fontWeight: 600,
-          fontSize: TYPE.caption,
-          letterSpacing: "-0.02em",
-          color: COLORS.text,
+          fontWeight: 500,
+          fontSize: 44,
+          letterSpacing: "-0.005em",
+          color: COLORS.textSoft,
           opacity: tagP,
           transform: `translateY(${(1 - tagP) * 22}px)`,
           clipPath: `inset(0 ${(1 - tagP) * 50}% 0 ${(1 - tagP) * 50}%)`,
         }}
       >
-        One question changes that.
+        Product discovery for physical retail
       </div>
     </AbsoluteFill>
   );
