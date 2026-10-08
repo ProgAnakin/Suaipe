@@ -3,7 +3,7 @@ import { AbsoluteFill, useVideoConfig } from "remotion";
 import { IconCheck } from "../components/Icons";
 import { PhotoGrade, PhotoStage, coverPose, photoToCanvas } from "../components/PhotoStage";
 import { PHOTO } from "../people";
-import { COLORS, FONT, MONO } from "../theme";
+import { COLORS, FONT, MONO, TYPE } from "../theme";
 import { CHAPTER, HUMAN } from "../timeline";
 import { EASE, clamp, hit, lerp, pop, prog, rng, seg, useSceneTime } from "../lib/motion";
 
@@ -42,7 +42,7 @@ export const HumanScene: React.FC = () => {
 
   // "code redeemed" chip (the real mark_code_redeemed flow in Manager → Sessions & Codes)
   const chipP = pop(t, HUMAN.redeemed, fps, { damping: 11, stiffness: 200 });
-  const chipOut = 1 - seg(t, HUMAN.handshakeIn - 0.1, HUMAN.handshakeIn + 0.25, EASE.in);
+  const chipOut = 1 - seg(t, HUMAN.handshakeIn + 0.1, HUMAN.handshakeIn + 0.4, EASE.in);
 
   return (
     <AbsoluteFill>
@@ -81,8 +81,8 @@ export const HumanScene: React.FC = () => {
             <IconCheck size={32} stroke={3.2} />
           </span>
           <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.1 }}>
-            <span style={{ fontWeight: 700, fontSize: 36 }}>Code redeemed in store</span>
-            <span style={{ marginTop: 6, fontFamily: MONO, fontWeight: 500, fontSize: 24, letterSpacing: "0.12em", color: COLORS.textSoft }}>SUP-7F3A9C2E10</span>
+            <span style={{ fontWeight: 700, fontSize: TYPE.label }}>Redeemed in store</span>
+            <span style={{ marginTop: 6, fontFamily: MONO, fontWeight: 500, fontSize: TYPE.label, letterSpacing: "0.04em", color: COLORS.textSoft }}>SUP-7F3A9C2E10</span>
           </span>
         </div>
       )}

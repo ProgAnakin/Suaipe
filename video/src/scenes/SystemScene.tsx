@@ -2,32 +2,36 @@ import React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import { evolvePath, getLength, getPointAtLength } from "@remotion/paths";
 import { IconBolt, IconBook, IconChart, IconDatabase, IconLock, IconMail, IconPin, IconShield, IconSheet, IconSliders, IconTablet } from "../components/Icons";
-import { COLORS, FONT } from "../theme";
+import { COLORS, FONT, TYPE } from "../theme";
 import { CHAPTER, SYSTEM } from "../timeline";
 import { EASE, clamp, hit, lerp, pop, prog, useSceneTime } from "../lib/motion";
 
-type NodeDef = { x: number; y: number; w: number; title: string; sub: string; color: string; icon: React.ReactNode; at: number };
+type NodeDef = { x: number; y: number; w: number; title: string; color: string; icon: React.ReactNode; at: number };
 
+// Layout: everything the viewer must read sits between the captions (top) and the player controls (y > 1242).
 const NODES: NodeDef[] = [
-  { x: 540, y: 392, w: 560, title: "iPad kiosk", sub: "React PWA · works offline", color: COLORS.blue, icon: <IconTablet size={34} />, at: SYSTEM.nodes[0] },
-  { x: 540, y: 590, w: 560, title: "Supabase", sub: "Postgres · row-level security", color: COLORS.cyan, icon: <IconDatabase size={34} />, at: SYSTEM.nodes[1] },
-  { x: 540, y: 788, w: 560, title: "Edge Function", sub: "Webhook · unique code · rate limit", color: COLORS.teal, icon: <IconBolt size={34} />, at: SYSTEM.nodes[2] },
-  { x: 290, y: 1010, w: 480, title: "Email", sub: "Personalised, via Brevo", color: COLORS.blue, icon: <IconMail size={34} />, at: SYSTEM.nodes[3] },
-  { x: 790, y: 1010, w: 480, title: "CRM relay", sub: "Google Sheets", color: COLORS.teal, icon: <IconSheet size={34} />, at: SYSTEM.nodes[4] },
+  { x: 540, y: 372, w: 520, title: "iPad kiosk", color: COLORS.blue, icon: <IconTablet size={34} />, at: SYSTEM.nodes[0] },
+  { x: 540, y: 542, w: 520, title: "Supabase", color: COLORS.cyan, icon: <IconDatabase size={34} />, at: SYSTEM.nodes[1] },
+  { x: 540, y: 712, w: 520, title: "Edge Function", color: COLORS.teal, icon: <IconBolt size={34} />, at: SYSTEM.nodes[2] },
+  { x: 290, y: 902, w: 460, title: "Email", color: COLORS.blue, icon: <IconMail size={34} />, at: SYSTEM.nodes[3] },
+  { x: 790, y: 902, w: 460, title: "CRM relay", color: COLORS.teal, icon: <IconSheet size={34} />, at: SYSTEM.nodes[4] },
 ];
-const NODE_H = 118;
+const NODE_H = 104;
 
 const LINES = [
-  { d: "M540 454 L540 528", at: SYSTEM.nodes[1] - 0.22, packet: SYSTEM.packets[0] },
-  { d: "M540 652 L540 726", at: SYSTEM.nodes[2] - 0.22, packet: SYSTEM.packets[1] },
-  { d: "M540 850 C540 930 290 920 290 950", at: SYSTEM.nodes[3] - 0.22, packet: SYSTEM.packets[2] },
-  { d: "M540 850 C540 930 790 920 790 950", at: SYSTEM.nodes[4] - 0.22, packet: SYSTEM.packets[3] },
+  { d: "M540 424 L540 490", at: SYSTEM.nodes[1] - 0.22, packet: SYSTEM.packets[0] },
+  { d: "M540 594 L540 660", at: SYSTEM.nodes[2] - 0.22, packet: SYSTEM.packets[1] },
+  { d: "M540 764 C540 826 290 816 290 850", at: SYSTEM.nodes[3] - 0.22, packet: SYSTEM.packets[2] },
+  { d: "M540 764 C540 826 790 816 790 850", at: SYSTEM.nodes[4] - 0.22, packet: SYSTEM.packets[3] },
 ].map((l) => ({ ...l, len: getLength(l.d) }));
 
+// the three staff dashboards; MFA protects /manager and /stats (the consultants' guides are read-only)
+const TILE_TOP = 1062;
+const TILE_H = 124;
 const TILES = [
-  { x: 40, title: "Manager", sub: "Catalog · quiz cards · email · roles", color: COLORS.blue, icon: <IconSliders size={30} />, at: SYSTEM.tiles[0], badge: "2FA" },
-  { x: 379, title: "Stats", sub: "Funnel · leaderboard · CSV export", color: COLORS.cyan, icon: <IconChart size={30} />, at: SYSTEM.tiles[1], badge: "2FA" },
-  { x: 718, title: "Consultants", sub: "Per-product training guides", color: COLORS.teal, icon: <IconBook size={30} />, at: SYSTEM.tiles[2], badge: "" },
+  { x: 40, title: "Manager", color: COLORS.blue, icon: <IconSliders size={32} />, at: SYSTEM.tiles[0], badge: "MFA" },
+  { x: 379, title: "Stats", color: COLORS.cyan, icon: <IconChart size={32} />, at: SYSTEM.tiles[1], badge: "MFA" },
+  { x: 718, title: "Consultants", color: COLORS.teal, icon: <IconBook size={32} />, at: SYSTEM.tiles[2], badge: "" },
 ];
 
 const glass: React.CSSProperties = {
@@ -45,12 +49,12 @@ const Chip: React.FC<{ x: number; y: number; p: number; label: string; icon: Rea
         display: "flex",
         alignItems: "center",
         gap: 10,
-        padding: "9px 18px 9px 12px",
+        padding: "8px 20px 8px 14px",
         borderRadius: 999,
         fontFamily: FONT,
         fontWeight: 700,
-        fontSize: 24,
-        letterSpacing: "0.02em",
+        fontSize: TYPE.label,
+        letterSpacing: "0.01em",
         color: blue ? "#f0f4ff" : "#04131f",
         background: blue ? "linear-gradient(95deg,#3b82f6,#60a5fa)" : "linear-gradient(95deg,#5eead4,#22d3ee)",
         boxShadow: blue ? "0 10px 30px rgba(0,0,0,.45), 0 0 30px rgba(59,130,246,.7)" : "0 10px 30px rgba(0,0,0,.45), 0 0 30px rgba(34,211,238,.65)",
@@ -73,7 +77,7 @@ export const SystemScene: React.FC = () => {
     <AbsoluteFill style={{ transform: `translateY(${-drift * 0.4}px) scale(${1 + 0.0035 * (t - CHAPTER.system.from)})`, transformOrigin: "540px 700px" }}>
       <svg style={{ position: "absolute", left: 0, top: 0, width: 1080, height: 1350, overflow: "visible" }} viewBox="0 0 1080 1350">
         <defs>
-          <linearGradient id="sys-grad" gradientUnits="userSpaceOnUse" x1="0" y1="440" x2="0" y2="960">
+          <linearGradient id="sys-grad" gradientUnits="userSpaceOnUse" x1="0" y1="424" x2="0" y2="850">
             <stop offset="0" stopColor={COLORS.blue} />
             <stop offset="1" stopColor={COLORS.cyan} />
           </linearGradient>
@@ -124,7 +128,7 @@ export const SystemScene: React.FC = () => {
               display: "flex",
               alignItems: "center",
               gap: 20,
-              padding: "0 28px 0 22px",
+              padding: "0 28px 0 20px",
               boxSizing: "border-box",
               fontFamily: FONT,
               color: COLORS.text,
@@ -135,27 +139,24 @@ export const SystemScene: React.FC = () => {
               transform: `translateY(${(1 - p) * 34}px) scale(${lerp(0.92, 1, clamp(p))})`,
             }}
           >
-            <div style={{ width: 66, height: 66, borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(135deg, ${n.color}, ${COLORS.panelHi})`, color: "#fff", boxShadow: `0 0 26px ${n.color}88` }}>
+            <div style={{ width: 62, height: 62, flex: "none", borderRadius: 19, display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(135deg, ${n.color}, ${COLORS.panelHi})`, color: "#fff", boxShadow: `0 0 26px ${n.color}88` }}>
               {n.icon}
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 38, lineHeight: 1.1, letterSpacing: "-0.01em" }}>{n.title}</div>
-              <div style={{ marginTop: 6, fontWeight: 500, fontSize: 23, color: COLORS.textDim }}>{n.sub}</div>
-            </div>
+            <div style={{ flex: 1, fontWeight: 700, fontSize: TYPE.label, lineHeight: 1.1, letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>{n.title}</div>
             <div style={{ width: 16, height: 16, borderRadius: "50%", background: n.color, boxShadow: `0 0 ${16 + 12 * Math.sin(t * 4 + i)}px ${n.color}` }} />
           </div>
         );
       })}
 
-      {/* "×4 stores" on the kiosk node: the caption's "Multi-store." made literal */}
-      <Chip x={540 + 280 - 168} y={392 - NODE_H / 2 - 22} p={pop(t, SYSTEM.nodes[0] + 0.5, fps, { damping: 10, stiffness: 230 })} label="×4 stores" icon={<IconPin size={24} stroke={2.4} />} blue />
-      {/* RLS badge on the database node */}
-      <Chip x={540 + 280 - 150} y={590 - NODE_H / 2 - 22} p={pop(t, SYSTEM.locks[1], fps, { damping: 10, stiffness: 230 })} label="RLS" icon={<IconLock size={24} stroke={2.6} />} />
+      {/* "Multi-store" on the kiosk node: the caption's first words made literal (no store count: it stays out of the film) */}
+      <Chip x={540 + 260 - 250} y={372 - NODE_H / 2 - 30} p={pop(t, SYSTEM.nodes[0] + 0.5, fps, { damping: 10, stiffness: 230 })} label="Multi-store" icon={<IconPin size={28} stroke={2.4} />} blue />
+      {/* RLS badge on the database node (first lock of the caption's second half) */}
+      <Chip x={540 + 260 - 160} y={542 - NODE_H / 2 - 30} p={pop(t, SYSTEM.locks[0], fps, { damping: 10, stiffness: 230 })} label="RLS" icon={<IconLock size={28} stroke={2.6} />} />
       {/* scan line over the node when RLS lands */}
       {(() => {
-        const sp = prog(t, SYSTEM.locks[1] - 0.05, SYSTEM.locks[1] + 0.55);
+        const sp = prog(t, SYSTEM.locks[0] - 0.05, SYSTEM.locks[0] + 0.55);
         if (sp <= 0 || sp >= 1) return null;
-        return <div style={{ position: "absolute", left: 540 - 280, width: 560, top: 590 - NODE_H / 2 + NODE_H * sp - 2, height: 4, background: "linear-gradient(90deg, rgba(34,211,238,0), #5eead4, rgba(34,211,238,0))", boxShadow: "0 0 24px #22d3ee", opacity: Math.sin(Math.PI * sp) }} />;
+        return <div style={{ position: "absolute", left: 540 - 260, width: 520, top: 542 - NODE_H / 2 + NODE_H * sp - 2, height: 4, background: "linear-gradient(90deg, rgba(34,211,238,0), #5eead4, rgba(34,211,238,0))", boxShadow: "0 0 24px #22d3ee", opacity: Math.sin(Math.PI * sp) }} />;
       })()}
 
       {TILES.map((n, i) => {
@@ -167,12 +168,14 @@ export const SystemScene: React.FC = () => {
             style={{
               position: "absolute",
               left: n.x,
-              top: 1138,
+              top: TILE_TOP,
               width: 322,
-              height: 168,
+              height: TILE_H,
               borderRadius: 28,
-              padding: "26px 24px",
+              padding: "0 24px",
               boxSizing: "border-box",
+              display: "flex",
+              alignItems: "center",
               fontFamily: FONT,
               color: COLORS.text,
               border: `1.5px solid rgba(120,160,255,${0.3 + 0.4 * flash})`,
@@ -183,22 +186,21 @@ export const SystemScene: React.FC = () => {
             }}
           >
             <div style={{ position: "absolute", left: 24, top: 0, width: 66, height: 5, borderRadius: "0 0 6px 6px", background: n.color, boxShadow: `0 0 18px ${n.color}` }} />
-            <div style={{ display: "flex", alignItems: "center", gap: 12, color: n.color }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, color: n.color }}>
               {n.icon}
-              <span style={{ fontWeight: 700, fontSize: 34, lineHeight: 1.1, color: COLORS.text }}>{n.title}</span>
+              <span style={{ fontWeight: 700, fontSize: TYPE.label, lineHeight: 1.1, color: COLORS.text }}>{n.title}</span>
             </div>
-            <div style={{ marginTop: 12, fontWeight: 500, fontSize: 22, lineHeight: 1.3, color: COLORS.textDim }}>{n.sub}</div>
             {n.badge && (
-              <Chip x={n.badge ? 322 - 128 : 0} y={-20} p={pop(t, SYSTEM.locks[0] + 0.05 * i, fps, { damping: 10, stiffness: 230 })} label={n.badge} icon={<IconShield size={24} stroke={2.6} />} />
+              <Chip x={322 - 168} y={-32} p={pop(t, SYSTEM.locks[1] + 0.05 * i, fps, { damping: 10, stiffness: 230 })} label={n.badge} icon={<IconShield size={28} stroke={2.6} />} />
             )}
           </div>
         );
       })}
-      {/* 2FA shockwave */}
+      {/* MFA shockwave over the two protected dashboards */}
       {(() => {
-        const rp = prog(t, SYSTEM.locks[0], SYSTEM.locks[0] + 0.8);
+        const rp = prog(t, SYSTEM.locks[1], SYSTEM.locks[1] + 0.8);
         if (rp <= 0 || rp >= 1) return null;
-        return <div style={{ position: "absolute", left: 40, top: 1138, width: 1000, height: 168, borderRadius: 40, border: `3px solid rgba(94,234,212,${0.7 * (1 - rp)})`, transform: `scale(${1 + 0.08 * EASE.out(rp)})`, boxShadow: `0 0 50px rgba(34,211,238,${0.4 * (1 - rp)})` }} />;
+        return <div style={{ position: "absolute", left: 40, top: TILE_TOP, width: 661, height: TILE_H, borderRadius: 34, border: `3px solid rgba(94,234,212,${0.7 * (1 - rp)})`, transform: `scale(${1 + 0.06 * EASE.out(rp)})`, boxShadow: `0 0 50px rgba(34,211,238,${0.4 * (1 - rp)})` }} />;
       })()}
     </AbsoluteFill>
   );

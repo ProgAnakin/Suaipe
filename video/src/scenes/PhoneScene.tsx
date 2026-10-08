@@ -17,7 +17,7 @@ const SCROLL_MAX = 580; // screen px: puts the discount ticket in the middle of 
 const TICKET = { x: EMAIL.ticket.x * K, y: EMAIL.ticket.y * K, w: EMAIL.ticket.w * K, h: EMAIL.ticket.h * K };
 const TICKET_V = (STATUS_H + TICKET.y - SCROLL_MAX + TICKET.h / 2) / IPHONE.screenH;
 
-const BANNER = { x: 16, y: 336, w: IPHONE.screenW - 32, h: 138, r: 30 };
+const BANNER = { x: 16, y: 336, w: IPHONE.screenW - 32, h: 170, r: 30 };
 
 const StatusBar: React.FC<{ show: number }> = ({ show }) => (
   <div style={{ position: "absolute", left: 0, top: 0, width: "100%", height: STATUS_H, zIndex: 20, fontFamily: FONT }}>
@@ -103,11 +103,12 @@ const PhoneWorld: React.FC = () => {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 16, fontWeight: 600, letterSpacing: "0.08em", color: COLORS.textSoft }}>
-                <span>SUAIPE</span>
+                <span>MAIL</span>
                 <span style={{ fontWeight: 500, letterSpacing: 0, color: COLORS.textDim }}>now</span>
               </div>
-              <div style={{ marginTop: 6, fontSize: 26, fontWeight: 700, lineHeight: 1.2, whiteSpace: "nowrap" }}>Your match is ready</div>
-              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 500, color: COLORS.textSoft, lineHeight: 1.25, whiteSpace: "nowrap" }}>Brevia GoPress · 98% match</div>
+              <div style={{ marginTop: 6, fontSize: 26, fontWeight: 700, lineHeight: 1.2, whiteSpace: "nowrap" }}>Suaipe</div>
+              {/* the real English subject line of the e-mail ("{{nome}}, your match is {{pct}}% — Discount code valid 24h"), filled with the film's sample customer */}
+              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 500, color: COLORS.textSoft, lineHeight: 1.25 }}>Marco, your match is 98% — Discount code valid 24h</div>
             </div>
           </div>
 
