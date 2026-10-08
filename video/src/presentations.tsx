@@ -126,28 +126,6 @@ const Defocus: PresentationComponent = ({ children, presentationProgress: p, pre
 };
 export const defocus = make(Defocus);
 
-// ── lock-up → iPad: the lock-up lifts away on its own, the iPad rises from below with a tilt ───────────────────────────
-const RiseUp: PresentationComponent = ({ children, presentationProgress: p, presentationDirection }) => {
-  if (presentationDirection === "exiting") return <AbsoluteFill>{children}</AbsoluteFill>;
-  const e = EASE.out(p);
-  const blur = dirBlur("rise-blur", 0, 26 * speedOf(EASE.out, p));
-  return (
-    <AbsoluteFill style={{ perspective: 1800, perspectiveOrigin: "50% 62%" }}>
-      {blur.defs}
-      <AbsoluteFill
-        style={{
-          transform: `translateY(${(1 - e) * 760}px) rotateX(${(1 - e) * 20}deg) scale(${lerp(0.92, 1, e)})`,
-          opacity: clamp(p * 3),
-          filter: blur.filter,
-        }}
-      >
-        {children}
-      </AbsoluteFill>
-    </AbsoluteFill>
-  );
-};
-export const riseUp = make(RiseUp);
-
 // ── iPad → iPhone: whip-pan swap, iPad leaves left (tilting away), phone arrives from the right ───────────────────────
 const SwapSlide: PresentationComponent = ({ children, presentationProgress: p, presentationDirection }) => {
   if (presentationDirection === "exiting") {
@@ -205,24 +183,3 @@ const DropOut: PresentationComponent = ({ children, presentationProgress: p, pre
   return <AbsoluteFill style={{ opacity: clamp(p * 2.2) }}>{children}</AbsoluteFill>;
 };
 export const dropOut = make(DropOut);
-
-// ── system diagram → end card: everything gets pulled into the centre ───────────────────────────────────────────────
-const Collapse: PresentationComponent = ({ children, presentationProgress: p, presentationDirection }) => {
-  if (presentationDirection === "exiting") {
-    const e = EASE.in(p);
-    return (
-      <AbsoluteFill style={{ transform: `scale(${1 - 0.2 * e})`, filter: `blur(${16 * e}px)`, opacity: 1 - clamp((p - 0.35) / 0.65) }}>
-        {children}
-      </AbsoluteFill>
-    );
-  }
-  const e = EASE.out(p);
-  return (
-    <AbsoluteFill>
-      <AbsoluteFill style={{ transform: `scale(${lerp(1.1, 1, e)})`, filter: `blur(${(1 - e) * 10}px)`, opacity: clamp(p * 1.8) }}>{children}</AbsoluteFill>
-      <Leak p={p} seed={13} hueShift={175} opacity={0.55} />
-    </AbsoluteFill>
-  );
-};
-export const collapse = make(Collapse);
-

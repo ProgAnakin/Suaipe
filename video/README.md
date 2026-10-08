@@ -11,7 +11,7 @@ video/
   src/
     timeline.ts        ← single source of truth for timing (seconds, 120 BPM grid)
     SuaipeFilm.tsx     ← master composition: TransitionSeries + captions + grade + soundtrack
-    presentations.tsx  ← scene-to-scene choreography (flash-through, rise, whip-pan swap, drop, collapse)
+    presentations.tsx  ← scene-to-scene choreography (flash-through, passthrough, whip-pan swap, drop, photo cut, defocus)
     scenes/            ← Hook, Lock-up, iPad flow (hand-off photo → camera, real screens, finger, call-outs, match ring), iPhone e-mail, System,
                          Human close (bag + handshake), End card
     components/        ← device frames, captions, call-outs, touch, confetti, backdrop, film grade, PhotoStage (photos + screen-in-glass) …
