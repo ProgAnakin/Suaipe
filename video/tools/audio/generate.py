@@ -93,7 +93,7 @@ def build(args) -> dict:
     log("rendering sound design")
     rendered = sfx.render_sfx(cues, harm, n)
     sfxm = mix.process_sfx(rendered, n, irs, sfx_gain_db=args.sfx_gain_db)
-    fade = mix.end_fade_curve(n, cues["duration"] - 1.1, cues["duration"])[:, None]     # both stems end in exact digital silence
+    fade = mix.end_fade_curve(n, cues["duration"] - 1.1, cues["duration"] - 0.08)[:, None]   # both stems end in exact digital silence
     music_stem = mus["stem"] * dsp.db2lin(args.music_gain_db) * fade
     sfx_stem = sfxm["stem"] * fade
 
@@ -103,20 +103,30 @@ def build(args) -> dict:
     music_stem, sfx_stem, pre = music_stem * k, sfx_stem * k, pre * k
     log(f"pre-master: music {dsp.lufs_integrated(music_stem):.1f} LUFS, sfx {dsp.lufs_integrated(sfx_stem):.1f} LUFS, stem scale {dsp.lin2db(k):+.2f} dB")
 
-    log("mastering")
-    master, info = mix.master_chain(pre, n, target_lufs=args.target_lufs, ceiling_db=args.ceiling_db)
-    log(f"master: gain {info['gain_db']:+.2f} dB, max limiter reduction {info['gr_min']:.2f} dB")
-
     out_dir = Path(args.out_dir)
     (out_dir / "stems").mkdir(parents=True, exist_ok=True)
     wav = out_dir / "soundtrack.wav"
     mp3 = out_dir / "soundtrack.mp3"
-    sf.write(wav, to_int16(master), SR, subtype="PCM_16")
     sf.write(out_dir / "stems" / "music.wav", music_stem, SR, subtype="PCM_24")
     sf.write(out_dir / "stems" / "sfx.wav", sfx_stem, SR, subtype="PCM_24")
     ffmpeg = find_ffmpeg(args.ffmpeg)
-    subprocess.run([ffmpeg, "-y", "-loglevel", "error", "-i", str(wav), "-codec:a", "libmp3lame", "-b:a", "320k",
-                    "-ar", str(SR), "-ac", "2", str(mp3)], check=True)
+
+    log("mastering")
+    ceiling = args.ceiling_db
+    for attempt in range(3):
+        master, info = mix.master_chain(pre, n, target_lufs=args.target_lufs, ceiling_db=ceiling)
+        log(f"master: gain {info['gain_db']:+.2f} dB, max limiter reduction {info['gr_min']:.2f} dB (ceiling {ceiling:.2f} dBFS)")
+        sf.write(wav, to_int16(master), SR, subtype="PCM_16")
+        subprocess.run([ffmpeg, "-y", "-loglevel", "error", "-i", str(wav), "-codec:a", "libmp3lame", "-b:a", "320k",
+                        "-ar", str(SR), "-ac", "2", str(mp3)], check=True)
+        # the MP3 decoder can overshoot the WAV's true peak by a fraction of a dB: tighten the limiter if so, so both files meet the ceiling
+        subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-i", str(mp3), "-ar", str(SR), "-ac", "2", "-c:a", "pcm_f32le",
+                        str(build_dir / "mp3_decoded.wav")], check=True)
+        tp_mp3 = dsp.true_peak(sf.read(build_dir / "mp3_decoded.wav", dtype="float64")[0])
+        log(f"true peak: wav {dsp.true_peak(master):.2f} dBTP, mp3 {tp_mp3:.2f} dBTP")
+        if tp_mp3 <= args.ceiling_db + 0.02 or attempt == 2:
+            break
+        ceiling -= (tp_mp3 - args.ceiling_db) + 0.02
     log(f"wrote {wav.name}, {mp3.name}, stems/")
 
     ctx = dict(cues=cues, harm=harm, sc=sc, mus=mus, sfxm=sfxm, rendered=rendered, master=master, music_stem=music_stem,

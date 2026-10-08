@@ -153,25 +153,43 @@ def detect_peak(m: np.ndarray, t: float, pre: float, post: float, smooth_ms: flo
     return (off + sel.start + int(np.argmax(e[sel]))) / SR
 
 
+SYNC_ROWS = [("logo-hit", 0), ("tap", 0), ("tap", 1), ("key", 0), ("key", 32), ("swipe-no", 0), ("swipe-yes", 0), ("swipe-yes", 2),
+             ("swipe-no", 4), ("counter-hit", 0), ("notif-ping", 0), ("code-ding", 0), ("lock-on", 0), ("tile-pop", 0), ("tile-pop", 4),
+             ("word-hit", 0), ("device-settle", 0), ("chip-tick", 0), ("lock-click", 0), ("confirm", 0), ("success-chime", 0), ("count-tick", 0),
+             ("count-tick", 12), ("card-in", 0), ("check-tick", 0),
+             # opening of the product scene
+             ("screen-wake", 0), ("caption-pop", 0),
+             # system diagram (retimed) and the closing scenes
+             ("node-on", 0), ("packet", 0), ("node-on", 1), ("packet", 1), ("node-on", 3), ("node-on", 4), ("packet", 3), ("tile-on", 0),
+             ("tile-on", 1), ("tile-on", 2), ("lock-click", 1), ("lock-click", 2), ("caption-pop", 5), ("bag-rustle", 0), ("redeem-ding", 0),
+             ("handshake", 0), ("logo-hit-soft", 0), ("chip-pop", 0), ("chip-pop", 1), ("chip-pop", 2), ("chip-pop", 3)]
+
+
+def _sync_row(m: np.ndarray, e: dict, k: int) -> dict:
+    got, band = detect_onset(m, e["target"])
+    return {"type": e["type"], "index": k, "cue_t": e["t"], "target": e["target"], "detected": got, "band": band,
+            "err_ms": None if got is None else (got - e["target"]) * 1000.0}
+
+
 def sync_check(sfx_stem: np.ndarray, log: list[dict]) -> list[dict]:
     """Detect each representative cue's accent in the rendered SFX stem and report the timing error in ms."""
     m = 0.5 * (sfx_stem[:, 0] + sfx_stem[:, 1])
-    want = [("logo-hit", 0), ("tap", 0), ("tap", 1), ("key", 0), ("key", 32), ("swipe-no", 0), ("swipe-yes", 0), ("swipe-yes", 2), ("swipe-no", 4),
-            ("counter-hit", 0), ("notif-ping", 0), ("code-ding", 0), ("logo-hit-soft", 0), ("lock-on", 0), ("tile-pop", 0),
-            ("tile-pop", 4), ("word-hit", 0), ("device-settle", 0), ("chip-tick", 0), ("lock-click", 0), ("confirm", 0),
-            ("success-chime", 0), ("node-on", 0), ("packet", 0), ("count-tick", 0), ("count-tick", 12), ("chip-pop", 3),
-            ("card-in", 0), ("check-tick", 0)]
     by: dict[str, list] = {}
     for e in log:
         by.setdefault(e["type"], []).append(e)
+    return [_sync_row(m, by[name][k], k) for name, k in SYNC_ROWS if name in by and k < len(by[name])]
+
+
+def sync_all(sfx_stem: np.ndarray, log: list[dict]) -> list[dict]:
+    """The same measurement for EVERY transient (onset-type) cue of the sheet."""
+    m = 0.5 * (sfx_stem[:, 0] + sfx_stem[:, 1])
+    seen: dict[str, int] = {}
     rows = []
-    for name, k in want:
-        if name not in by or k >= len(by[name]):
-            continue
-        e = by[name][k]
-        got, band = detect_onset(m, e["target"])
-        rows.append({"type": name, "index": k, "cue_t": e["t"], "target": e["target"], "detected": got, "band": band,
-                     "err_ms": None if got is None else (got - e["target"]) * 1000.0})
+    for e in log:
+        k = seen.get(e["type"], 0)
+        seen[e["type"]] = k + 1
+        if e["kind"] == "onset":
+            rows.append(_sync_row(m, e, k))
     return rows
 
 
@@ -333,6 +351,7 @@ def run(ctx: dict, qa_dir: Path, build_dir: Path, args) -> dict:
     rep["phone"] = {"lufs_full": rep["own_lufs"], "lufs_phone": dsp.lufs_integrated(ph), "main_band_fraction": energy_fraction(wav_pcm, 150, 6000),
                     "below_150": energy_fraction(wav_pcm, 20, 150), "above_8k": energy_fraction(wav_pcm, 8000, 24000)}
     rep["sync"] = sync_check(sfxs, log)
+    rep["sync_all"] = sync_all(sfxs, log)
     rep["design"] = design_check(ctx["rendered"]["shots"], log)
     rep["clarity"] = clarity_check(sfxs, music, log)
     rep["harmony"] = harmony_audit(log, harm)
@@ -356,12 +375,19 @@ def run(ctx: dict, qa_dir: Path, build_dir: Path, args) -> dict:
     ff_spectrogram(ff, wav, qa_dir / "spectrogram.png")
     ff_spectrogram(ff, wav, qa_dir / "spectrogram_0-6s.png", 0, 6)
     ff_spectrogram(ff, wav, qa_dir / "spectrogram_19.5-23s.png", 19.5, 3.5)
-    ff_spectrogram(ff, wav, qa_dir / "spectrogram_38-44.5s.png", 38, 6.5)
     ff_spectrogram(ff, wav, qa_dir / "spectrogram_26-34s.png", 26, 8)
+    ff_spectrogram(ff, wav, qa_dir / "spectrogram_33.5-44.5s.png", 33.5, 11)
+    ff_spectrogram(ff, wav, qa_dir / "spectrogram_37-41s.png", 37, 4)
     try:
         plot_overview(wav_pcm, music, sfxs, cues, qa_dir / "loudness-and-spectrum.png")
     except Exception as exc:  # matplotlib is optional
         rep["plot_error"] = str(exc)
+    with open(qa_dir / "sync-measured.csv", "w") as fh:
+        fh.write("type,index_of_type,cue_t_s,target_s,detected_s,err_ms,band\n")
+        for r_ in rep["sync_all"]:
+            det = "" if r_["detected"] is None else f"{r_['detected']:.5f}"
+            err = "" if r_["err_ms"] is None else f"{r_['err_ms']:.2f}"
+            fh.write(f"{r_['type']},{r_['index']},{r_['cue_t']:.3f},{r_['target']:.4f},{det},{err},{r_['band']}\n")
     with open(qa_dir / "cue-placement.csv", "w") as fh:
         fh.write("index,type,step,cue_t_s,target_s,accent_sample,accent_sample_expected,kind,shot_peak_dbfs,shot_len_s\n")
         for e in log:
@@ -506,7 +532,7 @@ def write_report(r: dict, path: Path, args) -> None:
     add("| section | time | master LUFS | master peak dBFS | music stem LUFS | sfx stem LUFS | mono loss dB | L/R corr |")
     add("|---|---|---|---|---|---|---|---|")
     for s in r["sections"]:
-        add(f"| {s['name']} | {s['from']:.0f}-{s['to']:.1f} s | {s['lufs']:.1f} | {s['peak']:.1f} | {s['music']:.1f} | {s['sfx']:.1f} | {s['mono_loss']:+.2f} | {s['corr']:.2f} |")
+        add(f"| {s['name']} | {s['from']:g}-{s['to']:g} s | {s['lufs']:.1f} | {s['peak']:.1f} | {s['music']:.1f} | {s['sfx']:.1f} | {s['mono_loss']:+.2f} | {s['corr']:.2f} |")
     add("")
     add("### Octave-band energy of the master (dB re section total)")
     add("")
@@ -529,7 +555,14 @@ def write_report(r: dict, path: Path, args) -> None:
         add(f"| {s_['type']} | {s_['index']} | {s_['cue_t']:.3f} | {s_['target']:.3f} | {_f(s_['detected'], 4)} | {_f(s_['err_ms'], 2)} | {s_['band']} |")
     add("")
     if errs:
-        add(f"**Max |error| over the {len(errs)} detected cues: {max(errs):.2f} ms (mean {np.mean(errs):.2f} ms)** - requirement < 10 ms.")
+        add(f"**Max |error| over the {len(errs)} representative cues above: {max(errs):.2f} ms (mean {np.mean(errs):.2f} ms)** - requirement < 10 ms.")
+    sa = [x["err_ms"] for x in r.get("sync_all", []) if x["err_ms"] is not None]
+    if sa:
+        ea = np.abs(sa)
+        add("")
+        add(f"The same measurement on **every** transient cue of the sheet (`sync-measured.csv`): {len(sa)} of {len(r['sync_all'])} could be separated in the "
+            f"mix and measured - max |err| {ea.max():.2f} ms, mean {ea.mean():.2f} ms, 95th percentile {np.percentile(ea, 95):.2f} ms; the others sit under a louder "
+            f"simultaneous sound (the isolated check below covers them).")
     d = r["design"]
     add("")
     add(f"All {d['n']} cues, isolated check: accent sample vs round(target x 48000) deviates by at most **{d['worst_placement_samples']} samples**; "

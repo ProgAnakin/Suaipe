@@ -16,7 +16,7 @@ MUSIC_TARGET = {
     "rim": ("peak", -25.0), "bass": ("rms", -28.0), "sub": ("rms", -42.0), "heart": ("peak", -16.0),
     "pad": ("rms", -24.0), "drone": ("rms", -25.0), "hi": ("rms", -37.0), "final": ("rms", -23.0),
     "arp": ("rms", -27.5), "keys": ("rms", -27.5), "lead": ("rms", -30.0), "fx": ("rms", -37.0),
-    "soft": ("rms", -24.0),           # the quiet drum-less pad of the `human` section (only bus without a v1 ancestor)
+    "soft": ("rms", -26.0),           # the quiet drum-less pad of the `human` section (only bus without a v1 ancestor)
 }
 TRIM_DB: dict[str, float] = {}
 
@@ -44,7 +44,7 @@ def macro_points(sec: dict, duration: float) -> list[tuple[float, float]]:
             (out, OUTRO_BUMP_DB), (out + 0.35, OUTRO_BUMP_DB), (out + 0.9, 0.0), (duration, -24.0)]
 
 
-HUMAN_DB = (-1.0, -0.5, 0.5)       # macro (dB) of the quiet scene: at its start, a second before the downbeat, just before it
+HUMAN_DB = (-1.5, -1.0, 0.5)       # macro (dB) of the quiet scene: at its start, a second before the downbeat, just before it
 OUTRO_BUMP_DB = 3.0                # the resolving chord's first 350 ms
 # return levels of the shared reverbs (linear)
 REVERB_RETURN = {"room": 1.0, "plate": 1.0, "hall": 1.0}

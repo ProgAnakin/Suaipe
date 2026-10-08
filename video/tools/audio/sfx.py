@@ -110,6 +110,21 @@ def seed_for(name: str, t: float) -> int:
     return zlib.crc32(f"{name}:{round(t * 1000)}".encode()) & 0xFFFFFFFF
 
 
+# The first 33 s of the film were signed off with seeds derived from each cue's position in the first cue sheet ("v1"). Cues before
+# LEGACY_UNTIL keep exactly those seeds, so their sounds stay bit-identical when later cues are added or moved; the cues the sheet gained
+# since (listed here) are skipped when counting that position. Everything from LEGACY_UNTIL on is seeded from (type, time).
+LEGACY_UNTIL = 33.6
+ADDED_SINCE_V1 = {("screen-wake", 5.9), ("zoom-whoosh", 6.85)}
+
+
+def cue_seed(cues_sfx: list, idx: int) -> int:
+    ev = cues_sfx[idx]
+    if float(ev["t"]) >= LEGACY_UNTIL:
+        return seed_for(ev["type"], float(ev["t"]))
+    shift = sum(1 for e in cues_sfx[:idx] if (e["type"], round(float(e["t"]), 3)) in ADDED_SINCE_V1)
+    return zlib.crc32(f"{ev['type']}:{idx - shift}".encode()) & 0xFFFFFFFF
+
+
 # Peak level (dBFS, pre-master) of each one-shot on the SFX bus - the relative balance of the whole film.
 LEVEL = {
     "tile-pop": -15, "word-hit": -11, "riser-a": -16, "lock-on": -11, "whoosh-out": -16, "sparkle-up": -16,
@@ -868,6 +883,7 @@ def sparkle(c: Ctx) -> Shot:
     L = dur + 0.9
     k = 22
     u = (np.arange(k) + c.rng.uniform(0, 0.9, k)) / k
+    u[0] = 0.0                                        # the first glint sits exactly on the cue
     times = dur * u ** 1.5
     pool = [m for m in th.penta_run(note("C6"), 20) if m % 12 in (0, 2, 4, 7) and m <= note("G7")][2:]
     midis = [pool[int(c.rng.integers(0, len(pool)))] for _ in range(k)]
@@ -1040,7 +1056,7 @@ def render_sfx(cues: dict, harm: Harmony, n_total: int, verbose: bool = False):
             raise KeyError(f"no sound designer for cue type '{name}'")
         nth = seen.get(name, 0)
         seen[name] = nth + 1
-        ctx = Ctx(ev=ev, rng=np.random.default_rng(seed_for(name, float(ev["t"]))), harm=harm, nth=nth, count=counts[name], index=idx)
+        ctx = Ctx(ev=ev, rng=np.random.default_rng(cue_seed(cues["sfx"], idx)), harm=harm, nth=nth, count=counts[name], index=idx)
         shot = REG[name](ctx)
         target = shot.target if shot.target is not None else float(ev.get("accent", ev["t"]))
         start = secs(target) - shot.accent
