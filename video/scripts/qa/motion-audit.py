@@ -11,7 +11,7 @@ film (all numbers in px/frame of the 1080 px canvas):
 and over the whole film: every luminance pop above a robust threshold, and how much of the bottom 8 % strip / the four 110 px corners
 carries detail (edges) — the regions the LinkedIn player covers with its controls.
 """
-import argparse, json, subprocess, sys
+import argparse, json, os, subprocess, sys
 import cv2
 import numpy as np
 
@@ -19,15 +19,12 @@ W, H = 270, 338          # analysis size (1080 x 1350 / 4)
 S = 1080 / W             # px of the canvas per analysis px
 FPS = 60
 
-# CHAPTER overlaps = the transitions (src/timeline.ts); kept in sync by hand, checked below against the file
-TRANSITIONS = [
-    ("hook -> lock-up", "flashThrough", 3.6, 4.0),
-    ("lock-up -> hand-off/iPad", "passthrough", 5.4, 6.2),
-    ("iPad -> iPhone", "swapSlide", 25.6, 26.6),
-    ("iPhone -> system", "dropOut", 33.6, 34.2),
-    ("system -> human close", "photoCut", 37.5, 37.9),
-    ("human close -> end card", "defocus", 41.0, 41.5),
-]
+# the transitions are the CHAPTER overlaps of src/timeline.ts, listed by scripts/qa/transitions.mjs (never copied by hand)
+HERE = os.path.dirname(os.path.abspath(__file__))
+def load_transitions():
+    raw = subprocess.run(["node", os.path.join(HERE, "transitions.mjs")], capture_output=True, text=True, check=True).stdout
+    return [(t["name"], t["kind"], t["start"], t["end"]) for t in json.loads(raw)]
+TRANSITIONS = load_transitions()
 
 def decode(ffmpeg, path):
     cmd = [ffmpeg, "-v", "error", "-i", path, "-vf", f"scale={W}:{H}:flags=area,format=gray", "-f", "rawvideo", "-pix_fmt", "gray", "-"]
