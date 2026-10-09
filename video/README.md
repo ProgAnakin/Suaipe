@@ -42,7 +42,8 @@ video/
     audio/             ← soundtrack.wav / .mp3, soundtrack-15s.* and stems                                                        [tools/audio]
     people/            ← AI-generated in-store stills (hands only), webp                                                          [tools/people]
     products/, fonts/, logo.png
-  audio/cues.json      ← cue sheets the sound design is composed against (generated from timeline.ts / cutdown.ts): cues.json, cues-15s.json
+  audio/               ← picture-events.json (everything the picture does that deserves a sound, 250 events), cues.json + cues-15s.json (the cue sheets the sound design is composed against,
+                         generated from it), trims.json (the few dB the balance audit asked for)
   qa/                  ← AUDIT.md (phase 1), SCRIPT.md (phase 2, career version — superseded), SOUND.md (phase 4), motion-audit*.json, audio-audit.md
   scripts/             ← export-cues, export-srt, render-film (chunked final render), render-preview + audio-previews (half-resolution previews and the
                          listening package), qa-sheets / sheet (contact sheets), qa/ (audits)
@@ -65,7 +66,8 @@ video/
 npm ci
 npm run studio          # interactive preview — every scene is also its own composition (Folder “Scenes”); SuaipeFilm15 is the cut-down
 npm run typecheck
-npm run cues            # timeline.ts  →  audio/cues.json, audio/cues-15s.json   (after changing any timing)
+npm run events          # timeline.ts  →  audio/picture-events.json   (everything the picture does that needs a sound)
+npm run cues            # picture-events + timeline.ts  →  audio/cues.json, audio/cues-15s.json   (after changing any timing)
 npm run srt             # captions     →  out/suaipe-captions.srt (upload it with the post for accessibility)
 scripts/render-film.sh  # the production route: resumable chunks (stream-copied, single-generation H.264) + soundtrack muxed  →  out/suaipe-film.mp4
 npm run render          # final MP4 straight from Remotion (H.264 CRF 17 capped at 20 Mbps + AAC 320k, bt709)
@@ -129,6 +131,9 @@ python scripts/qa/motion-audit.py out/<preview>.mp4 --ffmpeg <ffmpeg>   # speed 
 python scripts/qa/legibility.py out/qa-stills --md         # caption contrast, and phone-width (360 px) copies of key stills
 scripts/qa-sheets.sh out/<preview>.mp4 out/qa 0.25 8 216 40               # contact sheets every 0.25 s
 python scripts/qa/audio-audit.py --ffmpeg <ffmpeg> --md    # event density by layer, section map, phone-speaker and AAC re-encode tests
+python scripts/qa/av-coverage.py --md                      # every event of the picture against the rendered stems: silent / masked / loud (then scripts/qa/auto-trim.py)
+python scripts/qa/visual-onsets.py out/<preview>.mp4 --ffmpeg <ffmpeg>   # what the rendered frames do, as a cross-check of the event list
+python scripts/qa/sound-map.py                             # qa/SOUND-MAP.md: the sound of every event of the picture
 ```
 
 ## Licence note

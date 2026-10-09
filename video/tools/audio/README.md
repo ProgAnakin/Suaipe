@@ -51,6 +51,7 @@ by the overshoot and both files are re-written. ffmpeg needs `libmp3lame`, `ebur
 | `music.py` | the `Score` container, instrument rendering (`render_music`) and the older 44.5 s arrangement (`compose`, kept for reference) |
 | `mix.py` | bus processing (`process_music_a`), cue-driven ducking (`sfx_ducks_a`), reverbs, macro dynamics, master chain |
 | `qa.py` | measurements and `report.md` (duration-aware) |
+| `catalogue.py` | every effect once, on its own, at the film's level (`out/audio-ab/sfx-catalogue.wav`, `qa/SFX-CATALOGUE.md`) |
 
 ## How it is built
 
@@ -61,12 +62,18 @@ bells (partials 1 : 2.76 : 5.4 : 8.9 with their own decays) for chimes, dings an
 hear them) for taps, knocks and impacts, band-passed noise sweeps for whooshes and risers, and a tuned sub + glass chord + air for the three hits.
 Pitched sounds take their notes from the chord of the bar they land in (`theory.py`); the QA report audits every one.
 
-*Grouped gestures* keep the density low (the old mix had 153 events in 44.5 s, this one 65 in 64.5 s, never more than 3 in a second): `typing-texture` (one soft texture for every
-keystroke), `scan-riser` (one tonal riser for the scan), `store-ticks` (the consent ticks, the store swap), `node-run` (the system diagram's nodes and packets), `tile-bloom`
-(one cascade for a group of tiles), `crm-land` (a lead reaching the CRM), `room-tone`. *Swipe yes / no* are tuned phrases with a pan: yes = a rising glass two-note phrase to the right,
-no = a falling muted pluck to the left. *The motif* "contact" (G4 - A4 - C5 - E5; `motif-q` is its first half, `motif` the whole line) is a glass bell doubled by felt piano.
-The scenes of the real world add: `screen-wake` (soft rising two-note glass chime), `bag-rustle` (a close paper-bag hand-off - pure band-limited noise, no pitch), `redeem-ding`,
-`photo-whoosh` (soft air) and `handshake` (a soft dry skin / cloth clasp plus a warm glass bloom of the C chord - the big chord itself is the music's).
+**Every event of the picture has its sound** (`qa/SOUND-AUDIT.md`): the cue sheet is built from `audio/picture-events.json` (`scripts/lib/picture-events.mjs`), one cue per event, each carrying
+the event it answers (`event`, `eventT`) and its class (`tier`). 246 cues for 250 events; the typing is 33 individual `key` taps, the language selection five `chip-tick`s panned left to right with the
+highlight, the eight dots eight `dot-tick`s one step higher each. The older *grouped gestures* (`typing-texture`, `store-ticks`, `node-run`, `tile-bloom`) are still defined but unused; their helper now
+refuses to drop an event (`_gesture_notes` extends its notes and asserts one note per time: the first cut's bug was a gesture that carried five times and two notes). *Swipe yes / no* are tuned
+phrases with a pan: yes = a rising glass two-note phrase to the right, no = a falling muted pluck to the left (the tutorial plays both, quietly, before the eight swipes). *The motif* "contact"
+(G4 - A4 - C5 - E5; `motif-q` is its first half, `motif` the whole line) is a glass bell doubled by felt piano. The scenes of the real world add: `screen-wake` (soft rising two-note glass chime),
+`bag-rustle` (a close paper-bag hand-off - pure band-limited noise, no pitch), `redeem-ding`, `photo-whoosh` (soft air) and `handshake` (a soft dry skin / cloth clasp plus a warm glass bloom of the C chord -
+the big chord itself is the music's). The small ones that complete the picture: `letter-tick`, `dot-tick`, `field-tick`, `notif-drop`, `lead-fly`, `line-draw`, `sample-tick`, `underline`.
+
+**Levels by class** (`sfx.CLASS_DB` / `sfx.CLASS_OF`): every interface sound is set so that its own loudest 40 ms (150 ms for a sound that swells) has the loudness of its class - the energy mean of the
+A- and the K-weighted signal, so a low "thock" and a glass tick of the same class are equally present on a phone speaker and on earbuds. The hits, risers, the motif and the beds keep their hand-set `LEVEL`.
+A cue may carry `gain_db` (a tutorial demonstration is quieter), and `audio/trims.json` adds the few dB the balance audit asked for (`scripts/qa/auto-trim.py`, capped at +4 dB: past it the music makes room).
 **Seeds:** each cue is seeded from its type and time (`sfx.seed_for`), so adding or moving other cues never re-rolls a sound.
 
 **Music (music_a.py / instruments.py).** `compose_a` reads the sections and chord segments of the cue sheet and writes a `Score` (notes per instrument, `pulses`, `pad_cut`,
@@ -79,8 +86,8 @@ The 15 s cut starts on a downbeat and ends on the same resolved chord with the c
 always chord tones).
 
 **Mix (mix.py).** Every music bus is calibrated to a target level (`MUSIC_TARGET`; direction A always recalibrates, `FROZEN_GAINS_DB` only belongs to the older 44.5 s arrangement). The pad breathes
-with the pulse (a soft, slow dip on every thump); ducking windows are computed from the cue list (`sfx_ducks_a`: the typing texture, the chimes, notification and dings, the bag rustle under
-which the music steps back, the grouped gestures, the motif) so the UI sounds sit in clear air; three synthetic reverbs (room / plate / hall) are shared by send; `macro_points` is the dynamic arc of the film
+with the pulse (a soft, slow dip on every thump); ducking windows are computed from the cue list (`sfx_ducks_a`, by class: a run of keystrokes, every action, every movement, the chimes, notification and dings, the bag rustle under
+which the music steps back, the caption underlines, the motif) so the UI sounds sit in clear air; three synthetic reverbs (room / plate / hall) are shared by send; `macro_points` is the dynamic arc of the film
 (`HUMAN_DB` = the quiet scene, `OUTRO_BUMP_DB` = the end chord's first 500 ms); both stems fade to exact digital zero by 0.08 s before the end. Master: 4th-order HP at 28 Hz, gentle 300 Hz / 11 kHz EQ, bass mono below 140 Hz,
 1.8:1 glue compressor, gain to -14 LUFS (iterated against the limiter), 4x-oversampled look-ahead true-peak limiter at the ceiling (-1.6 dBFS).
 
@@ -91,13 +98,13 @@ second (signature / support / texture) and the re-encode test (AAC 192k / 128k /
 
 ## Tuning cheat-sheet
 
-* a sound is too loud / quiet: `sfx.LEVEL[type]` (dBFS peak before the master), `sfx.BOOST_DB[type]` / `sfx.BOOST_AT[(type, t)]` (extra dB on a type / a single cue, synthesis and seeds untouched) or
-  `mix.MUSIC_TARGET[bus]`. Judge the *balance* by the effect-vs-music margin (loudest 350 ms of the cue against the music in the same window, above 200 Hz), not by peak level: whooshes and swipes have low
-  crest factors, so a peak that looks loud can still be masked.
+* a sound is too loud / quiet: change its class in `sfx.CLASS_OF` (or its offset), or `gain_db` on its cue in `scripts/export-cues.mjs`; the hand-set ones (the hits, risers, the motif) in `sfx.LEVEL[type]`.
+  Judge the *balance* with `scripts/qa/av-coverage.py` (every picture event: silent / masked / loud against the music around it) and the profile of the effects layer, not by peak level: whooshes and swipes have low
+  crest factors, so a peak that looks loud can still be masked. `mix.MUSIC_TARGET[bus]` moves the music.
 * more / less room: `sfx.SEND[type]`, `mix.MUSIC_SENDS`, `mix.ir_bank()`
 * the arc of the film: `mix.macro_points` (`HUMAN_DB`, `OUTRO_BUMP_DB`); the arrangement: `music_a.compose_a` (a section's brief is in the cue sheet, `scripts/export-cues.mjs`)
 * duck depth under typing / ticks / hits: `mix.sfx_ducks_a`
-* a new cue type: add `@sfx("name")` in `sfx.py` returning a `Shot`, a `LEVEL` entry and (optionally) a `SEND` entry; the cue itself is added in `scripts/export-cues.mjs`
+* a new cue type: add `@sfx("name")` in `sfx.py` returning a `Shot`, a `LEVEL` entry, a `CLASS_OF` entry and (optionally) a `SEND` entry; the picture event it answers goes into `scripts/lib/picture-events.mjs`, the mapping into `scripts/export-cues.mjs`
 * balance music vs sfx without touching sounds: `--music-gain-db` / `--sfx-gain-db`, or `--from-stems`
 
 Everything uses fixed seeds (`numpy.random.default_rng`), so identical inputs give byte-identical output.
