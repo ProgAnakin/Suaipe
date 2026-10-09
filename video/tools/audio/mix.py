@@ -271,17 +271,31 @@ def reverb_cached(x: np.ndarray, ir: np.ndarray) -> np.ndarray:
 
 # ------------------------------------------------------------------------------------------- direction A
 def sfx_ducks_a(cues: dict) -> dict[str, list]:
-    """Duck windows (t0, t1, depth_lin, attack_s, release_s) per bus group for direction A, derived from the cue sheet at run time."""
+    """Duck windows (t0, t1, depth_lin, attack_s, release_s) per bus group for direction A, derived from the cue sheet at run time.
+    The complete cue sheet (every picture event has a sound) makes the interface a layer of its own, so the music steps aside by CLASS: a run of
+    keystrokes takes a few dB of the pad and the felt piano; every action (a tap, a selection, a swipe, a pop of something read) takes a short dip of
+    the felt piano and a breath of the pad; the highlights (chimes, dings) a deeper one; the hits and the motif keep their own, as before."""
     by: dict[str, list] = {}
     for e in cues["sfx"]:
         by.setdefault(e["type"], []).append(e)
     mid, low, keys, hf = [], [], [], []
-    for e in by.get("typing-texture", []):                                    # leave air for the patter
-        t0, t1 = float(e["t"]), float(e["t"]) + float(e.get("dur", 0.0))
-        w = (t0 - 0.1, t1 + 0.15, float(db2lin(-5.0)), 0.08, 0.35)
+    # a typing passage: one window over the whole run of keys (gaps under 0.45 s belong to the run)
+    run: list[float] = []
+    runs: list[tuple[float, float]] = []
+    for t in sorted(float(e["t"]) for e in by.get("key", [])):
+        if run and t - run[-1] > 0.45:
+            runs.append((run[0], run[-1]))
+            run = []
+        run.append(t)
+    if run:
+        runs.append((run[0], run[-1]))
+    for a, z in runs:
+        w = (a - 0.1, z + 0.15, float(db2lin(-3.5)), 0.08, 0.35)
         mid.append(w)
         keys.append(w)
-        hf.append((t0 - 0.1, t1 + 0.15, float(db2lin(-9.0)), 0.08, 0.35))
+        hf.append((a - 0.1, z + 0.15, float(db2lin(-6.0)), 0.08, 0.35))
+    handled = {"key", "success-chime", "notif-ping", "code-ding", "redeem-ding", "bag-rustle", "logo-hit", "counter-hit", "motif", "motif-q", "handshake", "room-tone",
+               "scan-riser", "riser-a", "riser-b", "sparkle", "sparkle-up", "shimmer", "tagline-air", "line-draw", "scroll-soft", "caption-pop"}
     for name, depth, post, to_keys in (("success-chime", -3.5, 0.9, False), ("notif-ping", -5.0, 0.8, True), ("code-ding", -5.0, 1.0, True),
                                        ("redeem-ding", -4.0, 0.4, True)):
         for e in by.get(name, []):
@@ -295,10 +309,32 @@ def sfx_ducks_a(cues: dict) -> dict[str, list]:
         w = (t - 0.05, t + 0.50, float(db2lin(-9.0)), 0.03, 0.35)
         mid.append(w)
         keys.append(w)
-    for name in ("store-ticks", "node-run", "tile-bloom", "crm-land", "callout-in"):
+    # every other action, by class: the felt piano dips, the pad breathes. Movement (whooshes) and texture (ticks, pops) leave the music alone.
+    movement = {"whoosh-up", "whoosh-swap", "whoosh-down", "whoosh-in", "whoosh-out", "whoosh-pullback", "zoom-whoosh", "reveal-whoosh", "photo-whoosh", "swoosh-open", "page-swoosh"}
+    for e in cues["sfx"]:
+        ty = e["type"]
+        if ty in handled or ty in movement or e.get("tier") != "A":
+            continue
+        t = float(e.get("accent", e["t"]))
+        keys.append((t - 0.02, t + 0.22, float(db2lin(-3.0)), 0.015, 0.30))
+        mid.append((t - 0.01, t + 0.12, float(db2lin(-1.5)), 0.012, 0.25))
+    # a movement (a whoosh that follows the picture) takes the room of the pad for as long as it sweeps; the one that carries a whole scene change takes more
+    for name in movement:
         for e in by.get(name, []):
-            ts = [float(x) for x in e.get("times", [e["t"]])]
-            keys.append((min(ts) - 0.05, max(ts) + 0.45, float(db2lin(-4.0)), 0.03, 0.3))
+            d = float(e.get("dur", 0.5))
+            if d >= 0.4:
+                depth = -3.5 if e.get("event") == "transition" else -2.0
+                w = (float(e["t"]) + 0.02, float(e["t"]) + 0.85 * d, float(db2lin(depth)), 0.12, 0.35)
+                mid.append(w)
+                if e.get("event") == "transition":
+                    keys.append(w)
+    # the quietest touches (a caption's underline) sit in clear air: the felt piano steps out of their way
+    for e in by.get("underline", []):
+        t = float(e["t"])
+        keys.append((t - 0.02, t + 0.45, float(db2lin(-5.0)), 0.02, 0.30))
+    for name in ("crm-land", "callout-in"):
+        for e in by.get(name, []):
+            keys.append((float(e["t"]) - 0.05, float(e["t"]) + 0.45, float(db2lin(-4.0)), 0.03, 0.3))
     for name, depth in (("logo-hit", -4.0), ("counter-hit", -4.5)):
         for e in by.get(name, []):
             t = float(e["t"])

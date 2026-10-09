@@ -3,14 +3,16 @@
 //   audio/cues-15s.json   the 15 s cut-down, when src/cutdown.ts describes one (the master's cues mapped through its excerpts)
 // Run: npm run cues
 //
-// Direction A "Minimal pulse" (qa/SOUND.md): about 60 events instead of ~150. Sequences become single gestures that carry their own
-// times (typing, language and consent ticks, the five nodes, the three tiles, the cloud of gadgets); captions and card-ins are silent;
-// the counter's eleven ticks are one tonal riser; the shop's room tone is a bed under the photographs.
+// Every sound comes from the picture: scripts/lib/picture-events.mjs lists everything the scenes do (250 events: a tap, a selection, a keystroke, a pop, a move, a transition) and this file turns
+// each one into a cue (246: a few events share a sound or are silent on purpose, and say why). The music's own cues (risers, the motif's question, the room's tone) are added by hand.
+// Direction A "Minimal pulse" is the MUSIC and the hierarchy (qa/SOUND.md); the effects are complete (qa/SOUND-AUDIT.md) and levelled by class (tools/audio/sfx.py CLASS_OF).
+// audio/trims.json (scripts/qa/auto-trim.py) adds the few dB the balance audit asked for, keyed "<event kind>@<time>".
 import { transformSync } from "esbuild";
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { tmpdir } from "node:os";
+import { pictureEvents } from "./lib/picture-events.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const load = async (rel, tag) => {
@@ -24,88 +26,155 @@ const CUT = await load("src/cutdown.ts", "cutdown");
 
 const r3 = (x) => Math.round(x * 1000) / 1000;
 const sfx = [];
-const add = (type, t, extra = {}) => sfx.push({ type, t: r3(t), ...extra });
-const seq = (cfg, n) => Array.from({ length: n }, (_, i) => r3(cfg.start + cfg.step * i));
+// audio/trims.json: the per-event dB the balance audit asked for (scripts/qa/auto-trim.py: an event that stays under its class's floor against the music
+// around it gets a few dB more), keyed "<picture event kind>@<time>". Hand-written gains stay in this file; the trims only add to them.
+const trims = existsSync(join(root, "audio/trims.json")) ? JSON.parse(readFileSync(join(root, "audio/trims.json"), "utf8")) : {};
+const add = (type, t, extra = {}) => {
+  const c = { type, t: r3(t), ...extra };
+  const trim = c.event ? trims[`${c.event}@${c.eventT}`] : undefined;
+  if (trim) c.gain_db = r3((c.gain_db ?? 0) + trim);
+  sfx.push(c);
+};
 
-// ── hook: the cloud of gadgets, one chosen ──────────────────────────────────────────────────────────────────────────────
-add("riser-a", 0.0, { dur: T.HOOK.lockOn, note: "tension riser, ends exactly at lock-on" });
-add("tile-bloom", T.HOOK.tilePop[0], { times: T.HOOK.tilePop, note: "the ten gadget cards as ONE rising cascade" });
-add("lock-on", T.HOOK.lockOn, { note: "★ product chosen: a soft pitched ping + low thump" });
-add("whoosh-out", T.HOOK.lockOn, { dur: 0.9, note: "the other cards fly outward: air" });
-add("sparkle-up", 2.5, { dur: 0.8 });
-add("riser-b", 3.0, { dur: 1.0, note: "swell landing on the logo hit" });
+// ── every sound comes from the picture ──────────────────────────────────────────────────────────────────────────────────────
+// scripts/lib/picture-events.mjs lists everything the picture does (a tap, a selection, a keystroke, a pop, a move). Each event below becomes one
+// cue (a few become none, and say why in the inventory: `silent`); the cue carries the event's `tier` (S signature · H highlight · A action ·
+// T texture) so the mix can balance by class instead of by luck. Music-only cues (the risers, the motif's question, the room's tone) are added by hand.
+const P = pictureEvents(T);
+const C = T.CHAPTER;
+const only = (kind, scene) => P.filter((e) => e.kind === kind && (!scene || e.scene === scene));
+const emit = (e, type, extra = {}) => {
+  const { at, ...rest } = extra; // `at` moves the cue off the picture event's own time (a swipe's whoosh starts before its accent)
+  add(type, at ?? e.t, { tier: e.tier, event: e.kind, eventT: e.t, note: e.label, ...rest });
+};
 
-// ── lock-up: the logo hit, and the first half of the sonic motif (a question: G4 - A4) ───────────────────────────────
-add("logo-hit", T.LOCKUP.hit, { note: "★ sub boom + glassy C chord (with a low-mid body for phones) + air; the pulse begins after it" });
-add("motif-q", T.LOCKUP.hit + 0.5, { note: "motif part 1: G4 - A4, left hanging over the C" });
-add("whoosh-up", T.IPAD.rise, { dur: 0.9, note: "the hand-off photograph opens" });
+// hook ------------------------------------------------------------------------------------------------------------------
+add("riser-a", 0.0, { dur: T.HOOK.lockOn, tier: "A", note: "tension riser, ends exactly at lock-on" });
+only("tile-pop").forEach((e) => emit(e, "tile-pop", { step: e.step, of: e.of }));
+only("word").forEach((e) => emit(e, "word-hit", { step: e.step, vel: e.step < 3 ? 0.7 : 0.85 }));
+emit(only("lock-on")[0], "lock-on", { note: "★ product chosen: a soft pitched ping + low thump" });
+emit(only("tiles-away")[0], "whoosh-out", { dur: 0.9, note: "the other cards fly outward: air" });
+emit(only("badge")[0], "chip-pop", { step: 2, of: 4, gain_db: -5, note: "the 98% badge pops on the hero card" });
+add("sparkle-up", only("twinkles", "hook")[0].t - 0.03, { dur: 0.8, tier: "T", event: "twinkles", eventT: only("twinkles", "hook")[0].t, note: "the nine twinkles around the hero, as one rising run" });
+emit(only("shine", "hook")[0], "shimmer", { dur: 0.9, gain_db: -6, note: "a light sweep crosses the hero card" });
+add("riser-b", 3.0, { dur: 1.0, tier: "A", event: "flash", eventT: only("flash")[0].t, note: "swell landing on the logo hit (the picture flashes into the logo)" });
 
-// ── the kiosk flow ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-add("room-tone", T.IPAD.rise, { dur: r3(T.IPAD.handoff.out + 0.6 - T.IPAD.rise), fade_in: 0.6, fade_out: 0.9, note: "the shop under the hand-off photograph; it gives way to the interface as the camera enters the screen" });
-add("device-settle", T.IPAD.settle - 0.05, { note: "soft low thump as the tablet changes hands" });
-add("screen-wake", T.IPAD.handoff.wake, { dur: 0.6, note: "the kiosk screen lights up inside the photographed glass: soft rising two-note chime" });
-add("zoom-whoosh", T.IPAD.handoff.zoom[0], { dur: r3(T.IPAD.handoff.zoom[1] - T.IPAD.handoff.zoom[0]), note: "camera flies into the tablet screen" });
-add("tap", T.IPAD.tap1);
-add("page-swoosh", T.IPAD.welcomeIn, { dur: 0.45 });
-add("store-ticks", T.IPAD.chipTicks[0], { times: T.IPAD.chipTicks, note: "the language highlight sweeping across the five flags: one gesture" });
-{
-  const strokes = [...seq(T.IPAD.typeFirst, T.IPAD.typeFirst.count), ...seq(T.IPAD.typeLast, T.IPAD.typeLast.count), ...seq(T.IPAD.typeEmail, T.IPAD.typeEmail.count + 1)];
-  add("typing-texture", strokes[0], { dur: r3(strokes[strokes.length - 1] - strokes[0] + 0.12), strokes, note: "one soft texture for the 33 keystrokes of first name, last name and e-mail" });
+// lock-up: the logo hit, the wordmark, and the first half of the sonic motif (a question: G4 - A4) -----------------------------------------------
+emit(only("logo-hit")[0], "logo-hit", { note: "★ sub boom + glassy C chord (with a low-mid body for phones) + air; the pulse begins after it" });
+add("motif-q", T.LOCKUP.hit + 0.5, { tier: "S", note: "motif part 1: G4 - A4, left hanging over the C" });
+only("letter", "lockup").forEach((e) => emit(e, "letter-tick", { step: e.step, of: e.of }));
+emit(only("shimmer", "lockup")[0], "shimmer", { dur: 1.2, note: "the sheen across the logo mark" });
+emit(only("line", "lockup")[0], "line-draw", { dur: 0.6, note: "the underline draws itself" });
+emit(only("tagline", "lockup")[0], "tagline-air", { dur: 0.7 });
+
+// hand-off photograph and the dive into the screen ---------------------------------------------------------------------------------------------
+emit(only("photo-open")[0], "whoosh-up", { dur: 0.9, note: "the hand-off photograph opens" });
+add("room-tone", T.IPAD.rise, { dur: r3(T.IPAD.handoff.out + 0.6 - T.IPAD.rise), fade_in: 0.6, fade_out: 0.9, tier: "T", note: "the shop under the hand-off photograph; it gives way to the interface as the camera enters the screen" });
+emit(only("device-settle")[0], "device-settle", { note: "soft low thump as the tablet changes hands" });
+emit(only("screen-wake")[0], "screen-wake", { dur: 0.6, note: "the kiosk screen lights up inside the photographed glass: soft rising two-note chime" });
+emit(only("zoom", "ipad")[0], "zoom-whoosh", { dur: r3(T.IPAD.handoff.zoom[1] - T.IPAD.handoff.zoom[0]), note: "camera flies into the tablet screen" });
+
+// the kiosk: welcome, form, tutorial ------------------------------------------------------------------------------------------------------------------
+only("tap", "ipad").forEach((e) => emit(e, "tap"));
+only("page", "ipad").forEach((e) => emit(e, "page-swoosh", { dur: 0.45, gain_db: e.t > 13 && e.t < 14 ? -4 : -1 }));
+only("select").forEach((e) => emit(e, "chip-tick", { step: e.step, of: e.of, pan: r3(-0.55 + (1.1 * e.step) / (e.of - 1)), note: "the language highlight hops across the flags: left to right" }));
+only("callout", "ipad").forEach((e) => emit(e, "callout-in", { note: e.label }));
+only("field-focus").forEach((e) => emit(e, "field-tick"));
+only("key").forEach((e) => emit(e, "key", { step: e.step }));
+emit(only("check")[0], "check-tick", { step: 0, of: 1 });
+emit(only("lock", "ipad")[0], "lock-click", { note: "GDPR padlock closes" });
+emit(only("confirm")[0], "confirm", { note: "positive confirmation after START THE GAME" });
+{ // the tutorial demonstrates the two sounds the eight swipes will use: the NO phrase falls, the YES phrase rises (quieter: it is a demonstration)
+  const no = only("demo-no")[0], yes = only("demo-yes")[0];
+  emit(no, "swipe-no", { at: no.t - 0.12, dur: 0.45, accent: no.t, pan: -0.5, gain_db: -8, note: "tutorial: the NO swipe, shown" });
+  emit(yes, "swipe-yes", { at: yes.t - 0.12, dur: 0.45, accent: yes.t, pan: 0.5, gain_db: -6, note: "tutorial: the YES swipe, shown" });
 }
-add("lock-click", T.IPAD.lockClick, { note: "GDPR padlock closes" });
-add("tap", T.IPAD.tap2);
-add("tap", T.IPAD.tap3);
-add("page-swoosh", T.IPAD.tap3 + 0.05, { dur: 0.45 });
-T.IPAD.swipes.forEach((s, i) => {
-  add(s.dir < 0 ? "swipe-no" : "swipe-yes", T.swipeAccent(s) - 0.12, { dur: s.dur, accent: r3(T.swipeAccent(s)), step: i, of: 8, pan: s.dir * 0.55 });
+
+// the eight swipes -------------------------------------------------------------------------------------------------------------------------------------------
+only("card-in").forEach((e) => emit(e, "card-in", { step: e.step, of: e.of }));
+only("swipe").forEach((e) => {
+  emit(e, e.dir < 0 ? "swipe-no" : "swipe-yes", { at: e.t - 0.12, dur: e.dur, accent: e.t, step: e.step, of: e.of, pan: e.dir * 0.55 });
 });
-add("reveal-whoosh", T.IPAD.counterStart, { dur: 0.8, note: "the scan screen opens" });
-add("scan-riser", T.IPAD.counterFillFrom, { dur: r3(T.IPAD.counterHit - T.IPAD.counterFillFrom), note: "one tonal riser replaces the eleven counter ticks; it thins to an inhale in the 0.25 s of air before the hit" });
-add("counter-hit", T.IPAD.counterHit, { note: "★ the 98 % bloom: a bright glass C chord and a sub swell, no confetti; the first, smaller peak" });
-add("whoosh-pullback", T.IPAD.pullBack, { dur: 0.9 });
-add("tap", T.IPAD.tap4);
-add("success-chime", T.IPAD.successChime, { note: "pleasant two-note success" });
+only("dot").forEach((e) => emit(e, "dot-tick", { step: e.step, of: e.of, dir: e.dir }));
 
-// ── the e-mail on the customer's phone ──────────────────────────────────────────────────────────────────────────────────────
-add("whoosh-swap", T.IPAD.exit, { dur: 0.9, note: "iPad leaves left, iPhone arrives right" });
-add("notif-ping", T.PHONE.notifPing, { note: "glassy two-note notification ding" });
-add("swoosh-open", T.PHONE.open, { dur: 0.5 });
-add("zoom-whoosh", T.PHONE.zoomCode[0], { dur: r3(T.PHONE.zoomCode[1] - T.PHONE.zoomCode[0]) });
-add("code-ding", T.PHONE.codeDing, { note: "bright bell as the discount code lights up" });
-add("whoosh-down", T.PHONE.exit, { dur: 0.7 });
+// the scan and the 98 % ------------------------------------------------------------------------------------------------------------------------------------
+emit(only("reveal")[0], "reveal-whoosh", { dur: 0.8, note: "the scan screen opens" });
+add("scan-riser", T.IPAD.counterFillFrom, { dur: r3(T.IPAD.counterHit - T.IPAD.counterFillFrom), tier: "A", note: "a tonal riser under the scan ring; it thins to an inhale in the 0.25 s of air before the hit" });
+only("count").forEach((e) => emit(e, "count-tick", { step: e.step, of: e.of, note: e.label }));
+emit(only("scan-hit")[0], "counter-hit", { note: "★ the 98 % bloom: a bright glass C chord and a sub swell; the first, smaller peak" });
+add("confetti-pop", T.IPAD.counterHit + 0.02, { tier: "T", gain_db: -3, note: "the confetti bursts from the ring (centre): a soft pat and a shower of glints, not a bang" });
+emit(only("confetti")[0], "confetti-pop", { gain_db: -7, pan: 0.0, wide: true, note: "the two side bursts from the bottom corners" });
+emit(only("dock")[0], "whoosh-pullback", { dur: 0.9 });
+emit(only("shine", "ipad")[0], "shimmer", { dur: 0.75, gain_db: -2, note: "a light sweep crosses the product card" });
+emit(only("success")[0], "success-chime", { note: "pleasant two-note success" });
 
-// ── store value: steady and competent ───────────────────────────────────────────────────────────────────────────────────────
-add("store-ticks", T.STORE.consent[0], { times: T.STORE.consent, note: "three consent ticks, one rising gesture" });
-add("page-swoosh", T.STORE.swap[0], { dur: r3(T.STORE.swap[1] - T.STORE.swap[0]), note: "the screen pushes from the lead list to the dashboard" });
-add("store-ticks", T.STORE.storeA, { times: [T.STORE.storeA, T.STORE.storeB], note: "Store A, Store B: two ticks, the second higher" });
-add("crm-land", T.STORE.land, { strength: 1.0, note: "the first lead lands in its CRM row: one soft pluck" });
-add("crm-land", T.STORE.land2, { strength: 0.7, note: "the next one lands (quieter)" });
-add("whoosh-swap", T.CHAPTER.consult.from, { dur: 0.7, note: "the tablet leaves, the consultant's phone arrives" });
+// the e-mail on the customer's phone ----------------------------------------------------------------------------------------------------------------------
+emit(only("notif-drop")[0], "notif-drop", { note: "the banner drops in" });
+emit(only("notif-ping")[0], "notif-ping", { note: "glassy two-note notification ding" });
+emit(only("mail-open")[0], "swoosh-open", { dur: 0.5 });
+emit(only("scroll", "phone")[0], "scroll-soft", { dur: r3(T.PHONE.scroll[1] - T.PHONE.scroll[0]) });
+emit(only("zoom", "phone")[0], "zoom-whoosh", { dur: r3(T.PHONE.zoomCode[1] - T.PHONE.zoomCode[0]) });
+emit(only("code")[0], "code-ding", { note: "bright bell as the discount code lights up" });
+emit(only("sweep")[0], "shimmer", { dur: 0.7, gain_db: -6, note: "a light sweep crosses the ticket" });
 
-// ── consultants: calm, a place to learn ───────────────────────────────────────────────────────────────────────────────────
-add("callout-in", T.CONSULT.search[0], { note: "the search ring" });
-add("tap", T.CONSULT.tap);
-add("page-swoosh", T.CONSULT.push[0], { dur: r3(T.CONSULT.push[1] - T.CONSULT.push[0]), note: "list to guide" });
-add("callout-in", T.CONSULT.video[0] + 0.1, { note: "the manager's video" });
-add("callout-in", T.CONSULT.advice[0] + 0.1, { note: "the manager's advice" });
-add("whoosh-down", T.CONSULT.pull[0] + 0.3, { dur: 0.7 });
+// Manager & Stats: steady and competent ---------------------------------------------------------------------------------------------------------------
+only("sample").forEach((e) => emit(e, "sample-tick"));
+emit(only("lean", "store")[0], "zoom-whoosh", { dur: 0.5, gain_db: 2.5, note: "the camera leans in on the first leads" });
+emit(only("outline")[0], "line-draw", { dur: 0.4, gain_db: -1, note: "the outline closes around the first lead" });
+only("consent-tick").forEach((e) => emit(e, "check-tick", { step: e.step, of: e.of, note: "consent tick on a lead: three, climbing" }));
+emit(only("label", "store")[0], "callout-in", { note: "\"Consent on record\"" });
+emit(only("page-push", "store")[0], "page-swoosh", { dur: r3(T.STORE.swap[1] - T.STORE.swap[0]), note: "the screen pushes from the lead list to the dashboard" });
+emit(only("scroll", "store")[0], "scroll-soft", { dur: r3(T.STORE.scroll[1] - T.STORE.scroll[0]) });
+only("chip", "store").forEach((e, i) => emit(e, "chip-pop", { step: i, of: 2, note: e.label }));
+emit(only("store-swap")[0], "chip-tick", { step: 4, of: 5, pan: 0.3, note: "the ranking flips to the other store" });
+emit(only("step-back")[0], "whoosh-pullback", { dur: 0.7, gain_db: -3, note: "the tablet steps back" });
+emit(only("crm-rise")[0], "whoosh-up", { dur: 0.6, gain_db: -4, note: "the CRM card rises" });
+only("lead-fly").forEach((e, i) => emit(e, "lead-fly", { dur: r3(e.t1 - e.t), bend: i === 0 ? 1 : -1, gain_db: i === 0 ? 1.5 : 0, note: e.label }));
+only("lead-land").forEach((e, i) => emit(e, "crm-land", { strength: i === 0 ? 1.0 : 0.7, note: e.label }));
 
-// ── system: precise and calm ─────────────────────────────────────────────────────────────────────────────────────────────────
-add("node-run", T.SYSTEM.nodes[0], { times: T.SYSTEM.nodes, note: "five nodes as one run of plucks" });
-add("tile-bloom", T.SYSTEM.tiles[0], { times: T.SYSTEM.tiles, note: "three tiles as one bloom" });
-T.SYSTEM.locks.forEach((t, i) => add("lock-click", t, { step: i, note: i ? "MFA" : "RLS" }));
-add("whoosh-in", T.SYSTEM.out, { dur: 0.7, note: "the diagram is pushed back as the bag hand-off photo fades in" });
+// Consultants: calm, a place to learn ----------------------------------------------------------------------------------------------------------------------
+emit(only("lean", "consult")[0], "zoom-whoosh", { dur: r3(T.CONSULT.lean[1] - T.CONSULT.lean[0]), gain_db: 2.5, note: "the camera leans in on the phone" });
+only("callout", "consult").forEach((e, i) => emit(e, "callout-in", { gain_db: i === 2 ? -4 : 0, note: e.label }));
+only("tap", "consult").forEach((e) => emit(e, "tap"));
+emit(only("page-push", "consult")[0], "page-swoosh", { dur: r3(T.CONSULT.push[1] - T.CONSULT.push[0]), note: "list to guide" });
+only("scroll", "consult").forEach((e) => emit(e, "scroll-soft", { dur: r3(e.t1 - e.t) }));
+emit(only("pull")[0], "whoosh-down", { dur: 0.7, note: "the phone steps back as the diagram arrives" });
 
-// ── human close: warm, close, real ───────────────────────────────────────────────────────────────────────────────────────────
-add("room-tone", T.HUMAN.bagIn - 0.1, { dur: r3(T.END.shimmer + 2.2 - (T.HUMAN.bagIn - 0.1)), fade_in: 0.8, fade_out: 1.4, note: "the shop returns under the bag and the handshake and rings out under the end card: the opening's room, closing the circle" });
-add("bag-rustle", T.HUMAN.rustle, { dur: 0.5, note: "paper bag changes hands: soft paper rustle + rope-handle creak + a very low, warm thump (real, tactile, quiet)" });
-add("redeem-ding", T.HUMAN.redeemed, { note: "the 'redeemed in store' chip pops: bright glassy two-note ding" });
-add("photo-whoosh", T.HUMAN.handshakeIn - 0.1, { dur: 0.6, note: "soft air as the photo crosses to the handshake" });
-add("handshake", T.HUMAN.clasp, { note: "★ the hands meet on the downbeat: a dry skin / cloth clasp (nothing bright) + the big warm resolved C chord (the music's)" });
+// system: precise and calm ----------------------------------------------------------------------------------------------------------------------------------------
+only("node").forEach((e) => emit(e, "node-on", { step: e.step, of: e.of, note: e.label }));
+only("line", "system").forEach((e) => emit(e, "line-draw", { dur: r3(e.t1 - e.t), gain_db: 1, note: e.label }));
+only("packet").forEach((e) => emit(e, "packet", { step: e.step, note: e.label }));
+only("chip", "system").forEach((e, i) => emit(e, "chip-pop", { step: i === 0 ? 3 : 1, of: 4, gain_db: i === 0 ? 0 : -3, note: e.label }));
+only("tile").forEach((e) => emit(e, "tile-on", { step: e.step, of: e.of, note: e.label }));
+only("lock", "system").forEach((e, i) => emit(e, "lock-click", { step: i, note: i ? "MFA" : "RLS" }));
 
-// ── end card: the motif completes on the held chord ────────────────────────────────────────────────────────────────────────
-add("motif", T.END.hit, { note: "★ the sonic motif complete: G4 - A4 - C5 - E5, on the logo, over the held chord" });
-add("sparkle", T.END.sparkle, { dur: 1.5, note: "a single glint" });
+// human close: warm, close, real ---------------------------------------------------------------------------------------------------------------------------
+add("room-tone", T.HUMAN.bagIn - 0.1, { dur: r3(T.END.shimmer + 2.2 - (T.HUMAN.bagIn - 0.1)), fade_in: 0.8, fade_out: 1.4, tier: "T", note: "the shop returns under the bag and the handshake and rings out under the end card: the opening's room, closing the circle" });
+emit(only("photo-cut")[0], "photo-whoosh", { dur: 0.6, note: "cut to the bag photograph" });
+emit(only("rustle")[0], "bag-rustle", { dur: 0.5, note: "paper bag changes hands: soft paper rustle + rope-handle creak + a very low, warm thump (real, tactile, quiet)" });
+emit(only("redeem")[0], "redeem-ding", { note: "the 'redeemed in store' chip pops: bright glassy two-note ding" });
+emit(only("photo-cross")[0], "photo-whoosh", { dur: 0.6, note: "soft air as the photo crosses to the handshake" });
+emit(only("clasp")[0], "handshake", { note: "★ the hands meet on the downbeat: a dry skin / cloth clasp (nothing bright) + the big warm resolved C chord (the music's)" });
+
+// end card: the motif completes on the held chord ----------------------------------------------------------------------------------------------------------
+emit(only("end-hit")[0], "motif", { note: "★ the sonic motif complete: G4 - A4 - C5 - E5, on the logo, over the held chord" });
+only("letter", "end").forEach((e) => emit(e, "letter-tick", { step: e.step, of: e.of }));
+emit(only("shimmer", "end")[0], "shimmer", { dur: 1.2 });
+emit(only("line", "end")[0], "line-draw", { dur: 0.6, note: "the underline draws itself" });
+only("tagline", "end").forEach((e, i) => emit(e, "tagline-air", { dur: 0.7, gain_db: i ? -4 : 0 }));
+only("chip", "end").forEach((e) => emit(e, "chip-pop", { step: e.step, of: e.of, note: e.label }));
+add("sparkle", T.END.sparkle, { dur: 1.5, tier: "T", event: "twinkles", eventT: only("twinkles", "end")[0].t, note: "the glints over the end card, as one fading run" });
+
+// captions: each opens with a soft tick, the highlighted phrase underlines itself --------------------------------------------------------------------
+only("caption").forEach((e) => emit(e, "caption-pop", { step: e.step }));
+only("caption-line").forEach((e) => emit(e, "underline", { dur: 0.4, note: e.label }));
+
+// scene transitions: a whoosh each, peaking when the picture moves ---------------------------------------------------------------------------------------
+emit(only("transition")[2], "whoosh-swap", { at: T.IPAD.exit, dur: 0.9, note: "iPad leaves left, iPhone arrives right" });
+emit(only("transition")[3], "whoosh-down", { at: T.PHONE.exit, dur: 0.7 });
+emit(only("transition")[4], "whoosh-swap", { at: C.consult.from, dur: 0.7, note: "the tablet leaves, the consultant's phone arrives" });
+emit(only("transition")[5], "whoosh-down", { at: T.CONSULT.pull[0] + 0.3, dur: 0.7 });
+emit(only("transition")[6], "whoosh-in", { at: T.SYSTEM.out, dur: 0.7, note: "the diagram is pushed back as the bag hand-off photo fades in" });
 
 sfx.sort((a, b) => a.t - b.t || a.type.localeCompare(b.type));
 
@@ -162,6 +231,8 @@ console.log(`audio/cues.json: ${sfx.length} sfx cues, ${sections.length} music s
       const overlaps = bed && t < hi && t + ev.dur > lo;
       if (!inside && !overlaps) continue;
       const copy = { ...ev };
+      // the end card's letters ring under the resolved chord of the cut-down (a different arrangement from the master's): a little more of them
+      if (ev.type === "letter-tick" && ev.t >= T.END.hit - 0.1) copy.gain_db = r3((copy.gain_db ?? 0) + 7);
       if (bed) {
         const t0 = Math.max(t, lo), t1 = Math.min(t + ev.dur, hi);
         copy.t = r3(t0 + shift(e));

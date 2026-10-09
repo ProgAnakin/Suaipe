@@ -144,51 +144,310 @@
       "type": "riser-a",
       "t": 0,
       "dur": 2,
+      "tier": "A",
       "note": "tension riser, ends exactly at lock-on"
     },
     {
-      "type": "tile-bloom",
+      "type": "tile-pop",
       "t": 0.1,
-      "times": [
-        0.1,
-        0.175,
-        0.25,
-        0.325,
-        0.4,
-        0.475,
-        0.55,
-        0.625,
-        0.7,
-        0.775
-      ],
-      "note": "the ten gadget cards as ONE rising cascade"
+      "tier": "T",
+      "event": "tile-pop",
+      "eventT": 0.1,
+      "note": "gadget card 1 of 10 pops in",
+      "step": 0,
+      "of": 10
+    },
+    {
+      "type": "word-hit",
+      "t": 0.12,
+      "tier": "A",
+      "event": "word",
+      "eventT": 0.12,
+      "note": "\"Too\" lands",
+      "step": 0,
+      "vel": 0.7
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.175,
+      "tier": "T",
+      "event": "tile-pop",
+      "eventT": 0.175,
+      "note": "gadget card 2 of 10 pops in",
+      "step": 1,
+      "of": 10
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.25,
+      "tier": "T",
+      "event": "tile-pop",
+      "eventT": 0.25,
+      "note": "gadget card 3 of 10 pops in",
+      "step": 2,
+      "of": 10
+    },
+    {
+      "type": "word-hit",
+      "t": 0.3,
+      "tier": "A",
+      "event": "word",
+      "eventT": 0.3,
+      "note": "\"many\" lands",
+      "step": 1,
+      "vel": 0.7
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.325,
+      "tier": "T",
+      "event": "tile-pop",
+      "eventT": 0.325,
+      "note": "gadget card 4 of 10 pops in",
+      "step": 3,
+      "of": 10
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.4,
+      "tier": "T",
+      "event": "tile-pop",
+      "eventT": 0.4,
+      "note": "gadget card 5 of 10 pops in",
+      "step": 4,
+      "of": 10
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.475,
+      "tier": "T",
+      "event": "tile-pop",
+      "eventT": 0.475,
+      "note": "gadget card 6 of 10 pops in",
+      "step": 5,
+      "of": 10
+    },
+    {
+      "type": "word-hit",
+      "t": 0.48,
+      "tier": "A",
+      "event": "word",
+      "eventT": 0.48,
+      "note": "\"gadgets.\" lands",
+      "step": 2,
+      "vel": 0.7
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.55,
+      "tier": "T",
+      "event": "tile-pop",
+      "eventT": 0.55,
+      "note": "gadget card 7 of 10 pops in",
+      "step": 6,
+      "of": 10
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.625,
+      "tier": "T",
+      "event": "tile-pop",
+      "eventT": 0.625,
+      "note": "gadget card 8 of 10 pops in",
+      "step": 7,
+      "of": 10
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.7,
+      "tier": "T",
+      "event": "tile-pop",
+      "eventT": 0.7,
+      "note": "gadget card 9 of 10 pops in",
+      "step": 8,
+      "of": 10
+    },
+    {
+      "type": "tile-pop",
+      "t": 0.775,
+      "tier": "T",
+      "event": "tile-pop",
+      "eventT": 0.775,
+      "note": "gadget card 10 of 10 pops in",
+      "step": 9,
+      "of": 10
     },
     {
       "type": "lock-on",
       "t": 2,
+      "tier": "S",
+      "event": "lock-on",
+      "eventT": 2,
       "note": "★ product chosen: a soft pitched ping + low thump"
     },
     {
       "type": "whoosh-out",
       "t": 2,
-      "dur": 0.9,
-      "note": "the other cards fly outward: air"
+      "tier": "T",
+      "event": "tiles-away",
+      "eventT": 2,
+      "note": "the other cards fly outward: air",
+      "dur": 0.9
+    },
+    {
+      "type": "word-hit",
+      "t": 2.05,
+      "tier": "A",
+      "event": "word",
+      "eventT": 2.05,
+      "note": "\"One\" slams in",
+      "step": 3,
+      "vel": 0.85
+    },
+    {
+      "type": "word-hit",
+      "t": 2.25,
+      "tier": "A",
+      "event": "word",
+      "eventT": 2.25,
+      "note": "\"perfect\" slams in",
+      "step": 4,
+      "vel": 0.85
+    },
+    {
+      "type": "word-hit",
+      "t": 2.45,
+      "tier": "A",
+      "event": "word",
+      "eventT": 2.45,
+      "note": "\"match.\" slams in",
+      "step": 5,
+      "vel": 0.85
     },
     {
       "type": "sparkle-up",
-      "t": 2.5,
-      "dur": 0.8
+      "t": 2.501,
+      "dur": 0.8,
+      "tier": "T",
+      "event": "twinkles",
+      "eventT": 2.531,
+      "note": "the nine twinkles around the hero, as one rising run"
+    },
+    {
+      "type": "chip-pop",
+      "t": 2.55,
+      "tier": "A",
+      "event": "badge",
+      "eventT": 2.55,
+      "note": "the 98% badge pops on the hero card",
+      "step": 2,
+      "of": 4,
+      "gain_db": -5
+    },
+    {
+      "type": "shimmer",
+      "t": 2.7,
+      "tier": "T",
+      "event": "shine",
+      "eventT": 2.7,
+      "note": "a light sweep crosses the hero card",
+      "dur": 0.9,
+      "gain_db": -6
     },
     {
       "type": "riser-b",
       "t": 3,
       "dur": 1,
-      "note": "swell landing on the logo hit"
+      "tier": "A",
+      "event": "flash",
+      "eventT": 3.6,
+      "note": "swell landing on the logo hit (the picture flashes into the logo)"
     },
     {
       "type": "logo-hit",
       "t": 4,
+      "tier": "S",
+      "event": "logo-hit",
+      "eventT": 4,
       "note": "★ sub boom + glassy C chord (with a low-mid body for phones) + air; the pulse begins after it"
+    },
+    {
+      "type": "letter-tick",
+      "t": 4.1,
+      "tier": "T",
+      "event": "letter",
+      "eventT": 4.1,
+      "note": "wordmark letter S pops in",
+      "step": 0,
+      "of": 6
+    },
+    {
+      "type": "letter-tick",
+      "t": 4.15,
+      "tier": "T",
+      "event": "letter",
+      "eventT": 4.15,
+      "note": "wordmark letter U pops in",
+      "step": 1,
+      "of": 6
+    },
+    {
+      "type": "letter-tick",
+      "t": 4.2,
+      "tier": "T",
+      "event": "letter",
+      "eventT": 4.2,
+      "note": "wordmark letter A pops in",
+      "step": 2,
+      "of": 6
+    },
+    {
+      "type": "shimmer",
+      "t": 4.2,
+      "tier": "T",
+      "event": "shimmer",
+      "eventT": 4.2,
+      "note": "the sheen across the logo mark",
+      "dur": 1.2
+    },
+    {
+      "type": "letter-tick",
+      "t": 4.25,
+      "tier": "T",
+      "event": "letter",
+      "eventT": 4.25,
+      "note": "wordmark letter I pops in",
+      "step": 3,
+      "of": 6
+    },
+    {
+      "type": "letter-tick",
+      "t": 4.3,
+      "tier": "T",
+      "event": "letter",
+      "eventT": 4.3,
+      "note": "wordmark letter P pops in",
+      "step": 4,
+      "of": 6
+    },
+    {
+      "type": "tagline-air",
+      "t": 4.3,
+      "tier": "T",
+      "event": "tagline",
+      "eventT": 4.3,
+      "note": "\"Product discovery for physical retail\" opens from the centre",
+      "dur": 0.7
+    },
+    {
+      "type": "letter-tick",
+      "t": 4.35,
+      "tier": "T",
+      "event": "letter",
+      "eventT": 4.35,
+      "note": "wordmark letter E pops in",
+      "step": 5,
+      "of": 6
     },
     {
       "type": "room-tone",
@@ -196,15 +455,24 @@
       "dur": 1,
       "fade_in": 0.4,
       "fade_out": 0.4,
+      "tier": "T",
       "note": "the shop under the hand-off photograph; it gives way to the interface as the camera enters the screen"
     },
     {
       "type": "tap",
-      "t": 5.5
+      "t": 5.5,
+      "tier": "A",
+      "event": "tap",
+      "eventT": 8,
+      "note": "finger taps TAP TO START (ripple, button flash)"
     },
     {
       "type": "swipe-yes",
       "t": 5.88,
+      "tier": "A",
+      "event": "swipe",
+      "eventT": 17.5,
+      "note": "card 3 swiped YES (right)",
       "dur": 0.4,
       "accent": 6,
       "step": 2,
@@ -212,8 +480,33 @@
       "pan": 0.55
     },
     {
+      "type": "card-in",
+      "t": 6,
+      "tier": "T",
+      "event": "card-in",
+      "eventT": 17.5,
+      "note": "question card 4 of 8 enters",
+      "step": 3,
+      "of": 8
+    },
+    {
+      "type": "dot-tick",
+      "t": 6,
+      "tier": "T",
+      "event": "dot",
+      "eventT": 17.5,
+      "note": "progress dot 3 lights up",
+      "step": 2,
+      "of": 8,
+      "dir": 1
+    },
+    {
       "type": "swipe-yes",
       "t": 6.38,
+      "tier": "A",
+      "event": "swipe",
+      "eventT": 18,
+      "note": "card 4 swiped YES (right)",
       "dur": 0.4,
       "accent": 6.5,
       "step": 3,
@@ -221,8 +514,33 @@
       "pan": 0.55
     },
     {
+      "type": "card-in",
+      "t": 6.5,
+      "tier": "T",
+      "event": "card-in",
+      "eventT": 18,
+      "note": "question card 5 of 8 enters",
+      "step": 4,
+      "of": 8
+    },
+    {
+      "type": "dot-tick",
+      "t": 6.5,
+      "tier": "T",
+      "event": "dot",
+      "eventT": 18,
+      "note": "progress dot 4 lights up",
+      "step": 3,
+      "of": 8,
+      "dir": 1
+    },
+    {
       "type": "swipe-yes",
       "t": 6.88,
+      "tier": "A",
+      "event": "swipe",
+      "eventT": 18.5,
+      "note": "card 5 swiped YES (right)",
       "dur": 0.4,
       "accent": 7,
       "step": 4,
@@ -230,8 +548,33 @@
       "pan": 0.55
     },
     {
+      "type": "card-in",
+      "t": 7,
+      "tier": "T",
+      "event": "card-in",
+      "eventT": 18.5,
+      "note": "question card 6 of 8 enters",
+      "step": 5,
+      "of": 8
+    },
+    {
+      "type": "dot-tick",
+      "t": 7,
+      "tier": "T",
+      "event": "dot",
+      "eventT": 18.5,
+      "note": "progress dot 5 lights up",
+      "step": 4,
+      "of": 8,
+      "dir": 1
+    },
+    {
       "type": "swipe-no",
       "t": 7.38,
+      "tier": "A",
+      "event": "swipe",
+      "eventT": 19,
+      "note": "card 6 swiped NO (left)",
       "dur": 0.4,
       "accent": 7.5,
       "step": 5,
@@ -239,8 +582,33 @@
       "pan": -0.55
     },
     {
+      "type": "card-in",
+      "t": 7.5,
+      "tier": "T",
+      "event": "card-in",
+      "eventT": 19,
+      "note": "question card 7 of 8 enters",
+      "step": 6,
+      "of": 8
+    },
+    {
+      "type": "dot-tick",
+      "t": 7.5,
+      "tier": "T",
+      "event": "dot",
+      "eventT": 19,
+      "note": "progress dot 6 lights up",
+      "step": 5,
+      "of": 8,
+      "dir": -1
+    },
+    {
       "type": "swipe-no",
       "t": 7.88,
+      "tier": "A",
+      "event": "swipe",
+      "eventT": 19.5,
+      "note": "card 7 swiped NO (left)",
       "dur": 0.4,
       "accent": 8,
       "step": 6,
@@ -248,8 +616,33 @@
       "pan": -0.55
     },
     {
+      "type": "card-in",
+      "t": 8,
+      "tier": "T",
+      "event": "card-in",
+      "eventT": 19.5,
+      "note": "question card 8 of 8 enters",
+      "step": 7,
+      "of": 8
+    },
+    {
+      "type": "dot-tick",
+      "t": 8,
+      "tier": "T",
+      "event": "dot",
+      "eventT": 19.5,
+      "note": "progress dot 7 lights up",
+      "step": 6,
+      "of": 8,
+      "dir": -1
+    },
+    {
       "type": "swipe-no",
       "t": 8.38,
+      "tier": "A",
+      "event": "swipe",
+      "eventT": 20,
+      "note": "card 8 swiped NO (left)",
       "dur": 0.4,
       "accent": 8.5,
       "step": 7,
@@ -257,30 +650,223 @@
       "pan": -0.55
     },
     {
+      "type": "dot-tick",
+      "t": 8.5,
+      "tier": "T",
+      "event": "dot",
+      "eventT": 20,
+      "note": "progress dot 8 lights up",
+      "step": 7,
+      "of": 8,
+      "dir": -1
+    },
+    {
       "type": "reveal-whoosh",
       "t": 8.5,
-      "dur": 0.8,
-      "note": "the scan screen opens"
+      "tier": "A",
+      "event": "reveal",
+      "eventT": 20,
+      "note": "the scan screen opens",
+      "dur": 0.8
     },
     {
       "type": "scan-riser",
       "t": 8.8,
       "dur": 1.7,
-      "note": "one tonal riser replaces the eleven counter ticks; it thins to an inhale in the 0.25 s of air before the hit"
+      "tier": "A",
+      "note": "a tonal riser under the scan ring; it thins to an inhale in the 0.25 s of air before the hit"
+    },
+    {
+      "type": "count-tick",
+      "t": 9.197,
+      "tier": "T",
+      "event": "count",
+      "eventT": 20.697,
+      "note": "scan counter steps (5 %)",
+      "step": 0,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 9.3,
+      "tier": "T",
+      "event": "count",
+      "eventT": 20.8,
+      "note": "scan counter steps (10 %)",
+      "step": 1,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 9.373,
+      "tier": "T",
+      "event": "count",
+      "eventT": 20.873,
+      "note": "scan counter steps (15 %)",
+      "step": 2,
+      "of": 13,
+      "gain_db": 2.5
+    },
+    {
+      "type": "count-tick",
+      "t": 9.431,
+      "tier": "T",
+      "event": "count",
+      "eventT": 20.931,
+      "note": "scan counter steps (20 %)",
+      "step": 3,
+      "of": 13,
+      "gain_db": 2.3
+    },
+    {
+      "type": "count-tick",
+      "t": 9.522,
+      "tier": "T",
+      "event": "count",
+      "eventT": 21.022,
+      "note": "scan counter steps (30 %)",
+      "step": 4,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 9.594,
+      "tier": "T",
+      "event": "count",
+      "eventT": 21.094,
+      "note": "scan counter steps (40 %)",
+      "step": 5,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 9.656,
+      "tier": "T",
+      "event": "count",
+      "eventT": 21.156,
+      "note": "scan counter steps (50 %)",
+      "step": 6,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 9.719,
+      "tier": "T",
+      "event": "count",
+      "eventT": 21.219,
+      "note": "scan counter steps (60 %)",
+      "step": 7,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 9.795,
+      "tier": "T",
+      "event": "count",
+      "eventT": 21.295,
+      "note": "scan counter steps (70 %)",
+      "step": 8,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 9.891,
+      "tier": "T",
+      "event": "count",
+      "eventT": 21.391,
+      "note": "scan counter steps (80 %)",
+      "step": 9,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 9.954,
+      "tier": "T",
+      "event": "count",
+      "eventT": 21.454,
+      "note": "scan counter steps (85 %)",
+      "step": 10,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 10.035,
+      "tier": "T",
+      "event": "count",
+      "eventT": 21.535,
+      "note": "scan counter steps (90 %)",
+      "step": 11,
+      "of": 13
+    },
+    {
+      "type": "count-tick",
+      "t": 10.165,
+      "tier": "T",
+      "event": "count",
+      "eventT": 21.665,
+      "note": "scan counter steps (95 %)",
+      "step": 12,
+      "of": 13
     },
     {
       "type": "counter-hit",
       "t": 10.5,
-      "note": "★ the 98 % bloom: a bright glass C chord and a sub swell, no confetti; the first, smaller peak"
+      "tier": "S",
+      "event": "scan-hit",
+      "eventT": 22,
+      "note": "★ the 98 % bloom: a bright glass C chord and a sub swell; the first, smaller peak"
+    },
+    {
+      "type": "confetti-pop",
+      "t": 10.52,
+      "tier": "T",
+      "gain_db": -3,
+      "note": "the confetti bursts from the ring (centre): a soft pat and a shower of glints, not a bang"
     },
     {
       "type": "whoosh-pullback",
       "t": 10.6,
+      "tier": "A",
+      "event": "dock",
+      "eventT": 22.1,
+      "note": "the ring docks into the result screen, the camera pulls back",
       "dur": 0.9
+    },
+    {
+      "type": "confetti-pop",
+      "t": 10.62,
+      "tier": "T",
+      "event": "confetti",
+      "eventT": 22.12,
+      "note": "the two side bursts from the bottom corners",
+      "gain_db": -7,
+      "pan": 0,
+      "wide": true
+    },
+    {
+      "type": "caption-pop",
+      "t": 10.8,
+      "tier": "T",
+      "event": "caption",
+      "eventT": 22.3,
+      "note": "caption 3: \"One tap to claim the match.\"",
+      "step": 2
+    },
+    {
+      "type": "underline",
+      "t": 11.27,
+      "tier": "T",
+      "event": "caption-line",
+      "eventT": 22.77,
+      "note": "caption 3: the highlighted phrase underlines itself",
+      "dur": 0.4
     },
     {
       "type": "motif",
       "t": 11.5,
+      "tier": "S",
+      "event": "end-hit",
+      "eventT": 61,
       "note": "★ the sonic motif complete: G4 - A4 - C5 - E5, on the logo, over the held chord"
     },
     {
@@ -289,13 +875,161 @@
       "dur": 2.4,
       "fade_in": 0.4,
       "fade_out": 1.4,
+      "tier": "T",
       "note": "the shop returns under the bag and the handshake and rings out under the end card: the opening's room, closing the circle"
+    },
+    {
+      "type": "letter-tick",
+      "t": 11.58,
+      "tier": "T",
+      "event": "letter",
+      "eventT": 61.08,
+      "note": "wordmark letter S pops in",
+      "step": 0,
+      "of": 6,
+      "gain_db": 7
+    },
+    {
+      "type": "letter-tick",
+      "t": 11.63,
+      "tier": "T",
+      "event": "letter",
+      "eventT": 61.13,
+      "note": "wordmark letter U pops in",
+      "step": 1,
+      "of": 6,
+      "gain_db": 7
+    },
+    {
+      "type": "letter-tick",
+      "t": 11.68,
+      "tier": "T",
+      "event": "letter",
+      "eventT": 61.18,
+      "note": "wordmark letter A pops in",
+      "step": 2,
+      "of": 6,
+      "gain_db": 7
+    },
+    {
+      "type": "shimmer",
+      "t": 11.7,
+      "tier": "T",
+      "event": "shimmer",
+      "eventT": 61.2,
+      "note": "a sheen sweeps the logo mark",
+      "dur": 1.2
+    },
+    {
+      "type": "letter-tick",
+      "t": 11.73,
+      "tier": "T",
+      "event": "letter",
+      "eventT": 61.23,
+      "note": "wordmark letter I pops in",
+      "step": 3,
+      "of": 6,
+      "gain_db": 7
+    },
+    {
+      "type": "letter-tick",
+      "t": 11.78,
+      "tier": "T",
+      "event": "letter",
+      "eventT": 61.28,
+      "note": "wordmark letter P pops in",
+      "step": 4,
+      "of": 6,
+      "gain_db": 7
+    },
+    {
+      "type": "letter-tick",
+      "t": 11.83,
+      "tier": "T",
+      "event": "letter",
+      "eventT": 61.33,
+      "note": "wordmark letter E pops in",
+      "step": 5,
+      "of": 6,
+      "gain_db": 7
+    },
+    {
+      "type": "line-draw",
+      "t": 12.2,
+      "tier": "T",
+      "event": "line",
+      "eventT": 61.7,
+      "note": "the underline draws itself",
+      "dur": 0.6
+    },
+    {
+      "type": "tagline-air",
+      "t": 12.3,
+      "tier": "T",
+      "event": "tagline",
+      "eventT": 61.8,
+      "note": "\"Built for the whole store.\" rises",
+      "dur": 0.7,
+      "gain_db": 0
+    },
+    {
+      "type": "chip-pop",
+      "t": 12.7,
+      "tier": "A",
+      "event": "chip",
+      "eventT": 62.2,
+      "note": "area chip \"iPad kiosk\" pops in",
+      "step": 0,
+      "of": 4
+    },
+    {
+      "type": "chip-pop",
+      "t": 12.95,
+      "tier": "A",
+      "event": "chip",
+      "eventT": 62.45,
+      "note": "area chip \"Manager\" pops in",
+      "step": 1,
+      "of": 4
+    },
+    {
+      "type": "chip-pop",
+      "t": 13.2,
+      "tier": "A",
+      "event": "chip",
+      "eventT": 62.7,
+      "note": "area chip \"Stats\" pops in",
+      "step": 2,
+      "of": 4
+    },
+    {
+      "type": "chip-pop",
+      "t": 13.45,
+      "tier": "A",
+      "event": "chip",
+      "eventT": 62.95,
+      "note": "area chip \"Consultants\" pops in",
+      "step": 3,
+      "of": 4
+    },
+    {
+      "type": "tagline-air",
+      "t": 13.8,
+      "tier": "T",
+      "event": "tagline",
+      "eventT": 63.3,
+      "note": "the technology line rises",
+      "dur": 0.7,
+      "gain_db": -4
     },
     {
       "type": "sparkle",
       "t": 13.9,
       "dur": 1.5,
-      "note": "a single glint"
+      "tier": "T",
+      "event": "twinkles",
+      "eventT": 63.586,
+      "note": "the glints over the end card, as one fading run"
     }
   ]
 }

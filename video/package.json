@@ -7,6 +7,7 @@
     "studio": "remotion studio src/index.ts",
     "compositions": "remotion compositions src/index.ts",
     "cues": "node scripts/export-cues.mjs",
+    "events": "node scripts/picture-events.mjs",
     "srt": "node scripts/export-srt.mjs",
     "still": "remotion still src/index.ts SuaipeFilm out/frame.png --frame=1200 --gl=angle",
     "cover": "remotion still src/index.ts Cover out/suaipe-cover.png --gl=angle",

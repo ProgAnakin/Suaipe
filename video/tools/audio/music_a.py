@@ -74,7 +74,12 @@ def compose_a(cues: dict, harm: Harmony, direction: str = "a") -> Score:
     def keys(t, ch_keys, idx, vel, dur_=0.55):
         sc.keys.append((t, dur_, ch_keys[idx % len(ch_keys)], vel))
 
-    typing = [(float(e["t"]), float(e["t"]) + float(e["dur"])) for e in cues["sfx"] if e["type"] == "typing-texture"]
+    typing: list[tuple[float, float]] = []                                   # runs of keystrokes (gaps under 0.45 s belong to one run): the felt piano leaves them alone
+    for t in sfx_t("key"):
+        if typing and t - typing[-1][1] < 0.45:
+            typing[-1] = (typing[-1][0], t + 0.12)
+        else:
+            typing.append((t, t + 0.12))
     first_in = {name: min(lo for lo, hi, ch, nm in cells if nm == name) for name in sec if any(nm == name for *_, nm in cells)}
 
     # ----------------------------------------------------------------------------------------------- hook: drone, swell, a faint heartbeat
@@ -182,7 +187,7 @@ def compose_a(cues: dict, harm: Harmony, direction: str = "a") -> Score:
             bass(t0, min(t_end - t0, BAR) * 0.92, ch, 0.60, attack=6.0)
             for t in pulse_times(t0, t_end):
                 sc.pulses.append((t, 0.50 if (t % 2.0) < 0.5 else 0.40, BASS_ROOT[ch]))
-            ui_t = np.array(sfx_t("node-run", "tile-bloom", "lock-click", "store-ticks") + [x for e in cues["sfx"] if e["type"] in ("node-run", "tile-bloom") for x in e.get("times", [])])
+            ui_t = np.array(sfx_t("node-on", "tile-on", "lock-click", "chip-pop", "packet", "line-draw"))
 
             def flams(t):
                 d = np.abs(ui_t - t)
@@ -264,7 +269,7 @@ def compose_a(cues: dict, harm: Harmony, direction: str = "a") -> Score:
         mac += [(sec["idea"][0] - 0.1, -1.0), (sec["idea"][0], 0.0)]
     elif "hook" in sec:
         mac += [(sec["hook"][1] - 0.1, -1.0), (sec["hook"][1], 0.0)]
-    for name, db, db_end in (("match", 1.0, 0.0), ("email", -2.0, -2.0), ("store", 0.0, 0.0), ("consult", -1.5, -1.5), ("system", 0.5, 0.5), ("human", -1.5, -1.0)):
+    for name, db, db_end in (("match", 1.0, 0.0), ("email", -2.0, -2.0), ("store", 0.0, 0.0), ("consult", -1.5, -1.5), ("system", -2.0, -2.0), ("human", -1.5, -1.0)):
         if name in sec:
             a, z = sec[name]
             if name == "match":
