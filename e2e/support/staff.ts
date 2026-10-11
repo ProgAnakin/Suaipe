@@ -31,7 +31,10 @@ export async function signInAs(page: Page, backend: MockBackend, role: StaffRole
   await page.context().addInitScript((session) => {
     try { sessionStorage.setItem("sb-placeholder-auth-token", JSON.stringify(session)); } catch { /* storage unavailable */ }
   }, staffSession());
-  backend.rpc.set("get_my_store_role", () => [{ role, store_id: role === "manager" ? null : storeId }]);
+  const store = role === "manager" ? null : storeId;
+  backend.rpc.set("get_my_store_role", () => [{ role, store_id: store }]);
+  // /consulente reads its own row of store_roles directly (RLS: "roles_self_read")
+  backend.tables.store_roles = [{ id: "44444444-4444-4444-8444-444444444444", user_id: "11111111-1111-4111-8111-111111111111", role, store_id: store }];
 }
 
 /** n fictional leads, newest first, spread over `days` days and two stores. Ids/e-mails are unique. */

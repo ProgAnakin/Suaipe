@@ -43,6 +43,10 @@ const ENV_NOISE = [
   /Failed to load resource/i,
   /net::ERR_/i,
   /WebSocket/i,
+  // WebKit only: it logs the Chrome-only `interactive-widget` viewport hint as a warning, and reports a
+  // request the page abandoned (a navigation while the catalogue was loading) as a page error
+  /Viewport argument key "interactive-widget" not recognized/i,
+  /^pageerror: .*due to access control checks/i,
   /\[suaipe\] (funnel event|quiz_sessions insert|product_settings fetch|startup Promise\.all|No store_id)/,
 ];
 export const appErrors = (errors: string[]) => errors.filter((e) => !ENV_NOISE.some((re) => re.test(e)));

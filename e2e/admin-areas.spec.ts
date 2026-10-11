@@ -78,7 +78,7 @@ test.describe("manager · sessions", () => {
     await expect(page.getByRole("button", { name: `All (${N})` })).toBeVisible({ timeout: 20_000 });
 
     const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Export CSV" }).click()]);
-    const csv = fs.readFileSync(await download.path(), "utf8").replace(/^﻿/, "");
+    const csv = fs.readFileSync(await download.path(), "utf8").replace(/^\uFEFF/, "");
     const lines = csv.split("\r\n");
     expect(lines).toHaveLength(N + 1); // header + every lead — not the first 1000
     expect(csv).not.toMatch(/(^|,)"[=+\-@]/m); // no cell starts with a formula character
@@ -202,7 +202,7 @@ test.describe("every staff area survives hostile and missing data", () => {
     Object.assign(rows[1], { nome: null, cognome: null });
     Object.assign(rows[2], { nome: "N".repeat(100), cognome: "S".repeat(100) });
     Object.assign(rows[3], { nome: "<img src=x onerror=window.__pwned=1>", cognome: "<script>window.__pwned=1</script>", product_name: "<b onmouseover=window.__pwned=1>x</b>" });
-    Object.assign(rows[4], { nome: "😀🎉", cognome: "‮RTL‬", email: "weird+tag@sub.example.co.uk" });
+    Object.assign(rows[4], { nome: "😀🎉", cognome: "\u202eRTL\u202c", email: "weird+tag@sub.example.co.uk" });
     const backend = withSessions(rows);
     await openManager(page, backend);
     await page.getByRole("button", { name: /Sessions & Codes/ }).click();

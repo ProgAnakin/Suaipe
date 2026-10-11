@@ -27,7 +27,8 @@
     "cap:sync": "npm run build && npx cap sync",
     "cap:android": "npm run build && npx cap sync android && npx cap open android",
     "cap:ios": "npm run build && npx cap sync ios && npx cap open ios",
-    "test:sql": "supabase/tests/run.sh"
+    "test:sql": "supabase/tests/run.sh",
+    "docs:screenshots": "DOCS_SCREENSHOTS=1 playwright test"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
