@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion, type TargetAndTransition, type Transition } from "framer-motion";
 import WelcomeScreen, { type UserInfo } from "@/components/WelcomeScreen";
 import QuizScreen from "@/components/QuizScreen";
@@ -8,6 +8,7 @@ import AttractScreen from "@/components/AttractScreen";
 import { KioskLockScreen } from "@/components/KioskLockScreen";
 import { getMatchedProduct, type Product } from "@/data/products";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { useInactivityReset } from "@/hooks/useInactivityReset";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { useBgMusic } from "@/hooks/useBgMusic";
@@ -15,13 +16,19 @@ import { useKioskMode } from "@/hooks/useKioskMode";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useLockBodyScroll } from "@/hooks/useLockBodyScroll";
 import { useLang } from "@/i18n/LanguageContext";
-import { getStoredStoreId } from "@/data/stores";
-import { RESULT_INACTIVITY_TIMEOUT_MS } from "@/config/timings";
+import { DEFAULT_STORE_ID, getStoredStoreId } from "@/data/stores";
+import {
+  NETWORK_TIMEOUT_MS,
+  RESULT_INACTIVITY_TIMEOUT_MS,
+  STARTUP_REFRESH_INTERVAL_MS,
+  STARTUP_REFRESH_MIN_GAP_MS,
+} from "@/config/timings";
 import { SITE_URL } from "@/config/siteUrl";
 import type { QuizCard } from "@/data/quiz-cards";
 import { buildTagMap, MAX_ACTIVE_QUIZ_CARDS } from "@/data/quiz-cards";
 import { readCache, writeCache } from "@/lib/startupCache";
 import { toAbsoluteAssetUrl } from "@/lib/validators";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Screen = "splash" | "welcome" | "loading_quiz" | "quiz" | "result" | "success";
 
@@ -79,6 +86,82 @@ function trackFunnel(funnelKey: string, eventType: "quiz_started" | "result_show
   });
 }
 
+// ── Startup data: catalogue, per-store settings, quiz cards ───────────────────────────
+type SettingsRow = { product_id: string; active: boolean; price_override: string | null; image_url: string | null; video_url: string | null; discount_percent: number | null };
+type CustomRow   = { id: string; name: string; description: string; price: string; rating: number; image_url: string | null; video_url: string | null; tags: string[]; faq: { q: string; a: string }[] };
+type GlobalRow   = { product_id: string; hidden: boolean };
+
+interface StartupSnapshot {
+  settingsData: SettingsRow[];
+  customData: CustomRow[];
+  globalData: GlobalRow[];
+  cardsData: QuizCard[];
+}
+
+/** A cached snapshot comes from device storage: never trust its shape. */
+function isStartupSnapshot(x: unknown): x is StartupSnapshot {
+  const s = x as Partial<StartupSnapshot> | null;
+  return !!s && Array.isArray(s.settingsData) && Array.isArray(s.customData)
+    && Array.isArray(s.globalData) && Array.isArray(s.cardsData);
+}
+
+/**
+ * Reads everything the kiosk needs from Supabase. Resolves to `null` when the catalogue could not
+ * be read completely: the caller then keeps what it already has. A half-answered refresh must
+ * never replace a good catalogue (or, worse, a good cache) with an empty one — an empty catalogue
+ * silently turns into "recommend the bundled demo products".
+ */
+async function fetchStartupSnapshot(storeId: string, previousCards: QuizCard[]): Promise<StartupSnapshot | null> {
+  const [settingsRes, customRes, globalRes, cardsRes] = await withTimeout(Promise.all([
+    supabase
+      .from("product_settings")
+      .select("product_id, active, price_override, image_url, video_url, discount_percent")
+      .eq("store_id", storeId),
+    supabase
+      .from("custom_products")
+      .select("id, name, description, price, rating, image_url, video_url, tags, faq")
+      .eq("status", "active"),
+    supabase
+      .from("product_global_status")
+      .select("product_id, hidden"),
+    supabase
+      .from("quiz_cards")
+      .select("id, emoji, image_url, tag, sort_order, active, text_it, text_en, text_pt, text_es, text_fr")
+      .eq("active", true)
+      .order("sort_order", { ascending: true })
+      .limit(MAX_ACTIVE_QUIZ_CARDS),
+  ]), NETWORK_TIMEOUT_MS, "startup data");
+
+  if (settingsRes.error || customRes.error || globalRes.error) {
+    console.error("[suaipe] startup data incomplete — keeping the previous catalogue:",
+      settingsRes.error ?? customRes.error ?? globalRes.error);
+    return null;
+  }
+  const cardsOk = !cardsRes.error && !!cardsRes.data && cardsRes.data.length > 0;
+  return {
+    settingsData: (settingsRes.data ?? []) as SettingsRow[],
+    customData:   (customRes.data   ?? []) as CustomRow[],
+    globalData:   (globalRes.data   ?? []) as GlobalRow[],
+    cardsData:    cardsOk ? (cardsRes.data as QuizCard[]) : previousCards,
+  };
+}
+
+type SessionInsert = Database["public"]["Tables"]["quiz_sessions"]["Insert"];
+type InsertResult = { error: { code?: string; message: string } | null };
+
+/** One attempt to store the lead. A request that never answers is abandoned after NETWORK_TIMEOUT_MS. */
+async function insertQuizSession(payload: SessionInsert): Promise<InsertResult> {
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), NETWORK_TIMEOUT_MS);
+  try {
+    return await supabase.from("quiz_sessions").insert(payload).abortSignal(abort.signal);
+  } catch (err) {
+    return { error: { message: err instanceof Error ? err.message : String(err) } };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 const Index = () => {
   const { t, lang } = useLang();
   const { isKioskLocked, deactivateKiosk } = useKioskMode();
@@ -104,134 +187,149 @@ const Index = () => {
   const [quizCards, setQuizCards] = useState<QuizCard[] | null>(null);
   const [tagMap, setTagMap] = useState<Record<number, string> | undefined>(undefined);
 
-  useEffect(() => {
-    const storeId = getStoredStoreId() ?? "rio-de-janeiro";
-    const cacheKey = `startup_${storeId}`;
+  // What screen the customer is on, readable from timers and event handlers without re-subscribing.
+  const screenRef = useRef<Screen>(screen);
+  screenRef.current = screen;
+  /** the catalogue in use right now (cache or network) */
+  const snapshotRef = useRef<StartupSnapshot | null>(null);
+  /** fresher data that arrived while a customer was mid-visit; applied at the next restart */
+  const pendingSnapshotRef = useRef<StartupSnapshot | null>(null);
+  const lastLoadAtRef = useRef(0);
+  const loadingRef = useRef(false);
+  /** one id per visit: lets the database refuse a claim that is retried after a lost answer */
+  const claimIdRef = useRef<string | null>(null);
 
-    interface StartupSnapshot {
-      settingsData: typeof settingsData;
-      customData: typeof customData;
-      globalData: typeof globalData;
-      cardsData: QuizCard[];
-    }
+  const applySnapshot = useCallback((snap: StartupSnapshot) => {
+    snapshotRef.current = snap;
+    pendingSnapshotRef.current = null;
 
-    // Inline type helpers to avoid re-declaring per-closure.
-    type SettingsRow  = { product_id: string; active: boolean; price_override: string | null; image_url: string | null; video_url: string | null; discount_percent: number | null };
-    type CustomRow    = { id: string; name: string; description: string; price: string; rating: number; image_url: string | null; video_url: string | null; tags: string[]; faq: { q: string; a: string }[] };
-    type GlobalRow    = { product_id: string; hidden: boolean };
-    // Needed to narrow the type alias used inside applySnapshot
-    const settingsData: SettingsRow[] = [];
-    const customData:   CustomRow[]   = [];
-    const globalData:   GlobalRow[]   = [];
+    const hiddenIds = new Set(
+      snap.globalData.filter((r) => r.hidden).map((r) => r.product_id),
+    );
+    const customProductList: Product[] = snap.customData.map((r) => ({
+      id: r.id,
+      name: r.name,
+      description: r.description,
+      price: r.price,
+      rating: r.rating,
+      image: r.image_url ?? "/products/placeholder.png",
+      videoUrl: r.video_url ?? "#",
+      tags: r.tags ?? [],
+      faq: r.faq ?? [],
+    }));
+    // The whole catalog now lives in custom_products — no hardcoded base
+    // products are spread in any more.
+    const merged = customProductList.filter((p) => !hiddenIds.has(p.id));
+    setAllProducts(merged);
 
-    function applySnapshot(snap: StartupSnapshot) {
-      const hiddenIds = new Set(
-        snap.globalData.filter((r) => r.hidden).map((r) => r.product_id),
+    const data = snap.settingsData;
+    if (data && data.length > 0) {
+      const active = new Set(
+        data.filter((r) => r.active !== false).map((r) => r.product_id),
       );
-      const customProductList: Product[] = snap.customData.map((r) => ({
-        id: r.id,
-        name: r.name,
-        description: r.description,
-        price: r.price,
-        rating: r.rating,
-        image: r.image_url ?? "/products/placeholder.png",
-        videoUrl: r.video_url ?? "#",
-        tags: r.tags ?? [],
-        faq: r.faq ?? [],
-      }));
-      // The whole catalog now lives in custom_products — no hardcoded base
-      // products are spread in any more.
-      const merged = customProductList.filter((p) => !hiddenIds.has(p.id));
-      setAllProducts(merged);
-
-      const data = snap.settingsData;
-      if (data && data.length > 0) {
-        const active = new Set(
-          data.filter((r) => r.active !== false).map((r) => r.product_id),
-        );
-        // Custom products default to active, but respect an explicit per-store
-        // deactivation: only auto-add ones without a product_settings row.
-        const settingsIds = new Set(data.map((r) => r.product_id));
-        customProductList.forEach((p) => {
-          if (!hiddenIds.has(p.id) && !settingsIds.has(p.id)) active.add(p.id);
-        });
-        const prices: Record<string, string>  = {};
-        const images: Record<string, string>  = {};
-        const videos: Record<string, string>  = {};
-        const discounts: Record<string, number> = {};
-        data.forEach((r) => {
-          if (r.price_override)  prices[r.product_id]    = r.price_override;
-          if (r.image_url)       images[r.product_id]    = r.image_url;
-          if (r.video_url)       videos[r.product_id]    = r.video_url;
-          if (r.discount_percent) discounts[r.product_id] = r.discount_percent;
-        });
-        setActiveProductIds(active);
-        setPriceOverrides(prices);
-        setVideoOverrides(videos);
-        setImageOverrides(images);
-        setDiscountOverrides(discounts);
-      } else {
-        setActiveProductIds(new Set(merged.map((p) => p.id)));
-      }
-      if (snap.cardsData.length > 0) {
-        // Defensive cap — never expose more than the fixed 8 swipes, even if a
-        // stale cache or a direct DB edit left more than 8 cards active.
-        const capped = snap.cardsData.slice(0, MAX_ACTIVE_QUIZ_CARDS);
-        setQuizCards(capped);
-        setTagMap(buildTagMap(capped));
-      }
-      // Cache hit + live refresh both mark loaded — idempotent via React state batching.
-      setSettingsLoaded(true);
+      // Custom products default to active, but respect an explicit per-store
+      // deactivation: only auto-add ones without a product_settings row.
+      const settingsIds = new Set(data.map((r) => r.product_id));
+      customProductList.forEach((p) => {
+        if (!hiddenIds.has(p.id) && !settingsIds.has(p.id)) active.add(p.id);
+      });
+      const prices: Record<string, string>  = {};
+      const images: Record<string, string>  = {};
+      const videos: Record<string, string>  = {};
+      const discounts: Record<string, number> = {};
+      data.forEach((r) => {
+        if (r.price_override)  prices[r.product_id]    = r.price_override;
+        if (r.image_url)       images[r.product_id]    = r.image_url;
+        if (r.video_url)       videos[r.product_id]    = r.video_url;
+        if (r.discount_percent) discounts[r.product_id] = r.discount_percent;
+      });
+      setActiveProductIds(active);
+      setPriceOverrides(prices);
+      setVideoOverrides(videos);
+      setImageOverrides(images);
+      setDiscountOverrides(discounts);
+    } else {
+      setActiveProductIds(new Set(merged.map((p) => p.id)));
+      setPriceOverrides({});
+      setVideoOverrides({});
+      setImageOverrides({});
+      setDiscountOverrides({});
     }
-
-    // Stale-while-revalidate: serve cache instantly, then refresh in background.
-    const cached = readCache<StartupSnapshot>(cacheKey);
-    if (cached) applySnapshot(cached);
-
-    Promise.all([
-      supabase
-        .from("product_settings")
-        .select("product_id, active, price_override, image_url, video_url, discount_percent")
-        .eq("store_id", storeId),
-      supabase
-        .from("custom_products")
-        .select("id, name, description, price, rating, image_url, video_url, tags, faq")
-        .eq("status", "active"),
-      supabase
-        .from("product_global_status")
-        .select("product_id, hidden"),
-      supabase
-        .from("quiz_cards")
-        .select("id, emoji, image_url, tag, sort_order, active, text_it, text_en, text_pt, text_es, text_fr")
-        .eq("active", true)
-        .order("sort_order", { ascending: true })
-        .limit(MAX_ACTIVE_QUIZ_CARDS),
-    ]).then(([settingsRes, customRes, globalRes, cardsRes]) => {
-      if (settingsRes.error) {
-        console.error("[suaipe] product_settings fetch failed:", settingsRes.error);
-        if (!cached) setSettingsLoadFailed(true);
-      }
-
-      const snap: StartupSnapshot = {
-        settingsData: (settingsRes.data ?? []) as SettingsRow[],
-        customData:   (customRes.data   ?? []) as CustomRow[],
-        globalData:   (globalRes.data   ?? []) as GlobalRow[],
-        cardsData:    (!cardsRes.error && cardsRes.data && cardsRes.data.length > 0)
-          ? (cardsRes.data as QuizCard[])
-          : [],
-      };
-
-      writeCache(cacheKey, snap);
-      applySnapshot(snap);
-    }).catch((err) => {
-      // Network rejection (vs. a Supabase error object handled above) would
-      // otherwise leave settingsLoaded=false forever and the kiosk stuck on the
-      // spinner until the 10 s fallback timeout fires.
-      console.error("[suaipe] startup Promise.all rejected:", err);
-      if (!cached) setSettingsLoadFailed(true);
-      setSettingsLoaded(true);
-    });
+    if (snap.cardsData.length > 0) {
+      // Defensive cap — never expose more than the fixed 8 swipes, even if a
+      // stale cache or a direct DB edit left more than 8 cards active.
+      const capped = snap.cardsData.slice(0, MAX_ACTIVE_QUIZ_CARDS);
+      setQuizCards(capped);
+      setTagMap(buildTagMap(capped));
+    }
+    // Cache hit + live refresh both mark loaded — idempotent via React state batching.
+    setSettingsLoaded(true);
   }, []);
+
+  // Reads the live data. Called at start-up, then whenever the kiosk is idle on the attract
+  // screen (every few minutes), wakes up, reconnects or restarts — a manager's edits (prices,
+  // products, quiz cards) would otherwise only reach an iPad that never reloads after a reload.
+  const refreshStartupData = useCallback(async () => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    const storeId = getStoredStoreId() ?? DEFAULT_STORE_ID;
+    try {
+      const snap = await fetchStartupSnapshot(storeId, snapshotRef.current?.cardsData ?? []);
+      if (!snap) {
+        if (!snapshotRef.current) setSettingsLoadFailed(true);
+        return;
+      }
+      writeCache(`startup_${storeId}`, snap);
+      setSettingsLoadFailed(false);
+      // Never swap the catalogue or the quiz cards under a customer who is mid-visit.
+      const midVisit = !["splash", "welcome"].includes(screenRef.current);
+      if (midVisit && snapshotRef.current) pendingSnapshotRef.current = snap;
+      else applySnapshot(snap);
+    } catch (err) {
+      // Network rejection or timeout (vs. a Supabase error object handled above) would
+      // otherwise leave settingsLoaded=false until the 10 s fallback timeout fires.
+      console.error("[suaipe] startup data refresh failed:", err);
+      if (!snapshotRef.current) setSettingsLoadFailed(true);
+    } finally {
+      // Whatever happened, the kiosk must not wait on the loading screen any longer.
+      setSettingsLoaded(true);
+      lastLoadAtRef.current = Date.now();
+      loadingRef.current = false;
+    }
+  }, [applySnapshot]);
+
+  useEffect(() => {
+    // Stale-while-revalidate: serve cache instantly, then refresh in background.
+    const cached = readCache<StartupSnapshot>(`startup_${getStoredStoreId() ?? DEFAULT_STORE_ID}`);
+    if (isStartupSnapshot(cached)) applySnapshot(cached);
+    void refreshStartupData();
+
+    const dueForRefresh = (minGapMs: number) => Date.now() - lastLoadAtRef.current >= minGapMs;
+    const idleTimer = setInterval(() => {
+      if (screenRef.current === "splash" && dueForRefresh(STARTUP_REFRESH_INTERVAL_MS - 1000)) void refreshStartupData();
+    }, STARTUP_REFRESH_INTERVAL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && screenRef.current === "splash" && dueForRefresh(STARTUP_REFRESH_MIN_GAP_MS)) {
+        void refreshStartupData();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(idleTimer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [applySnapshot, refreshStartupData]);
+
+  // Back online after an outage: pick up whatever changed meanwhile.
+  const wasOnlineRef = useRef(isOnline);
+  useEffect(() => {
+    const backOnline = isOnline && !wasOnlineRef.current;
+    wasOnlineRef.current = isOnline;
+    if (backOnline && ["splash", "welcome"].includes(screenRef.current)
+      && Date.now() - lastLoadAtRef.current >= STARTUP_REFRESH_MIN_GAP_MS) {
+      void refreshStartupData();
+    }
+  }, [isOnline, refreshStartupData]);
 
   // Fallback: if startup data doesn't arrive within 10 s, force progress so the
   // kiosk never gets permanently stuck on the loading screen.
@@ -296,7 +394,13 @@ const Index = () => {
     setClaimError(false);
     setClaiming(true);
 
+    // One id per visit. If an attempt gets through but its answer is lost on the way back, the
+    // retry below carries the SAME id and the database refuses the duplicate (23505) instead of
+    // storing — and e-mailing — the lead twice.
+    claimIdRef.current ??= crypto.randomUUID();
+
     const payload = {
+      id: claimIdRef.current,
       email: user.email,
       answers: quizAnswers,
       matched_product_id: matchedProduct.id,
@@ -323,12 +427,14 @@ const Index = () => {
       consent_given_at: user.consentGivenAt,
     };
 
-    // Retry up to 2 times with exponential backoff before giving up.
-    let lastError: unknown;
+    // Retry up to 2 times with exponential backoff before giving up. Each attempt is abandoned
+    // after NETWORK_TIMEOUT_MS so a request that never answers cannot freeze the result screen.
+    let lastError: InsertResult["error"] = null;
     for (let attempt = 0; attempt < 3; attempt++) {
       if (attempt > 0) await new Promise((r) => setTimeout(r, 500 * 2 ** (attempt - 1)));
-      const { error } = await supabase.from("quiz_sessions").insert(payload);
-      if (!error) { lastError = null; break; }
+      const { error } = await insertQuizSession(payload);
+      // 23505 = unique violation on the id: an earlier attempt of THIS claim did get through.
+      if (!error || error.code === "23505") { lastError = null; break; }
       lastError = error;
     }
     if (lastError) {
@@ -357,7 +463,12 @@ const Index = () => {
     setQuizAnswers({});
     setInactivitySecondsLeft(null);
     setClaimError(false);
+    claimIdRef.current = null;
     setFunnelKey(crypto.randomUUID());
+    // The next customer gets the freshest catalogue: data that arrived mid-visit goes live now,
+    // otherwise re-read it (unless it was read a moment ago).
+    if (pendingSnapshotRef.current) applySnapshot(pendingSnapshotRef.current);
+    else if (Date.now() - lastLoadAtRef.current >= STARTUP_REFRESH_MIN_GAP_MS) void refreshStartupData();
     setScreen("splash");
   };
 

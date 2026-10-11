@@ -11,6 +11,9 @@ export const STORES: Store[] = [
   { id: "milano",         name: "Suaipe Milano",         shortName: "Milano"         },
 ];
 
+/** The store whose catalogue a device loads before staff have picked one (the first in the list). */
+export const DEFAULT_STORE_ID = STORES[0]?.id ?? "";
+
 export const STORE_LS_KEY = "wb_store_id";
 
 export function getStoredStoreId(): string | null {

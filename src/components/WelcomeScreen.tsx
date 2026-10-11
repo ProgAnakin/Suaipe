@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useViewportKeyboard } from "@/hooks/useViewportKeyboard";
 import { isValidEmail, isValidName, sanitizeName } from "@/lib/validators";
 import { COOLDOWN_BYPASS_EMAILS } from "@/config/staffEmails";
+import { COOLDOWN_CHECK_TIMEOUT_MS } from "@/config/timings";
+import { withTimeout } from "@/lib/withTimeout";
 
 export interface UserInfo {
   nome: string;
@@ -103,15 +105,20 @@ const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
     setEmailTouched(true);
     if (!isFormValid || checking) return;
     if (!consent) return;
+    // A kiosk nobody has assigned to a store cannot store a lead — say so now, not after the quiz.
+    if (!getStoreById(getStoredStoreId() ?? "")) return;
 
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!COOLDOWN_BYPASS_EMAILS.has(normalizedEmail)) {
       setChecking(true);
       try {
-        const { data } = await supabase.rpc("check_email_cooldown", {
-          p_email: normalizedEmail,
-        });
+        // The server rate-limits e-mails anyway: on a network that never answers, let the visitor in.
+        const { data } = await withTimeout(
+          supabase.rpc("check_email_cooldown", { p_email: normalizedEmail }),
+          COOLDOWN_CHECK_TIMEOUT_MS,
+          "e-mail cooldown check",
+        );
         if (data?.[0]?.in_cooldown && (data[0].hours_remaining as number) > 0) {
           setCooldownHours(Math.max(1, Math.ceil(data[0].hours_remaining as number)));
           setChecking(false);
@@ -143,6 +150,7 @@ const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
   }, [isFormValid, checking, consent, nome, cognome, email, play, onStart]);
 
   const showConsentError = submitted && isFormValid && !consent;
+  const storeConfigured = !!getStoreById(getStoredStoreId() ?? "");
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleStart();
@@ -254,6 +262,9 @@ const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
       >
         {checking ? "…" : t.welcome.cta}
       </motion.button>
+      {submitted && isFormValid && consent && !storeConfigured && (
+        <p role="alert" className="text-center text-sm font-medium text-destructive">{t.welcome.noStoreHint}</p>
+      )}
 
       <div className="flex flex-col items-center gap-1">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">

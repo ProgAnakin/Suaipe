@@ -23,6 +23,8 @@ export interface T {
     cta: string;
     subtitle: string;
     noStore: string;
+    /** shown instead of starting the quiz on a device nobody has assigned to a store yet */
+    noStoreHint: string;
     catalogOffline: string;
     offlineBanner: string;
     privacy: string;
@@ -177,6 +179,7 @@ export const translations: Record<Lang, T> = {
       cta: "🚀 INIZIA IL GIOCO!",
       subtitle: "Rispondi a 8 domande veloci e scopri il tuo match perfetto",
       noStore: "Sede non configurata",
+      noStoreHint: "Chiedi a un collaboratore di selezionare la sede prima di iniziare.",
       catalogOffline: "⚠ Catalogo offline — verifica connessione",
       offlineBanner: "⚠ Connessione assente — il quiz funziona ma le email non verranno inviate",
       privacy: "Dati protetti · Conformità GDPR",
@@ -330,6 +333,7 @@ export const translations: Record<Lang, T> = {
       cta: "🚀 START THE GAME!",
       subtitle: "Answer 8 quick questions and find your perfect match",
       noStore: "Store not configured",
+      noStoreHint: "Please ask a team member to select the store before you start.",
       catalogOffline: "⚠ Catalog offline — check connection",
       offlineBanner: "⚠ No connection — the quiz works but emails won't be sent",
       privacy: "Secure data · GDPR compliant",
@@ -483,6 +487,7 @@ export const translations: Record<Lang, T> = {
       cta: "🚀 COMEÇAR O JOGO!",
       subtitle: "Responda a 8 perguntas rápidas e descubra o seu match perfeito",
       noStore: "Loja não configurada",
+      noStoreHint: "Peça a um colaborador para selecionar a loja antes de começar.",
       catalogOffline: "⚠ Catálogo offline — verifique a conexão",
       offlineBanner: "⚠ Sem conexão — o quiz funciona mas os e-mails não serão enviados",
       privacy: "Dados protegidos · Conformidade GDPR",
@@ -636,6 +641,7 @@ export const translations: Record<Lang, T> = {
       cta: "🚀 ¡EMPEZAR EL JUEGO!",
       subtitle: "Responde 8 preguntas rápidas y descubre tu match perfecto",
       noStore: "Tienda no configurada",
+      noStoreHint: "Pide a un empleado que seleccione la tienda antes de empezar.",
       catalogOffline: "⚠ Catálogo sin conexión — comprueba la red",
       offlineBanner: "⚠ Sin conexión — el quiz funciona pero no se enviarán emails",
       privacy: "Datos protegidos · Cumplimiento RGPD",
@@ -789,6 +795,7 @@ export const translations: Record<Lang, T> = {
       cta: "🚀 COMMENCER LE JEU !",
       subtitle: "Répondez à 8 questions rapides et découvrez votre match parfait",
       noStore: "Boutique non configurée",
+      noStoreHint: "Demandez à un collaborateur de sélectionner la boutique avant de commencer.",
       catalogOffline: "⚠ Catalogue hors ligne — vérifiez la connexion",
       offlineBanner: "⚠ Pas de connexion — le quiz fonctionne mais les emails ne seront pas envoyés",
       privacy: "Données protégées · Conformité RGPD",

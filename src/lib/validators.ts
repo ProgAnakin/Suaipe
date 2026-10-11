@@ -26,28 +26,50 @@ export function youtubeId(url: string): string | null {
 }
 
 // ── Lead-capture validation (kiosk Welcome form) ─────────────────────────────
-// The Edge Function `on-session-created` keeps its own copies (Deno can't import
-// from `src/`). Keep them in sync; `src/__tests__/welcomeValidators.test.ts`
-// locks the behaviour.
+// Behaviour locked by `src/__tests__/welcomeValidators.test.ts`. (The Edge Function
+// `on-session-created` only mirrors the store-id and asset-URL helpers above — Deno
+// can't import from `src/` — it does not re-validate names or e-mail shapes.)
 
 /** Pragmatic email shape — one `@`, a dot-something TLD of ≥2 letters. */
 export const EMAIL_RE = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
+/** RFC 5321 limits: 254 characters in total, 64 before the `@`. */
+export const EMAIL_MAX_LENGTH = 254;
+const EMAIL_LOCAL_MAX_LENGTH = 64;
+
 export function isValidEmail(value: string): boolean {
-  return EMAIL_RE.test(value.trim());
+  const v = value.trim();
+  const at = v.lastIndexOf("@");
+  return v.length <= EMAIL_MAX_LENGTH && at > 0 && at <= EMAIL_LOCAL_MAX_LENGTH && EMAIL_RE.test(v);
 }
 
-/** First/last name: 2–100 chars of any-script letters, spaces, apostrophes, hyphens. */
-export const NAME_RE = /^[\p{L}\s'-]{2,100}$/u;
+/**
+ * First/last name: 2–100 characters — letters and combining marks of any script, spaces,
+ * apostrophes and hyphens — with at least one letter. Combining marks (`\p{M}`) matter: names
+ * typed with a decomposed accent ("Cafe\u0301") or in scripts that use vowel signs would otherwise
+ * be mangled.
+ */
+export const NAME_RE = /^[\p{L}\p{M}\s'-]{2,100}$/u;
 
 export function isValidName(value: string): boolean {
-  return NAME_RE.test(value.trim());
+  const v = value.trim();
+  return NAME_RE.test(v) && /\p{L}/u.test(v);
 }
 
-/** Strip anything that isn't a letter/space/'/-, collapse runs of spaces, cap at 100. */
+/** The apostrophes a touch keyboard produces: ’ (iPadOS "smart punctuation"), ‘, ʼ, ´ and `. */
+const TYPOGRAPHIC_APOSTROPHES = /[\u2018\u2019\u02BC\u00B4`]/g;
+
+/**
+ * Normalise typographic apostrophes to ', strip anything that isn't a letter, a combining mark,
+ * a space, ' or -, collapse runs of spaces, cap at 100. Stored precomposed (NFC), so the same name
+ * is always the same string. (O’Connor and D’Angelo keep their apostrophe instead of silently
+ * turning into "OConnor" and "DAngelo".)
+ */
 export function sanitizeName(value: string): string {
   return value
-    .replace(/[^\p{L}\s'-]/gu, "")
+    .normalize("NFC")
+    .replace(TYPOGRAPHIC_APOSTROPHES, "'")
+    .replace(/[^\p{L}\p{M}\s'-]/gu, "")
     .replace(/\s{2,}/g, " ")
     .slice(0, 100);
 }

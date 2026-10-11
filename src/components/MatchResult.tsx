@@ -6,8 +6,8 @@ import { useDevicePerformance } from "@/hooks/useDevicePerformance";
 import { useLang } from "@/i18n/LanguageContext";
 import { useLockoutCountdown } from "@/hooks/useLockoutCountdown";
 import { verifyStaffPin } from "@/lib/verifyStaffPin";
+import { isValidEmail } from "@/lib/validators";
 
-const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const EMAIL_TAPS  = 5;
 const PIN_KEYS: (number | "⌫" | "")[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, "", 0, "⌫"];
 
@@ -145,7 +145,7 @@ const MatchResult = ({
   const handleClaim = useCallback(() => {
     if (claiming) return;
     if (!isOnline) { setLocalClaimError("offline"); return; }
-    if (!EMAIL_REGEX.test(userEmail.trim())) { setLocalClaimError("invalid_email"); return; }
+    if (!isValidEmail(userEmail)) { setLocalClaimError("invalid_email"); return; }
     setLocalClaimError(null);
     onClaim();
   }, [claiming, isOnline, userEmail, onClaim]);
@@ -267,7 +267,7 @@ const MatchResult = ({
   // ── Save new email ──────────────────────────────────────────────────────────────────────────────────
   const handleSaveEmail = useCallback(() => {
     setNewEmailTouched(true);
-    if (!EMAIL_REGEX.test(newEmail.trim())) return;
+    if (!isValidEmail(newEmail)) return;
     onChangeEmail(newEmail.trim().toLowerCase());
     setShowChangeModal(false);
     setPinVerified(false);
@@ -469,12 +469,12 @@ const MatchResult = ({
                     placeholder={t.changeEmail.newEmailPlaceholder}
                     autoFocus
                     className={`w-full rounded-xl border bg-background px-4 py-3 text-center text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary ${
-                      newEmailTouched && !EMAIL_REGEX.test(newEmail.trim())
+                      newEmailTouched && !isValidEmail(newEmail)
                         ? "border-destructive focus:ring-destructive"
                         : "border-border"
                     }`}
                   />
-                  {newEmailTouched && !EMAIL_REGEX.test(newEmail.trim()) && (
+                  {newEmailTouched && !isValidEmail(newEmail) && (
                     <p className="mt-1 text-center text-xs text-destructive">{t.changeEmail.emailInvalid}</p>
                   )}
 
@@ -541,6 +541,9 @@ const MatchResult = ({
             {!isScanning && (
               <motion.circle cx="60" cy="60" r="56" fill="none"
                 stroke={ringColor} strokeWidth="2"
+                // An explicit starting value: without it framer-motion renders the first
+                // frame with r="undefined" and the browser logs an SVG attribute error.
+                initial={{ r: 56, opacity: 0.2 }}
                 animate={{ r: [56, 59, 56], opacity: [0.2, 0, 0.2] }}
                 transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
               />
