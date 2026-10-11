@@ -95,18 +95,30 @@ empty, or delete the branch in the code.
 
 ---
 
-## Production verification (nothing to deploy — confirm against the live database)
+## Production verification (nothing to deploy — confirm against the live project)
 
-Migrations are applied by hand, so confirm the security-critical ones actually ran:
+Migrations are applied by hand, so confirm the security-critical ones actually ran.
+
+**1. The retention purge must refuse the public anon key** — the hole that let anyone delete every lead. The probe names
+a store that does not exist, so it cannot delete anything whichever version of the function is live:
+
+```bash
+curl -s -X POST "$SUPABASE_URL/rest/v1/rpc/purge_sessions_older_than" \
+  -H "apikey: $ANON_KEY" -H "Authorization: Bearer $ANON_KEY" -H "Content-Type: application/json" \
+  -d '{"p_days": 365, "p_store_id": "zz-no-such-store"}'
+# patched:    {"code":"42501", … "permission denied for function purge_sessions_older_than"}
+# unpatched:  {"code":"PGRST202", … "Could not find the function public.purge_sessions_older_than(p_days, p_store_id)"}
+#             → the old, world-callable version is live: apply 20261011000001 NOW
+```
+
+(Do **not** probe the old function with a bare `{"p_days": …}`: it deletes every store's leads older than that.)
+
+**2. In the SQL Editor:**
 
 ```sql
 -- The anon-lockdown and hardening migrations MUST be present:
 SELECT version FROM supabase_migrations.schema_migrations
 WHERE version IN ('20260519000002', '20260528000001', '20261011000001', '20261011000002');   -- four rows
-
--- No anon-writable policy should linger (INSERT on quiz_sessions is the one legitimate case):
-SELECT tablename, policyname, roles, cmd FROM pg_policies
-WHERE schemaname = 'public' AND 'anon' = ANY (roles) AND cmd <> 'INSERT';
 
 -- Anonymous visitors must not be able to run any of these (every row must say false):
 SELECT p.proname, has_function_privilege('anon', p.oid, 'EXECUTE') AS anon_can_run
@@ -115,7 +127,12 @@ WHERE n.nspname = 'public'
   AND p.proname IN ('purge_sessions_older_than', 'mark_code_redeemed', 'get_my_store_role',
                     'purge_audit_log_older_than', 'list_store_roles_admin',
                     'upsert_store_role_admin', 'delete_store_role_admin');
+
+-- Only staff read funnel events (expected: {authenticated}):
+SELECT roles FROM pg_policies WHERE tablename = 'quiz_funnel_events' AND policyname = 'allow_select_auth';
 ```
+
+**3. Settings**
 
 - Authentication → Providers → Email: **"Allow new users to sign up" is off.** Several policies accept "any
   signed-in user" as the lowest tier.
