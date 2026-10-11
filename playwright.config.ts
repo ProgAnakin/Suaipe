@@ -52,6 +52,9 @@ export default defineConfig({
   //   • maxDiffPixelRatio: 0.01 — 1% per-pixel tolerance absorbs font sub-
   //     pixel and antialiasing noise across runs.
   expect: {
+    // the default budget of `expect(...).toBeVisible()` etc. — stretched with the specs' own timeouts (see T() in
+    // e2e/support/kiosk.ts) on a slow machine
+    timeout: 5_000 * (Number(process.env.E2E_TIMEOUT_SCALE) || 1),
     toHaveScreenshot: {
       animations: "disabled",
       maxDiffPixelRatio: 0.01,
