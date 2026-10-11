@@ -29,9 +29,17 @@ Storage + Realtime) · Brevo (email) · Google Sheets (CRM relay) · Sentry · P
 visitor's cooldown marker.
 
 - **Claim** = INSERT into `quiz_sessions` (with product snapshot + `consent_given_at`),
-  3× retry w/ backoff. A DB webhook then fires `on-session-created` to send the email.
-- Hard guard: no `store_id` configured → claim aborted (protects per-store analytics).
+  3× retry w/ backoff, each attempt abandoned after 12 s. The row carries one
+  client-generated `id` per visit and `23505` (unique violation) counts as success, so a
+  retry after a *lost* response cannot store/e-mail the lead twice. A DB webhook then
+  fires `on-session-created` to send the email.
+- Hard guard: no (or an unknown) `store_id` configured → START is refused on the welcome
+  screen and the claim is aborted (protects per-store analytics).
 - Funnel events: `quiz_started → result_shown → claimed` (fire-and-forget).
+- **Startup data** (catalogue, store settings, quiz cards) is read at load and **re-read**
+  when the kiosk idles on the attract screen (5 min), wakes, reconnects or restarts — never
+  swapped under a customer mid-visit. A half-answered refresh keeps what is in use
+  (`fetchStartupSnapshot` returns `null`) instead of caching an empty catalogue.
 
 ## Matching algorithm (`src/data/products.ts` → `getMatchedProduct`)
 
@@ -43,13 +51,16 @@ unit tests — don't change behaviour without updating `src/__tests__/getMatched
 
 ## Admin areas (lazy-loaded, never in the kiosk bundle)
 
-- **`/manager`** — PIN → Supabase session + MFA. Tabs: Catalog, Sessions & Codes,
+- **`/manager`** — no login of its own: it sends anyone who is not signed in **and** at
+  TOTP level `aal2` to `/stats`. Tabs: Catalog, Sessions & Codes,
   History (audit), Management(→ Global catalog, Quiz Cards, Email, Roles, Guide).
   Role-gated: `manager` sees all + Management; `consulente_responsabile` is
   locked to its own store, no Management.
-- **`/stats`** — login + TOTP MFA. Funnel, product leaderboard, match histogram,
-  hourly distribution, GDPR CSV export.
-- **`/consulente`** — login + role. Read-only product training guides (IT/EN).
+- **`/stats`** — login + TOTP MFA (an account with no factor is walked through enrolment).
+  Funnel, product leaderboard, match histogram, hourly distribution, GDPR CSV export.
+- **`/consulente`** — login + TOTP + role. Read-only product training guides (IT/EN).
+- MFA is enforced in the **UI only**; the database does not check `aal` — see
+  `docs/server-hardening.md` §A.
 - Staff entry on the kiosk: **6-tap the logo** or tap the **store badge** →
   `AdminPinOverlay` (PIN → store selection + nav to /stats, /consulente + kiosk toggle).
 
@@ -71,13 +82,18 @@ Roles: `manager` / `consulente_responsabile` / `consulente`. RPCs are
 ## Edge Functions (`supabase/functions/`, Deno)
 
 - **`on-session-created`** — DB webhook on `quiz_sessions` INSERT. Generates code
-  `SUP-XXXXXXXX##` (## = discount %), builds the HTML email in the customer's
-  language, sends via Brevo, relays to Google Sheets. Gated by `WEBHOOK_SECRET`
-  + a `store_id` allowlist. **Rate limit: 1 email/hour per address** (server-side,
-  bypass-proof). Reads the editable `email_template` row **at send time**.
-- **`verify-pin`** — staff PIN, constant-time compare, in-memory IP lockout
-  (5 fails → 2 min), bcrypt DB fallback.
-- **`relay-to-sheets`** — server-side proxy that keeps the Sheets webhook URL off the client.
+  `SUP-XXXXXXXX##` (## = the store's configured discount, **read from the DB**, clamped
+  0–99), builds the HTML email in the customer's language, sends via Brevo, relays to
+  Google Sheets. Gated by `WEBHOOK_SECRET` (**required** — unset = every call rejected)
+  + a `store_id` shape check. Product name/price/image/video also come from the DB —
+  the inserted row is written by a public client and is never trusted. **Rate limit:
+  1 email/hour per address**, case-insensitive. Reads the editable `email_template` row
+  **at send time**.
+- **`verify-pin`** — staff PIN, constant-time compare, in-memory lockout (5 fails/address →
+  2 min; 20 from anywhere in 5 min → everyone), bcrypt DB fallback (`verify_staff_pin`,
+  `admin_access_log`). The address is what the platform saw, never the client's header.
+- **`relay-to-sheets`** — server-side proxy that keeps the Sheets webhook URL off the
+  client (signed-in staff only; nothing in the app calls it today).
 
 ## ⚠️ Non-obvious gotchas (read before changing things)
 
@@ -102,21 +118,62 @@ Roles: `manager` / `consulente_responsabile` / `consulente`. RPCs are
    `src/i18n/translations.ts`. Quiz cards + email templates are also per-language in the DB.
 8. **Store ids** (`src/data/stores.ts`; the edge fn validates the slug shape, not a
    fixed list): `rio-de-janeiro`, `lisboa`, `dublino`, `milano`. Selected store
-   persists in `localStorage.wb_store_id`.
+   persists in `localStorage.wb_store_id`. A deployment can define its own stores at build
+   time with `VITE_STORES` (one line of JSON, see `.env.example`) — no code edit.
 9. **Security headers / CSP** live in `vercel.json` (strict; scripts `'self'` only).
+   A new third-party origin (embed, font, API) needs adding there — the YouTube embed was
+   blocked once for want of `frame-src`. `src/__tests__/csp.test.ts` guards the policy.
+10. **PostgREST returns at most 1000 rows per request.** Anything that totals, exports or
+    paginates must read page by page (`src/lib/fetchAllPages.ts`) — KPIs and "full" CSVs
+    used to freeze at 1000. Search terms go through `ilikeAny` (`postgrestFilter.ts`),
+    dates through `dayRange.ts` (the viewer's local day, not UTC).
+11. **Exports/relays are formula-safe.** Every CSV goes through `csvCell`/`toCsv`
+    (`src/lib/csv.ts`); values sent to Google Sheets go through `sheetsSafe`
+    (`supabase/functions/_shared/discountCode.ts`). A lead named `=HYPERLINK(...)` is
+    public input.
+12. **Never trust the `quiz_sessions` row.** It is inserted by the public anon key. The DB
+    restricts what a browser may write (server-owned columns must arrive untouched) and
+    the e-mail function re-reads everything it sends from the catalogue.
+13. **`REVOKE … FROM anon` does nothing while the default `PUBLIC` EXECUTE grant exists.**
+    A new `SECURITY DEFINER` function must `REVOKE ALL … FROM PUBLIC, anon` and `GRANT` to
+    the roles that need it, check the caller's `store_roles` row inside, and get a case in
+    `supabase/tests/security.sql`.
+14. **The kiosk locks page scroll**, so a screen taller than the iPad is clipped, not
+    scrollable. Result/Success scroll inside themselves (`my-auto`, sticky CTA) and compact
+    with the `short:` Tailwind screen (`max-height: 900px`). `e2e/kiosk-layout.spec.ts`
+    checks every screen at 8 sizes in 5 languages.
+15. **Edge-function inline copies** (`genDiscountCode`, `clampDiscountPercent`,
+    `sheetsSafe`, `escapeLike`, store-id regex) must equal `_shared/discountCode.ts` /
+    `src/lib/validators.ts`; `src/__tests__/discountCode.test.ts` fails when they drift.
+    There is no Deno in this repo's dev setup, so edge-function changes are untested
+    until deployed — keep them small and re-read them.
 
 ## Dev commands
 
 ```bash
 npm run dev         # Vite dev server (http://localhost:8080)
 npm run typecheck   # tsc --noEmit (tsconfig.app.json)
-npm run lint        # eslint
-npm test            # vitest (127 unit tests)
-npm run test:e2e    # Playwright (WebKit / iPad project)
+npm run lint        # eslint (4 known react-refresh warnings, 0 errors)
+npm test            # vitest (197 unit tests)
+npm run test:e2e    # Playwright — all projects (82 browser tests, in-memory backend)
+npm run test:e2e:smoke       # only the ipad-landscape smoke project (what CI requires)
+npm run test:e2e:resilience  # kiosk resilience / layout / chaos + staff areas
+npm run test:sql    # migrations from zero + 84 attack checks on a DISPOSABLE PostgreSQL
+npm run docs:screenshots     # regenerate docs/screenshots from the running app (neutral sample data)
 npm run build       # production build (needs VITE_SUPABASE_URL + VITE_SUPABASE_PUBLISHABLE_KEY)
 ```
 
 Before pushing code changes, run **typecheck + lint + test + build** — that's what CI gates on.
+Touching a policy, an RPC or a migration → also `npm run test:sql`. Touching the kiosk flow, a
+layout or an admin tab → also the Playwright suites. The browser suites never talk to a real
+Supabase: `e2e/support/mock-backend.ts` is a PostgREST/RPC/Edge-Function stand-in with fault
+injection (HTTP errors, dropped connections, hangs, "lost response").
+
+Where WebKit cannot be installed, run the same suite on an installed Chromium:
+`E2E_BROWSER=chromium CHROMIUM_PATH=/path/to/chromium npx playwright test` (the WebKit-only
+pixel diffs are skipped; CI keeps WebKit, the engine the iPads use).
+
+When piping a gate into `tail`/`head`, use `set -o pipefail` — otherwise a failing lint exits 0.
 
 ## Where things live
 
@@ -126,10 +183,14 @@ src/components/        Attract/Welcome/Quiz/SwipeCard/MatchResult/Success + mana
 src/data/             products.ts (algorithm + fallback), questions.ts, quiz-cards.ts, stores.ts
 src/hooks/            kiosk hooks (wake lock, inactivity, kiosk mode, bg music, sound, …)
 src/i18n/             translations.ts (5 langs) + LanguageContext
-src/lib/              validators, imageProcessing, startupCache, verifyStaffPin, haptic, clientId
-supabase/functions/   on-session-created, verify-pin, relay-to-sheets
-supabase/migrations/  versioned SQL (RLS, RPCs, schema) — apply manually
-docs/adr/             architecture decision records · docs/runbook.md · docs/edge-functions.md
+src/lib/              validators, csv, fetchAllPages, postgrestFilter, dayRange, withTimeout, imageProcessing,
+                      startupCache, verifyStaffPin, haptic, clientId
+supabase/functions/   on-session-created, verify-pin, relay-to-sheets, _shared/ (tested reference code)
+supabase/migrations/  versioned SQL (RLS, RPCs, schema) — apply manually; must apply to an EMPTY database
+supabase/tests/       run.sh + security.sql + supabase-shim.sql — the database attack suite
+e2e/                  Playwright: support/ (mock backend, kiosk + staff drivers), kiosk-resilience, kiosk-layout,
+                      kiosk-chaos (seeded random actions + soak), admin-areas, docs-screenshots
+docs/                 deployment.md (go-live) · runbook.md · edge-functions.md · server-hardening.md · qa/ · adr/
 video/                LinkedIn product film (Remotion) — ISOLATED project: own package.json/node_modules, never imported
                       by src/, excluded from the app's eslint. Real-app capture + synthesised soundtrack + AI-generated in-store
                       hand stills (hands only, tools/people); see video/README.md, ADR 007

@@ -6,6 +6,94 @@ versioning follows [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased] — Pre-sale hardening pass
+
+The app was attacked as every role (anonymous visitor, role-less account, `consulente`,
+`consulente_responsabile`, `manager`), driven against a backend that misbehaves, and opened on every
+iPad size in every language. What broke is fixed below; the full account is in
+[`docs/qa/QA-REPORT.md`](docs/qa/QA-REPORT.md).
+
+### ⚠ Operator action required — in this order
+
+1. **Apply `supabase/migrations/20261011000001_security_hardening.sql` (and the small
+   `20261011000002_funnel_events_scope.sql`) to the live database now** (`supabase db push`). Until it is applied, anyone holding the public anon key can delete every
+   lead, forge discount codes and guess the staff PIN without limit.
+2. **Redeploy the three Edge Functions:** `supabase functions deploy on-session-created verify-pin relay-to-sheets`.
+3. Authentication → Providers → Email: turn **off** "Allow new users to sign up".
+4. Check the secrets listed in [`docs/deployment.md`](docs/deployment.md) (`WEBHOOK_SECRET` is required;
+   `STAFF_PIN` should have six digits or more).
+
+### Security
+- `purge_sessions_older_than` was executable by anonymous visitors, had no authorisation and always
+  deleted every store's leads. It is now `manager` (any store) or store responsible (own store only).
+- `quiz_sessions` INSERT accepted any column from the browser (a 90 % discount, a ready-made code,
+  `code_redeemed`, megabytes of text). Server-owned columns must now arrive untouched, the consent
+  record is required, the rest is bounded.
+- The e-mail's discount, product, price, image and video come from the database, not from the row the
+  browser wrote — a forged row can no longer be e-mailed from our sender to any address.
+- Staff PIN lockout is keyed on what the gateway saw (not on arguments the caller chooses), no longer
+  crashes, has a global ceiling, and the two weaker overloads are gone.
+- The 1-e-mail-per-hour limit is case-insensitive and there is a global ceiling on inserts;
+  `check_email_cooldown` can no longer be used to lock an address out of the kiosk.
+- The audit log rejects entries written in someone else's name; the login-attempt helpers cannot be
+  flooded; funnel events are readable by managers and the store's own responsible only.
+- CSV exports (Sessions, Stats, audit log) defuse spreadsheet formulas; the Google Sheets relay does
+  the same for values that begin with `= + - @`.
+- The service worker no longer caches customer or staff REST responses — only the four public
+  catalogue tables.
+- Production dependencies: `npm audit --omit=dev` is down to 2 moderate `react-router` advisories
+  (open redirect and SSR hydration — the app has no user-controlled navigation targets and no SSR).
+
+### Fixed
+- **Kiosk — a half-answered refresh wiped the catalogue.** A failing `custom_products` request was cached
+  and applied as an empty catalogue. Any incomplete read now keeps what is in use; the cache is
+  shape-checked.
+- **Kiosk — edits in `/manager` never reached an iPad that stays on.** Catalogue, store settings and
+  quiz cards are re-read when the kiosk is idle on the attract screen (5 min), wakes, reconnects or
+  restarts — never under a customer mid-visit.
+- **Kiosk — a lost response stored (and e-mailed) the lead twice.** The claim carries one
+  client-generated id per visit; a unique violation counts as success. Each attempt is abandoned
+  after 12 s, so a request that never answers no longer freezes the result screen.
+- **Kiosk — START could spin forever.** The cooldown pre-check times out after 6 s; a kiosk with no
+  store says so when START is pressed, not after the quiz.
+- **Kiosk — the result and success screens clipped on an iPad Pro 11" / iPad mini in landscape**
+  and on phones, hiding the "I want it!" button. The screens scroll inside themselves and compact
+  on short displays.
+- **Kiosk — names:** curly apostrophes (`D’Angelo`) and combining marks are kept (stored as NFC);
+  e-mail addresses are limited to RFC 5321 lengths; one validator for the whole app.
+- `<html lang>` follows the customer's language (screen readers used an Italian voice for everything).
+- The SVG ring no longer logs `<circle> attribute r: undefined`.
+- The consultant guide's YouTube video was blocked by the Content-Security-Policy (no `frame-src`).
+- **Manager / Stats — every total, KPI and "full" export was cut at 1000 rows** (PostgREST's page size);
+  they now read page by page, and Stats says when its 50 000-row safety cap is reached.
+- The Stats funnel and claim rate ignored the selected store and dates.
+- The Sessions status filter (sent / processing / no e-mail / failed) was applied to the 20 rows on the
+  page only; it is now a database filter and the pager agrees with it.
+- Search text containing `( ) , "` no longer breaks the query and blanks the list.
+- Product names come from the name saved with the lead (and the live catalogue) instead of the bundled
+  demo catalogue; date filters use the viewer's local days; the price CSV round-trips (`€64,00`).
+- "No match" (an unexplained funnel number) is now "Not claimed", with a tooltip; the Manager header
+  names the active tab; the Failed counter agrees with the "Processing" window.
+- `ResetPassword` was in Italian although the staff UI is English-only (ADR 006).
+- The migration chain applies to an **empty** database (`20260507000002` failed on a fresh project).
+
+### Added
+- **Test suites:** 197 unit tests · 82 browser tests (kiosk resilience, layout in 5 languages × 8
+  screens, seeded chaos and a soak run, staff areas against 2 500 leads) · 84 database checks that
+  attack the schema as every role. `npm run test:e2e`, `test:e2e:smoke`, `test:e2e:resilience`,
+  `test:sql`; CI runs them (the resilience job is advisory). See `supabase/tests/README.md`.
+- `VITE_STORES` — define your own stores at build time (one line of JSON) instead of editing code.
+- `docs/deployment.md` — the go-live checklist; `npm run docs:screenshots` regenerates the screenshots
+  from the running app with neutral sample data.
+
+### Changed
+- README rewritten for the Suaipe brand; the old WebiMatch screenshots are gone — `docs/screenshots/`
+  and `public/screenshots/` hold the current app. `public/manifest.json` points at them.
+- Capacitor app id/name and the default e-mail footer no longer carry the previous brand or a personal name.
+- `tailwindcss-animate` and `@capacitor/cli` moved to `devDependencies`.
+
+---
+
 ## [2.0.1] — 2026-06-04 — Promote Suaipe to `main`
 
 `main` was kept on the historical Webi-Match v1.7.2 commit as a safety

@@ -94,17 +94,32 @@ lockout message.
    Edge Functions → `verify-pin` → Secrets. The value is plaintext — confirm
    no leading/trailing spaces.
 
-2. **Rate limited?** The function rate-limits per IP: 5 failures within 5 min
-   trigger a 2-min lockout. The countdown is shown in the UI. The in-memory
-   counter resets on Edge Function cold start (every ~15 min of idle); if a
-   staff member is convinced they were just blocked, wait or restart by
-   redeploying the function.
+2. **Locked out?** There are three limits, and the countdown is shown in the UI:
+   - **Per address:** 5 wrong PINs within 5 min lock that address for 2 min.
+   - **Everyone:** 20 wrong PINs within 5 min, from anywhere, lock every address until the
+     oldest of them is 5 min old (so guessing spread over many addresses is throttled too).
+   - These two counters live in the Edge Function's memory and reset on a cold start (after
+     ~15 min of idle) or a redeploy. If a staff member is convinced they were just blocked,
+     wait two minutes, or redeploy `verify-pin`.
+   - The "address" is what the platform saw (`cf-connecting-ip`, `x-real-ip`, the last
+     `x-forwarded-for` entry) — never a value the browser sends. **Every iPad behind the same
+     shop router shares one address**, so a customer mashing the PIN pad on one iPad can lock
+     the others out of the staff overlay for two minutes.
 
 3. **Fallback to DB path active?** If `STAFF_PIN` is NOT set, the function
    falls back to bcrypt against `app_config.staff_pin_hash`. Confirm migration
-   `20260507000004` ran. The DB path uses the `verify_staff_pin` RPC which
-   tracks its own attempts in `pin_lockouts` — query that table to see what
-   the server saw.
+   `20260507000004` ran. The DB path uses the `verify_staff_pin` RPC, which logs
+   every attempt in `admin_access_log` and has its own limits (3 wrong PINs per
+   device in 2 min, 10 per address in 10 min, 20 for everyone in 5 min); query the
+   table to see what the server saw:
+   ```sql
+   select created_at, client_id, ip_address, success
+     from admin_access_log
+    order by created_at desc
+    limit 50;
+   ```
+   Prefer the `STAFF_PIN` secret and use six digits or more: four digits fall to
+   a patient attacker even at 20 guesses per five minutes.
 
 ---
 
@@ -121,10 +136,11 @@ lockout message.
      join auth.users u on u.id = sr.user_id
     where u.email = '<their-email>';
    ```
-   If no row, they have no permissions. Insert one via the /manager → Ruoli
-   tab (signed in as another manager) or via SQL with the service role.
+   If no row, they have no permissions. Insert one via **/manager → Management →
+   Roles** (signed in as another manager) or via SQL in the SQL Editor. The very
+   first manager has to be created in SQL — see `docs/deployment.md`, step 3.
 
-2. **Consulente sees nothing in Storico?** Expected — they only see audit
+2. **A store responsible sees nothing in History?** Expected — they only see audit
    entries for their own `store_id`. If the historical rows were inserted
    before the `store_id` column was added (migration `20260429000004`), their
    `store_id` is NULL and consulenti can't see them. Managers still see all.
@@ -144,7 +160,7 @@ intentionally rendered as raw HTML. If a manager pasted text containing
 `<` that wasn't a real tag, the email client renders the rest of the body
 incorrectly.
 
-**Fix:** Manager → Template Email tab → pick the affected language → either
+**Fix:** /manager → Management → Email → pick the affected language → either
 remove the stray `<`/`>` characters or wrap them in HTML entities (`&lt;`,
 `&gt;`). Save. The next email uses the new template (no deploy needed).
 
@@ -156,15 +172,22 @@ remove the stray `<`/`>` characters or wrap them in HTML entities (`&lt;`,
 
 **Fix:**
 
-- Sessions older than 30 days: from /manager → Sessions tab, or via SQL:
+- Old leads: **/manager → Sessions & Codes → Delete > 7d old** (a manager deletes every store's,
+  a store responsible only their own store's). The button calls `purge_sessions_older_than`,
+  which checks the signed-in user's role — so it cannot be called from the SQL Editor, which
+  runs as the database owner with no user. From the SQL Editor delete directly:
   ```sql
-  select purge_sessions_older_than(30);
+  delete from quiz_sessions where created_at < now() - interval '30 days';
   ```
-- Audit log older than 2 years (manager-only):
+- Audit log older than 2 years (manager-only, from the signed-in app):
   ```sql
   select purge_audit_log_older_than(730);
   ```
-  The function refuses to purge less than 180 days of history.
+  The function refuses to purge less than 180 days of history. From the SQL Editor:
+  `delete from manager_audit_log where created_at < now() - interval '730 days';`
+
+Decide the retention period with your data-protection officer — the leads hold names and e-mail
+addresses.
 
 ---
 
@@ -205,8 +228,10 @@ select created_at, email, store_id, discount_code, match_percent
  order by created_at desc
  limit 50;
 
--- PIN lockouts in the last day
-select client_id, ip_address, attempts, locked_until
-  from pin_lockouts
- where locked_until > now() - interval '1 day';
+-- Wrong staff PINs in the last day, by address (database path only)
+select ip_address, count(*) as failures, max(created_at) as last_try
+  from admin_access_log
+ where not success and created_at > now() - interval '1 day'
+ group by ip_address
+ order by failures desc;
 ```

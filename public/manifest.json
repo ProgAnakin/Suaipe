@@ -8,7 +8,11 @@
   "orientation": "any",
   "background_color": "#0d1117",
   "theme_color": "#0d1117",
-  "categories": ["shopping", "lifestyle", "utilities"],
+  "categories": [
+    "shopping",
+    "lifestyle",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "/icon.png",
@@ -19,32 +23,32 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshots/attract.png",
+      "src": "/screenshots/attract.jpg",
       "sizes": "1024x1366",
-      "type": "image/png",
-      "form_factor": "wide",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
       "label": "Attract screen — invites customers to tap and start the experience"
     },
     {
-      "src": "/screenshots/quiz.png",
+      "src": "/screenshots/quiz.jpg",
       "sizes": "1024x1366",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Swipe quiz — 8 personalised questions answered by gesture"
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Swipe quiz — eight questions answered by gesture"
     },
     {
-      "src": "/screenshots/result.png",
+      "src": "/screenshots/result.jpg",
       "sizes": "1024x1366",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Match result — instant product recommendation with discount code"
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Match result — one recommended product with its match percentage"
     },
     {
       "src": "/screenshots/manager.png",
-      "sizes": "1024x1366",
+      "sizes": "1366x1024",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Manager dashboard — real-time sessions, catalogue and KPIs"
+      "label": "Manager dashboard — sessions, discount codes and catalogue"
     }
   ],
   "prefer_related_applications": false

@@ -42,11 +42,9 @@ Out of scope:
 Suaipe was built defensively from day one. The following protections are part of the current codebase:
 
 ### Authentication & Authorisation
-- Supabase Auth + bcrypt PIN fallback for staff access
-- Constant-time comparison on PIN check (timing-attack resistant)
-- In-memory IP-based lockout (5 failed attempts → 2-minute lock, 5-minute window)
-- MFA enforced on the stats dashboard
-- Row-Level Security on every table
+- Supabase Auth with TOTP MFA required to open any staff area (`/stats`, `/manager`, `/consulente`). It is enforced in the browser; enforcing it in the database policies as well is a documented follow-up ([`docs/server-hardening.md`](./docs/server-hardening.md) §A)
+- Staff PIN (kiosk overlay only): constant-time comparison; lockout per address (5 wrong → 2 min) and a global ceiling (20 wrong in 5 min); the address is what the platform saw, never a header the client writes; bcrypt database fallback with its own limits
+- Row-Level Security on every table; privileged functions are executable by `authenticated` only and check the caller's role themselves
 - Role-based access via `store_roles` (`manager` / `consulente_responsabile` / `consulente`) — managers see all stores, store consultants only their own, junior consultants get a read-only training zone
 
 ### PII Protection
@@ -57,15 +55,19 @@ Suaipe was built defensively from day one. The following protections are part of
 - Note: app-layer AES encryption was evaluated and intentionally **not** adopted (see [ADR 003](./docs/adr/003-pii-encryption-at-rest.md)) — encrypting these columns would break the dashboard's partial-match search. Access control + at-rest encryption + retention purge were chosen instead.
 
 ### Rate Limiting
-- Server-side 1-email-per-hour cooldown per address (cannot be bypassed from client)
-- DB-level failed-login tracking
-- PIN endpoint rate-limited per IP
+- Server-side 1-email-per-hour cooldown per address, case-insensitive (cannot be bypassed from the client)
+- The database caps lead inserts: 5 per address per hour and 120 per minute overall, and only lets a browser write client-owned columns
+- DB-level failed-login tracking whose helpers cannot be flooded, nor used to lock an address out of the kiosk
+- PIN endpoint rate-limited per address and globally
 
 ### Injection Defence
 - All session search inputs escape `%`, `_`, `\` before interpolation into PostgREST `.or()` filter
 - `escHtml()` applied to every user-supplied field rendered in transactional emails
 - `safeUrl()` validates `https://` prefix on all product URLs before injecting into emails
 - `stripHtml()` sanitises custom-product name and description on save
+- The e-mail's product name, price, image, video and discount are read from the catalogue — never from the row a public client inserted
+- CSV exports (Sessions, Stats, audit log) and the Google Sheets relay defuse spreadsheet formulas (`= + - @`)
+- The service worker caches only the four public catalogue tables — never customer or staff responses
 
 ### Transport & CORS
 - HTTPS-only (HSTS via `vercel.json`)
@@ -74,8 +76,8 @@ Suaipe was built defensively from day one. The following protections are part of
 - CSP and SameSite cookie settings declared in `vercel.json`
 
 ### Webhook Surface
-- Database webhooks gated by an allowlist of valid `store_id` values
-- Unknown stores silently dropped with no error response (no fingerprinting)
+- The database webhook is gated by a shared secret (`x-webhook-secret`); the function fails closed when it is unset
+- Rows with a malformed `store_id`, and calls with a bad secret, are silently dropped (no fingerprinting)
 
 ### Observability
 - Sentry error tracking + session replay (replay on error only)
@@ -83,7 +85,10 @@ Suaipe was built defensively from day one. The following protections are part of
 - PIN access log with IP and user-agent (`admin_access_log`)
 
 ### Build & CI
-- Typecheck, lint, test and build run on every push, PR, and feature branch
+- Typecheck, lint, test, build and a production `npm audit` run on every push, PR, and feature branch
+- A database job applies every migration to an empty PostgreSQL and attacks the result as anonymous, role-less, `consulente`, `consulente_responsabile` and `manager` users (84 checks, `supabase/tests/`)
+- Browser suites drive the real kiosk and the staff areas against a backend that misbehaves (`e2e/`)
+- The account of the pre-sale test pass is in [`docs/qa/QA-REPORT.md`](./docs/qa/QA-REPORT.md)
 - Bundle is code-split — admin routes lazy-loaded so secrets paths never reach the kiosk bundle
 - Stub env vars in CI (`VITE_SUPABASE_URL=https://placeholder.supabase.co`) — real secrets only live in Vercel / Supabase
 
