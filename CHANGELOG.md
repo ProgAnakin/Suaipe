@@ -16,7 +16,8 @@ iPad size in every language. What broke is fixed below; the full account is in
 ### ⚠ Operator action required — in this order
 
 1. **Apply `supabase/migrations/20261011000001_security_hardening.sql` (and the small
-   `20261011000002_funnel_events_scope.sql`) to the live database now** (`supabase db push`). Until it is applied, anyone holding the public anon key can delete every
+   `20261011000002_funnel_events_scope.sql` and the switch-off-by-default `20261011000003_mfa_gate_in_database.sql`)
+   to the live database now** (`supabase db push`). Until it is applied, anyone holding the public anon key can delete every
    lead, forge discount codes and guess the staff PIN without limit.
 2. **Redeploy the three Edge Functions:** `supabase functions deploy on-session-created verify-pin relay-to-sheets`.
 3. Authentication → Providers → Email: turn **off** "Allow new users to sign up".
@@ -79,9 +80,14 @@ iPad size in every language. What broke is fixed below; the full account is in
 - The migration chain applies to an **empty** database (`20260507000002` failed on a fresh project).
 
 ### Added
+- **The second factor in the database** — migration `20261011000003`: restrictive RLS policies and a check in every
+  staff-only RPC require an `aal2` token. Behind a switch (`app_config.require_mfa`) that ships **off**, so applying it
+  changes nothing; `UPDATE public.app_config SET value = 'on' …` enforces it once every staff account has an
+  authenticator (`docs/deployment.md` step 8). Without it, a staff *password* alone could read every lead through the
+  REST API.
 - **Test suites:** 208 unit tests · 82 browser tests (kiosk resilience, layout in 5 languages × 8
-  screens, seeded chaos and a soak run, staff areas against 2 500 leads) · 84 database checks that
-  attack the schema as every role. `npm run test:e2e`, `test:e2e:smoke`, `test:e2e:resilience`,
+  screens, seeded chaos and a soak run, staff areas against 2 500 leads) · 147 database checks that
+  attack the schema as every role (84 of them run again with the second factor enforced). `npm run test:e2e`, `test:e2e:smoke`, `test:e2e:resilience`,
   `test:sql`; CI runs them (the resilience job is advisory). See `supabase/tests/README.md`.
 - `VITE_STORES` — define your own stores at build time (one line of JSON) instead of editing code.
 - `VITE_PRIVACY_CONTROLLER` / `VITE_PRIVACY_EMAIL` — the GDPR notice names the company that operates the kiosks and a

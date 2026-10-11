@@ -42,7 +42,7 @@ Out of scope:
 Suaipe was built defensively from day one. The following protections are part of the current codebase:
 
 ### Authentication & Authorisation
-- Supabase Auth with TOTP MFA required to open any staff area (`/stats`, `/manager`, `/consulente`). It is enforced in the browser; enforcing it in the database policies as well is a documented follow-up ([`docs/server-hardening.md`](./docs/server-hardening.md) §A)
+- Supabase Auth with TOTP MFA required to open any staff area (`/stats`, `/manager`, `/consulente`). It is enforced in the browser, and in the database policies and staff-only functions behind the `app_config.require_mfa` switch (shipped off; turn it on once every account has enrolled — [`docs/server-hardening.md`](./docs/server-hardening.md) §A)
 - Staff PIN (kiosk overlay only): constant-time comparison; lockout per address (5 wrong → 2 min) and a global ceiling (20 wrong in 5 min); the address is what the platform saw, never a header the client writes; bcrypt database fallback with its own limits
 - Row-Level Security on every table; privileged functions are executable by `authenticated` only and check the caller's role themselves
 - Role-based access via `store_roles` (`manager` / `consulente_responsabile` / `consulente`) — managers see all stores, store consultants only their own, junior consultants get a read-only training zone

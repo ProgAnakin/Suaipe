@@ -45,26 +45,38 @@ WHERE discount_code IS NOT NULL GROUP BY discount_code HAVING count(*) > 1;   --
 
 ## Still open — decide and schedule
 
-### A. MFA in the database
+### A. MFA in the database — shipped, **off** until you turn it on
 
 Every staff area demands TOTP in the **browser**: `/stats` and `/consulente` walk an account without a
-factor through enrolment, and `/manager` sends anyone below `aal2` back to `/stats`. But the database
-policies and RPCs accept any signed-in user's token whatever its assurance level. Someone who has a staff **password**
-can sign in through the REST API directly, get an `aal1` session, and read what the role's policies allow
-— the authenticator code is never asked for.
+factor through enrolment, and `/manager` sends anyone below `aal2` back to `/stats`. The database, until
+`20261011000003`, accepted any signed-in user's token whatever its assurance level: someone who had a staff
+**password** could sign in through the REST API, get an `aal1` session, and read what the role's policies
+allow — the authenticator code was never asked for.
 
-The fix is a restrictive policy per sensitive table (Supabase's documented pattern), and the same check at
-the top of the `SECURITY DEFINER` role-admin and purge functions:
+`20261011000003_mfa_gate_in_database.sql` adds the check and a switch (`app_config.require_mfa`, shipped **`off`**,
+so applying it changes nothing). With the switch on, a token that is not `aal2` is refused:
+
+| | |
+|---|---|
+| **Tables** (restrictive policies, signed-in users only) | leads (read / update / delete), roles, audit log, funnel events, e-mail template, training guides — every command; the catalogue tables and the `product-images` bucket — writes only |
+| **RPCs** | `list_/upsert_/delete_store_role_admin`, `purge_sessions_older_than`, `purge_audit_log_older_than`, `mark_code_redeemed` raise `42501 mfa required`; `get_my_store_role` returns no row |
+| **Never gated** (the kiosk keeps working even on an iPad holding a half-finished staff session) | the claim (`INSERT` into `quiz_sessions`), funnel-event inserts, the cooldown RPC, every read of the public catalogue |
+
+**To turn it on** — after every staff account has enrolled an authenticator (the query is in
+[`deployment.md`](./deployment.md) step 8):
 
 ```sql
-CREATE POLICY require_mfa ON public.quiz_sessions AS RESTRICTIVE
-  FOR SELECT TO authenticated
-  USING ((SELECT auth.jwt() ->> 'aal') = 'aal2');
+UPDATE public.app_config SET value = 'on' WHERE key = 'require_mfa';   -- effective immediately
+-- roll back:   … SET value = 'off' …   (any value other than 'off' enforces: a typo fails closed)
 ```
 
-Do **not** apply it to the catalogue tables (the kiosk reads them, and a kiosk iPad can hold an abandoned
-`aal1` staff session) nor to `quiz_sessions` INSERT (the claim). Roll it out only after every staff account has
-enrolled, or you lock staff out; test it in a Supabase branch with a real `aal1` and `aal2` session.
+Proven by `supabase/tests`: the whole attack suite runs a second time with the switch on (as `aal2` users — it
+must break nothing), `mfa.sql` checks `aal1` against `aal2` table by table, and a guard fails if a later migration
+adds a staff-only `SECURITY DEFINER` function that does not call `private.require_mfa()`.
+
+**Not proven here:** the behaviour against a real Supabase Auth session. Turn it on in a Supabase *branch* (or at a quiet
+hour) and walk through: sign in on `/stats` → enter the code → `/manager` → Sessions & Codes (check that live updates
+still arrive — the realtime channel must carry the `aal2` token) → mark a code as used → Management → Roles.
 
 ### B. Race-proof idempotency
 

@@ -59,8 +59,8 @@ unit tests — don't change behaviour without updating `src/__tests__/getMatched
 - **`/stats`** — login + TOTP MFA (an account with no factor is walked through enrolment).
   Funnel, product leaderboard, match histogram, hourly distribution, GDPR CSV export.
 - **`/consulente`** — login + TOTP + role. Read-only product training guides (IT/EN).
-- MFA is enforced in the **UI only**; the database does not check `aal` — see
-  `docs/server-hardening.md` §A.
+- MFA is enforced in the **UI**, and in the **database** behind a switch that ships OFF
+  (`app_config.require_mfa`, migration `20261011000003`; `docs/server-hardening.md` §A, `docs/deployment.md` step 8).
 - Staff entry on the kiosk: **6-tap the logo** or tap the **store badge** →
   `AdminPinOverlay` (PIN → store selection + nav to /stats, /consulente + kiosk toggle).
 
@@ -142,7 +142,10 @@ Roles: `manager` / `consulente_responsabile` / `consulente`. RPCs are
     scrollable. Result/Success scroll inside themselves (`my-auto`, sticky CTA) and compact
     with the `short:` Tailwind screen (`max-height: 900px`). `e2e/kiosk-layout.spec.ts`
     checks every screen at 8 sizes in 5 languages.
-15. **Edge-function inline copies** (`genDiscountCode`, `clampDiscountPercent`,
+15. **A new staff-only `SECURITY DEFINER` function must call `PERFORM private.require_mfa();`** right after
+    `BEGIN` (and a new staff-only table needs a `mfa_required_*` restrictive policy): `supabase/tests/mfa.sql`
+    fails otherwise. Keep the kiosk's paths (claim insert, funnel insert, catalogue reads) ungated.
+16. **Edge-function inline copies** (`genDiscountCode`, `clampDiscountPercent`,
     `sheetsSafe`, `escapeLike`, store-id regex) must equal `_shared/discountCode.ts` /
     `src/lib/validators.ts`; `src/__tests__/discountCode.test.ts` fails when they drift.
     There is no Deno in this repo's dev setup, so edge-function changes are untested
@@ -158,7 +161,7 @@ npm test            # vitest (208 unit tests)
 npm run test:e2e    # Playwright — all projects (82 browser tests, in-memory backend)
 npm run test:e2e:smoke       # only the ipad-landscape smoke project (what CI requires)
 npm run test:e2e:resilience  # kiosk resilience / layout / chaos + staff areas
-npm run test:sql    # migrations from zero + 84 attack checks on a DISPOSABLE PostgreSQL
+npm run test:sql    # migrations from zero + 147 checks (84 attacks, run with the 2nd factor off and on; 63 aal1/aal2) on a DISPOSABLE PostgreSQL
 npm run docs:screenshots     # regenerate docs/screenshots from the running app (neutral sample data)
 npm run build       # production build (needs VITE_SUPABASE_URL + VITE_SUPABASE_PUBLISHABLE_KEY)
 ```

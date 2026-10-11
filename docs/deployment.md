@@ -24,10 +24,11 @@ supabase link --project-ref <your-project-ref>
 supabase db push             # applies supabase/migrations/*.sql in filename order
 ```
 
-All 57 migrations apply to an empty database (CI proves it on every push). The last two,
-`20261011000001_security_hardening.sql` and `20261011000002_funnel_events_scope.sql`, are **not optional**:
-before them, anyone holding the public anon key could delete leads, forge discounts and guess the staff PIN
-without limit, and any signed-in account could read every store's funnel. If you are updating an existing
+All 58 migrations apply to an empty database (CI proves it on every push). The last three are the pre-sale
+hardening. `20261011000001_security_hardening.sql` and `20261011000002_funnel_events_scope.sql` are **not
+optional**: before them, anyone holding the public anon key could delete leads, forge discounts and guess the
+staff PIN without limit, and any signed-in account could read every store's funnel. `20261011000003` adds the
+second-factor switch of step 8 — it changes nothing until you turn it on. If you are updating an existing
 project rather than starting a new one, apply them first (`supabase db push` applies whatever is missing).
 
 Then check it took:
@@ -119,7 +120,27 @@ in the CSP, or the kiosk will not reach it.
 4. Do one full visit with your own address: the e-mail should arrive within a minute, the lead should show
    in **/manager → Sessions & Codes** with its code, and **Mark as used** should work.
 
-## 8. After go-live
+## 8. Require the authenticator code in the database too
+
+Every staff page asks for the TOTP code, but only in the browser: someone with a staff *password* could call the
+REST API directly and never be asked for it. Migration `20261011000003` closes that — behind a switch, **off** until you
+are ready, so applying it locks nobody out. Once every staff account has enrolled an authenticator:
+
+```sql
+-- accounts that hold a role but have no verified authenticator yet (they would be locked out)
+SELECT u.email, sr.role
+FROM public.store_roles sr
+JOIN auth.users u ON u.id = sr.user_id
+WHERE NOT EXISTS (SELECT 1 FROM auth.mfa_factors f WHERE f.user_id = u.id AND f.status = 'verified');
+-- … must return no rows. Then:
+UPDATE public.app_config SET value = 'on' WHERE key = 'require_mfa';   -- effective immediately
+```
+
+Sign in at `/stats`, enter the code, open `/manager`: everything works as before. A session that is
+password-only now sees no leads and cannot call the staff functions. To roll back, set the value to `'off'`.
+The kiosk is unaffected either way (claims, funnel events and catalogue reads never need the code).
+
+## 9. After go-live
 
 - The catalogue, prices, store settings and quiz cards you change in the Manager reach the iPads within
   five minutes of being idle (and at every restart) — no reload needed.

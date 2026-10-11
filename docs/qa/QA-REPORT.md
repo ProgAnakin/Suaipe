@@ -19,7 +19,7 @@ has to do.
 | `npm test` | **208** unit tests, 26 files |
 | `npm run build` | passes |
 | `npm audit --omit=dev --audit-level=high` | passes — 2 *moderate* `react-router` advisories remain ([residual risks](#residual-risks-not-fixed)) |
-| Database attack suite (`npm run test:sql`) | **84** checks, 57 migrations applied to an **empty** PostgreSQL first |
+| Database attack suite (`npm run test:sql`) | **84** attack checks (run twice: second factor off, then on) + **63** second-factor checks; 58 migrations applied to an **empty** PostgreSQL first |
 | Browser suites (`npm run test:e2e`, Chromium, iPad viewport) | **82** tests green in ~10 min |
 | WebKit (the iPad engine) | the smoke project is a required CI job and was green on the last full run; the resilience project is advisory — see [WebKit](#webkit-the-engine-the-ipads-use) |
 
@@ -135,12 +135,13 @@ Do an acceptance pass on a real iPad before the first store (go-live step 7).
 
 Stated plainly, so the buyer does not discover them:
 
-1. **MFA is enforced in the browser, not in the database.** Someone with a staff *password* can sign in
-   through the REST API, get an `aal1` session and read whatever that role's policies allow — the authenticator
-   code is never asked for. The fix (restrictive `aal2` policies on the PII tables and the same check in the
-   role-admin / purge functions) is sketched in [`../server-hardening.md`](../server-hardening.md) §A. It is not
-   shipped because it needs a staged rollout (every staff account enrolled first) and a test against a real
-   Supabase Auth.
+1. **The second factor is enforced in the database only once you switch it on.** The browser always asks for the
+   authenticator code, but until `app_config.require_mfa = 'on'` someone with a staff *password* can sign in through
+   the REST API, get an `aal1` session and read whatever that role's policies allow. Migration `20261011000003` adds
+   the check behind a switch that ships **off** (so applying it locks nobody out); the 63 checks in `mfa.sql` and a
+   second run of the whole attack suite with the switch on prove it table by table, and that the kiosk is unaffected.
+   What is not proven is the behaviour against a real Supabase Auth session — turn it on in a branch first
+   ([`../server-hardening.md`](../server-hardening.md) §A, [`../deployment.md`](../deployment.md) step 8).
 2. **There is no offline claim queue.** If the backend stays down through three attempts the customer sees
    an error and can retry; if they walk away, that lead is lost.
 3. **The kiosk's bundled demo catalogue** (`src/data/products.ts`) is the fallback when no catalogue can be
@@ -167,15 +168,18 @@ Stated plainly, so the buyer does not discover them:
 
 ## Operator actions, in this order
 
-1. `supabase db push` — applies `20261011000001_security_hardening.sql` and
-   `20261011000002_funnel_events_scope.sql`. Safe on a live database (idempotent, rewrites no rows).
+1. `supabase db push` — applies `20261011000001_security_hardening.sql`, `20261011000002_funnel_events_scope.sql`
+   and `20261011000003_mfa_gate_in_database.sql` (that last one changes nothing until step 7). Safe on a live
+   database (idempotent, rewrites no rows).
 2. `supabase functions deploy on-session-created verify-pin relay-to-sheets`.
 3. Authentication → Providers → Email: turn **off** "Allow new users to sign up".
 4. Secrets: `WEBHOOK_SECRET` (**required** — without it no e-mail is ever sent), `STAFF_PIN` of six digits or
    more, `ALLOWED_ORIGIN`, `SITE_URL`, `EMAIL_SENDER` on a verified Brevo domain. Leave `WHITELIST_EMAILS` empty.
 5. Storage: create the **public** `product-images` bucket (the migrations add its policies, not the bucket).
-6. Run the verification queries in [`../server-hardening.md`](../server-hardening.md), then one full visit with
+6. Run the verification checks in [`../server-hardening.md`](../server-hardening.md), then one full visit with
    your own address: the e-mail should arrive within a minute and the lead should appear in /manager.
+7. When every staff account has an authenticator: `UPDATE public.app_config SET value = 'on' WHERE key = 'require_mfa';`
+   ([`../deployment.md`](../deployment.md) step 8).
 
 Full go-live order: [`../deployment.md`](../deployment.md). Triage: [`../runbook.md`](../runbook.md).
 
