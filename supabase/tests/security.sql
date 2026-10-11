@@ -225,6 +225,10 @@ SELECT qa.check('a store responsible cannot write the global catalogue', 'ERROR'
 SELECT qa.check('a store responsible can edit their own store''s settings', 'ok rows=1', qa.as_user('authenticated', :R::uuid, $q$INSERT INTO public.product_settings(product_id, store_id, active) VALUES ('p1','milano',true)$q$));
 SELECT qa.check('a store responsible cannot edit another store''s settings', 'ERROR', qa.as_user('authenticated', :R::uuid, $q$INSERT INTO public.product_settings(product_id, store_id, active) VALUES ('p1','lisboa',true)$q$));
 SELECT qa.check('funnel events: anon may insert', 'ok rows=1', qa.as_user('anon', NULL, $q$INSERT INTO public.quiz_funnel_events(funnel_key,event_type,store_id) VALUES ('a0000000-0000-4000-8000-000000000001','quiz_started','milano')$q$));
+INSERT INTO public.quiz_funnel_events(funnel_key,event_type,store_id) VALUES ('a0000000-0000-4000-8000-000000000002','claimed','lisboa');
+SELECT qa.check('funnel events: a manager reads every store', 'ok rows=' || (SELECT count(*) FROM public.quiz_funnel_events), qa.as_user('authenticated', :M::uuid, $q$SELECT * FROM public.quiz_funnel_events$q$));
+SELECT qa.check('funnel events: a store responsible reads only their own store', 'ok rows=' || (SELECT count(*) FROM public.quiz_funnel_events WHERE store_id = 'milano'), qa.as_user('authenticated', :R::uuid, $q$SELECT * FROM public.quiz_funnel_events$q$));
+SELECT qa.check('funnel events: a consulente reads none', 'ok rows=0', qa.as_user('authenticated', :C::uuid, $q$SELECT * FROM public.quiz_funnel_events$q$));
 SELECT qa.check('funnel events: anon cannot read', 'ok rows=0', qa.as_user('anon', NULL, $q$SELECT * FROM public.quiz_funnel_events$q$));
 
 -- 8. the e-mail rate limit trigger -------------------------------------------------------------------------

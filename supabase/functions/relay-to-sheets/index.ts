@@ -88,7 +88,11 @@ serve(async (req) => {
   if (body && typeof body === "object") {
     for (const key of allowed) {
       const val = (body as Record<string, unknown>)[key];
-      if (typeof val === "string") safe[key] = val.slice(0, 500);
+      // a cell that starts with = + - @ would run as a formula in the sheet: keep it text
+      if (typeof val === "string") {
+        const text = val.replace(/[\r\n]+/g, " ").trim().slice(0, 500);
+        safe[key] = /^[=+\-@]/.test(text) ? `'${text}` : text;
+      }
     }
   }
 

@@ -112,6 +112,13 @@ function clampDiscountPercent(value: unknown): number {
   return Math.min(MAX_DISCOUNT_PERCENT, Math.max(0, Math.round(n)));
 }
 
+// A value that is safe to write into a spreadsheet cell: a first name of `=IMPORTXML(...)` would
+// otherwise run as a formula inside the CRM sheet. Tested reference: _shared/discountCode.ts.
+function sheetsSafe(value: unknown, max = 500): string {
+  const text = String(value ?? "").replace(/[\r\n]+/g, " ").trim().slice(0, max);
+  return /^[=+\-@]/.test(text) ? `'${text}` : text;
+}
+
 // Escape the characters that are wildcards in a LIKE/ILIKE pattern (e-mail addresses may
 // legitimately contain `_` and `%`), so ilike() can be used as a case-insensitive equality.
 function escapeLike(s: string): string {
@@ -954,12 +961,12 @@ serve(async (req) => {
   if (SHEETS_WEBHOOK) {
     const sheetsPayload = {
       data:     new Date().toLocaleString("it-IT"),
-      nome:     String(record.nome    ?? ""),
-      cognome:  String(record.cognome ?? ""),
-      email:    String(record.email   ?? ""),
-      prodotto: String(record.product_name ?? ""),
+      nome:     sheetsSafe(record.nome),
+      cognome:  sheetsSafe(record.cognome),
+      email:    sheetsSafe(record.email),
+      prodotto: sheetsSafe(record.product_name),
       match:    `${Number(record.match_percent ?? 0)}%`,
-      store_id: String(record.store_id ?? ""),
+      store_id: sheetsSafe(record.store_id),
     };
     fetch(SHEETS_WEBHOOK, {
       method:  "POST",
