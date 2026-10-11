@@ -310,7 +310,7 @@ const SuccessScreen = ({ email, userName, productName, onRestart }: SuccessScree
 
         <motion.p className="text-[10px] text-muted-foreground/40 select-none"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6 }}>
-          © {new Date().getFullYear()} Suaipe · Suaipe
+          © {new Date().getFullYear()} Suaipe
         </motion.p>
       </motion.div>
     </div>

@@ -257,7 +257,7 @@ export const Dashboard = ({ onLogout }: DashboardProps) => {
             />
 
             <p className="pb-4 text-center text-xs text-muted-foreground">
-              Suaipe · Analytics · Suaipe
+              Suaipe · Analytics
             </p>
           </>
         )}

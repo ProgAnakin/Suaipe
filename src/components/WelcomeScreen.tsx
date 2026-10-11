@@ -367,7 +367,7 @@ const WelcomeScreen = ({ onStart, settingsLoadFailed = false }: WelcomeScreenPro
 
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
         <span className="text-[10px] text-muted-foreground/40 select-none">
-          © {new Date().getFullYear()} Suaipe · Suaipe
+          © {new Date().getFullYear()} Suaipe
         </span>
       </div>
 

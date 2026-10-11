@@ -21,6 +21,9 @@ const SHEETS_WEBHOOK   = Deno.env.get("GOOGLE_SHEETS_WEBHOOK_URL") ?? "";
 // Leave unset only for local development — production must always set this.
 const WEBHOOK_SECRET   = Deno.env.get("WEBHOOK_SECRET") ?? "";
 const EMAIL_SENDER     = Deno.env.get("EMAIL_SENDER") ?? "noreply@suaipe.app";
+// Where a customer's "Reply" goes. Defaults to the sender (a verified, monitored-or-noreply mailbox of
+// YOUR domain) — it used to be hard-coded to the product's own domain.
+const EMAIL_REPLY_TO   = Deno.env.get("EMAIL_REPLY_TO") ?? EMAIL_SENDER;
 // Deployed site origin used to absolutise root-relative product images
 // ("/products/x.png") for the email. Defaults to the production Vercel domain;
 // override with the SITE_URL secret if the deployment domain changes.
@@ -935,7 +938,7 @@ serve(async (req) => {
       sender: { name: tpl.sender_name, email: EMAIL_SENDER },
       // Customers should not reply directly. Point Reply-To at a noreply mailbox
       // so the "Reply" button in email clients doesn't send anything to a real inbox.
-      replyTo: { name: "Suaipe (no-reply)", email: "noreply@suaipe.app" },
+      replyTo: { name: `${tpl.sender_name} (no-reply)`, email: EMAIL_REPLY_TO },
       to: [{ email: record.email, name: [nome, String(record.cognome ?? "")].filter(Boolean).join(" ") }],
       subject,
       htmlContent: html,

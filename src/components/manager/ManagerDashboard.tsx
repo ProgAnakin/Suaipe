@@ -476,7 +476,7 @@ export const ManagerDashboard = ({ onLogout }: ManagerDashboardProps) => {
         )}
 
         <p className="pb-4 text-center text-xs text-muted-foreground">
-          Suaipe · Catalog Management · Suaipe
+          Suaipe · Catalog Management
         </p>
 
         </>)} {/* end catalogo tab */}
