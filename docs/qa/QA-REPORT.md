@@ -162,9 +162,11 @@ Stated plainly, so the buyer does not discover them:
 9. **Edge Function changes cannot be run in this repo's dev setup** (no Deno). They were reviewed, a
    TypeScript syntax check was run, and the shared logic is unit-tested with a lockstep check on the inline
    copies — but the first real e-mail after deploying is the real test (go-live step 7.4).
-10. **The default store list is the previous owner's four cities.** Set `VITE_STORES` to your own.
-11. **`docs/socialpreview.png` and `public/og-image.png` still carry the author's byline and tech chips.**
-    Replace them with your own artwork before publishing the repository or the link preview.
+10. **The default store list is the four stores the product runs in today** (four city names, in `src/data/stores.ts`). A
+    new deployment sets `VITE_STORES` to its own.
+11. **`docs/socialpreview.png` carries the author's byline** ("built solo by …") and a row of tech chips — it is the
+    repository's social-preview image. `public/og-image.png` (the site's link preview) is clean. Replace the first
+    with your own artwork before publishing the repository.
 
 ## Operator actions, in this order
 
