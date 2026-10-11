@@ -472,7 +472,7 @@ export type Database = {
         Returns: number
       }
       purge_sessions_older_than: {
-        Args: { p_days?: number }
+        Args: { p_days?: number; p_store_id?: string }
         Returns: number
       }
       list_store_roles_admin: {

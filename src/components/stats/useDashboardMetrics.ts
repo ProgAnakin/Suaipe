@@ -31,14 +31,16 @@ export const useDashboardMetrics = (filteredSessions: QuizSession[]) => {
   const productStats = useMemo<ProductStat[]>(() => {
     const counts: Record<string, number> = {};
     const matchSums: Record<string, number> = {};
+    const names: Record<string, string> = {}; // sessions arrive newest first: the first name seen is the latest
     filteredSessions.forEach((s) => {
+      if (!names[s.matched_product_id] && s.product_name?.trim()) names[s.matched_product_id] = s.product_name.trim();
       counts[s.matched_product_id] = (counts[s.matched_product_id] ?? 0) + 1;
       matchSums[s.matched_product_id] = (matchSums[s.matched_product_id] ?? 0) + s.match_percent;
     });
     return Object.entries(counts)
       .map(([id, count]) => ({
         id,
-        name: productName(id),
+        name: names[id] ?? productName(id),
         count,
         percent: total ? Math.round((count / total) * 100) : 0,
         avgMatch: Math.round((matchSums[id] ?? 0) / count),

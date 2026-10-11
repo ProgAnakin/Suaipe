@@ -1,3 +1,4 @@
+import { downloadTextFile, parseCsv, toCsv } from "@/lib/csv";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -140,11 +141,17 @@ export const ManagerDashboard = ({ onLogout }: ManagerDashboardProps) => {
 
   const handleCsvUpload = async (file: File) => {
     const text = await file.text();
+    const known = new Set(catalogProducts.map((p) => p.id));
     const parsed: CsvPriceUpdate[] = [];
-    for (const line of text.trim().split("\n")) {
-      const [productId, price] = line.split(",").map((s) => s.trim());
-      if (productId && price) parsed.push({ productId, newPrice: price });
+    let ignored = 0;
+    for (const [productId, price] of parseCsv(text)) {
+      // the header row, blank cells and ids that are not in the catalogue are skipped — saving a
+      // price override for "product_id" would only leave a junk row behind
+      if (!productId || !price || !known.has(productId)) { if (productId && productId !== "product_id") ignored++; continue; }
+      parsed.push({ productId, newPrice: price });
     }
+    if (ignored > 0) toast.warning(`${ignored} line${ignored === 1 ? "" : "s"} ignored: unknown product id or no price.`);
+    if (parsed.length === 0) { toast.error("No valid prices found in the file."); return; }
     setCsvPreview(parsed);
     setShowCsvModal(true);
   };
@@ -159,19 +166,12 @@ export const ManagerDashboard = ({ onLogout }: ManagerDashboardProps) => {
   };
 
   const downloadCsvTemplate = () => {
-    const header = "product_id,price\n";
-    const rows = catalogProducts.map((p) => `${p.id},${p.price}`).join("\n");
-    const csv = header + rows;
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "product-prices.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // a price such as "€64,00" contains a comma: every cell is quoted (and defused) by toCsv, and
+    // parseCsv reads them back — the old template split "€64,00" in two and re-imported "€64"
+    const rows = [["product_id", "price"], ...catalogProducts.map((p) => [p.id, p.price])];
+    downloadTextFile("product-prices.csv", toCsv(rows));
   };
+
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

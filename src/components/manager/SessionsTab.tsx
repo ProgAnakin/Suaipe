@@ -3,12 +3,11 @@ import {
   RefreshCw, Search, X, Copy, Check, Clock, AlertCircle, XCircle, CheckCircle2,
   ChevronLeft, ChevronRight, Download, Trash2, Filter, CalendarDays,
 } from "lucide-react";
-import { products } from "@/data/products";
 import { useSessionsData } from "./sessions/useSessionsData";
 import { SessionSkeleton } from "./sessions/SessionSkeleton";
 import {
   formatDate, getSessionStatus, hoursUntilExpiry, isCodeExpired,
-  productName, storeName, StatusFilter, STATUS_META,
+  sessionProductName, storeName, StatusFilter, STATUS_META,
 } from "./sessions/types";
 
 interface SessionsTabProps {
@@ -32,13 +31,11 @@ export const SessionsTab = ({ storeId, isGlobal }: SessionsTabProps) => {
     exporting, exportToCSV,
     showPurgeModal, setShowPurgeModal, purging, purgePreviewCount,
     openPurgeModal, executePurge,
-    refreshAll,
+    refreshAll, productOptions,
   } = data;
 
-  const filtered = statusFilter === "all"
-    ? sessions
-    : sessions.filter((s) => getSessionStatus(s) === statusFilter);
-  const paginated = filtered;
+  // the status filter is applied by the database (useSessionsData), so the page is already filtered
+  const paginated = sessions;
 
   const redemptionColor =
     redemptionPct > 50 ? "text-green-400" :
@@ -49,7 +46,6 @@ export const SessionsTab = ({ storeId, isGlobal }: SessionsTabProps) => {
     redemptionPct >= 20 ? "border-amber-500/20 bg-amber-500/5" :
     "border-border bg-muted/20";
 
-  const allProducts = products.map((p) => ({ id: p.id, name: p.name }));
 
   return (
     <div className="space-y-5">
@@ -162,7 +158,7 @@ export const SessionsTab = ({ storeId, isGlobal }: SessionsTabProps) => {
                     <select value={filterProductId} onChange={(e) => setFilterProductId(e.target.value)}
                       className="w-full rounded-lg border border-border bg-muted/30 px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary">
                       <option value="">All products</option>
-                      {allProducts.map((p) => (
+                      {productOptions.map((p) => (
                         <option key={p.id} value={p.id}>{p.name}</option>
                       ))}
                     </select>
@@ -240,7 +236,7 @@ export const SessionsTab = ({ storeId, isGlobal }: SessionsTabProps) => {
       {/* Session list */}
       {loading ? (
         <SessionSkeleton />
-      ) : filtered.length === 0 ? (
+      ) : paginated.length === 0 ? (
         <div className="rounded-2xl border border-border bg-muted/20 py-12 text-center">
           <p className="text-2xl mb-2">📭</p>
           <p className="text-sm font-medium text-foreground">
@@ -307,7 +303,7 @@ export const SessionsTab = ({ storeId, isGlobal }: SessionsTabProps) => {
                       )}
                       <p className="truncate text-xs text-foreground/80">{s.email}</p>
                       <p className="text-xs text-muted-foreground">
-                        {productName(s.matched_product_id)} · <span className="text-primary font-semibold">{s.match_percent}%</span>
+                        {sessionProductName(s)} · <span className="text-primary font-semibold">{s.match_percent}%</span>
                         {isGlobal && s.store_id && (
                           <span className="ml-1.5 text-primary/60">· {storeName(s.store_id)}</span>
                         )}

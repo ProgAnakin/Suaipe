@@ -1,7 +1,7 @@
 import { ChevronLeft, Eye, FileText, Lightbulb, MessageSquareQuote, Paperclip, Video } from "lucide-react";
 import type { ProductGuide, GuideLang } from "./types";
 import { localisedGuide } from "./types";
-import { youtubeId } from "@/lib/validators";
+import { isHttpUrl, youtubeId } from "@/lib/validators";
 
 interface ProductGuideDetailProps {
   guide: ProductGuide;
@@ -43,7 +43,7 @@ export const ProductGuideDetail = ({ guide, lang, customerDescription, onBack }:
   const { description, insight1, insight2, managerAdvice } = localisedGuide(guide, lang);
   const videoLink = guide.video_url.trim();
   const videoId = videoLink ? youtubeId(videoLink) : null;
-  const isHttpLink = /^https?:\/\//i.test(videoLink);
+  const isHttpLink = isHttpUrl(videoLink);
 
   return (
     <div className="space-y-4">

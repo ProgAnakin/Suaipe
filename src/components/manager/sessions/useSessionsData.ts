@@ -2,11 +2,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebounce } from "@/hooks/useDebounce";
+import { products as bundledProducts } from "@/data/products";
+import { toCsv, downloadTextFile } from "@/lib/csv";
+import { fetchAllPages } from "@/lib/fetchAllPages";
+import { ilikeAny } from "@/lib/postgrestFilter";
+import { endOfLocalDayISO, startOfLocalDayISO } from "@/lib/dayRange";
 import { getCodeTtlMs } from "../EmailTemplateTab";
 import {
   formatDate,
   isCodeExpired,
-  productName,
+  sessionProductName,
   Session,
   SessionKpi,
   SESSION_SELECT,
@@ -15,6 +20,8 @@ import {
 } from "./types";
 
 const PAGE_SIZE = 20;
+/** A session younger than this has not had time to receive its e-mail yet: "processing", not "failed". */
+const PROCESSING_WINDOW_MS = 5 * 60_000;
 
 interface UseSessionsDataOpts {
   storeId: string;
@@ -51,14 +58,35 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
 
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+  // Options of the "product" filter: the live catalogue (what the store really sells), not the
+  // bundled demo products.
+  const [productOptions, setProductOptions] = useState<{ id: string; name: string }[]>(
+    () => bundledProducts.map((p) => ({ id: p.id, name: p.name })),
+  );
+  useEffect(() => {
+    let alive = true;
+    supabase.from("custom_products").select("id, name").order("name").then(({ data }) => {
+      if (alive && data && data.length > 0) setProductOptions(data as { id: string; name: string }[]);
+    });
+    return () => { alive = false; };
+  }, []);
+
   // ── Fetchers ────────────────────────────────────────────────────────────
+  // The KPI cards are computed from the rows themselves, so they need ALL of them: PostgREST
+  // answers at most 1000 rows per request, which used to freeze the totals at 1000.
   const fetchKpiData = useCallback(async () => {
-    let q = supabase
-      .from("quiz_sessions")
-      .select("id, email_sent, discount_code, created_at, code_redeemed");
-    if (!isGlobal) q = q.eq("store_id", storeId);
-    const { data } = await q;
-    setKpiData((data ?? []) as SessionKpi[]);
+    const { rows, error } = await fetchAllPages<SessionKpi>((from, to) => {
+      let q = supabase
+        .from("quiz_sessions")
+        .select("id, email_sent, discount_code, created_at, code_redeemed")
+        .order("created_at", { ascending: false })
+        .order("id")
+        .range(from, to);
+      if (!isGlobal) q = q.eq("store_id", storeId);
+      return q;
+    });
+    if (error) { console.error("[suaipe] KPI fetch failed:", error.message); return; } // keep the last good numbers
+    setKpiData(rows);
   }, [storeId, isGlobal]);
 
   const fetchSessions = useCallback(async () => {
@@ -72,50 +100,55 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
       .range(from, from + PAGE_SIZE - 1);
 
     if (!isGlobal) query = query.eq("store_id", storeId);
-    if (debouncedSearch.trim()) {
-      const q = debouncedSearch.trim()
-        .replace(/\\/g, "\\\\")
-        .replace(/%/g, "\\%")
-        .replace(/_/g, "\\_")
-        .replace(/,/g, "");
-      query = query.or(`email.ilike.%${q}%,discount_code.ilike.%${q}%,nome.ilike.%${q}%,cognome.ilike.%${q}%`);
-    }
-    if (filterDateFrom) query = query.gte("created_at", new Date(filterDateFrom).toISOString());
-    if (filterDateTo) {
-      const to = new Date(filterDateTo);
-      to.setHours(23, 59, 59, 999);
-      query = query.lte("created_at", to.toISOString());
-    }
+    const search = ilikeAny(["email", "discount_code", "nome", "cognome"], debouncedSearch);
+    if (search) query = query.or(search);
+    if (filterDateFrom) query = query.gte("created_at", startOfLocalDayISO(filterDateFrom));
+    if (filterDateTo) query = query.lte("created_at", endOfLocalDayISO(filterDateTo));
     if (filterProductId) query = query.eq("matched_product_id", filterProductId);
     if (filterMatchMin) query = query.gte("match_percent", parseInt(filterMatchMin, 10));
     if (filterMatchMax) query = query.lte("match_percent", parseInt(filterMatchMax, 10));
+    // The status is applied by the DATABASE, so the pager and the total agree with it — filtering
+    // the 20 rows of the current page hid every "failed" session that was not on that page.
+    if (statusFilter !== "all") {
+      const processingCutoff = new Date(Date.now() - PROCESSING_WINDOW_MS).toISOString();
+      if (statusFilter === "sent") query = query.eq("email_sent", true);
+      else {
+        query = query.eq("email_sent", false);
+        if (statusFilter === "processing") query = query.gte("created_at", processingCutoff);
+        else query = query.lt("created_at", processingCutoff).filter("discount_code", statusFilter === "no_email" ? "not.is" : "is", null);
+      }
+    }
 
     const { data, count } = await query;
     setSessions((data ?? []) as Session[]);
     setTotalCount(count ?? 0);
     setLoading(false);
-  }, [storeId, isGlobal, currentPage, debouncedSearch, filterDateFrom, filterDateTo, filterProductId, filterMatchMin, filterMatchMax]);
+  }, [storeId, isGlobal, currentPage, debouncedSearch, statusFilter, filterDateFrom, filterDateTo, filterProductId, filterMatchMin, filterMatchMax]);
 
   const fetchNegado = useCallback(async () => {
-    const [shownRes, claimedRes] = await Promise.all([
-      supabase.from("quiz_funnel_events").select("*", { count: "exact", head: true }).eq("event_type", "result_shown"),
-      supabase.from("quiz_funnel_events").select("*", { count: "exact", head: true }).eq("event_type", "claimed"),
-    ]);
+    const count = (type: "result_shown" | "claimed") => {
+      let q = supabase.from("quiz_funnel_events").select("*", { count: "exact", head: true }).eq("event_type", type);
+      if (!isGlobal) q = q.eq("store_id", storeId); // a store's dashboard counts that store only
+      return q;
+    };
+    const [shownRes, claimedRes] = await Promise.all([count("result_shown"), count("claimed")]);
     const negado = (shownRes.count ?? 0) - (claimedRes.count ?? 0);
     setNegadoCount(Math.max(0, negado));
-  }, []);
+  }, [storeId, isGlobal]);
 
   // ── Realtime subscription — refetch on any session change ──────────────
   useEffect(() => {
+    // A burst of changes (several customers at once, a purge) refreshes once, not once per row.
+    let timer: ReturnType<typeof setTimeout> | null = null;
     const ch = supabase
       .channel("sessions-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "quiz_sessions" }, () => {
-        fetchSessions();
-        fetchKpiData();
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => { fetchSessions(); fetchKpiData(); }, 600);
       })
       .subscribe();
     channelRef.current = ch;
-    return () => { supabase.removeChannel(ch); };
+    return () => { if (timer) clearTimeout(timer); supabase.removeChannel(ch); };
   }, [fetchSessions, fetchKpiData]);
 
   useEffect(() => { fetchKpiData(); fetchNegado(); }, [fetchKpiData, fetchNegado]);
@@ -163,38 +196,37 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
 
   const exportToCSV = useCallback(async () => {
     setExporting(true);
-    let query = supabase
-      .from("quiz_sessions")
-      .select(SESSION_SELECT)
-      .order("created_at", { ascending: false });
-    if (!isGlobal) query = query.eq("store_id", storeId);
-    const { data } = await query;
-    const rows = (data ?? []) as Session[];
+    // every session, page by page — one plain select would stop at 1000 rows and the file would be
+    // presented as complete
+    const { rows, truncated, error } = await fetchAllPages<Session>((from, to) => {
+      let q = supabase
+        .from("quiz_sessions")
+        .select(SESSION_SELECT)
+        .order("created_at", { ascending: false })
+        .order("id")
+        .range(from, to);
+      if (!isGlobal) q = q.eq("store_id", storeId);
+      return q;
+    });
+    if (error) {
+      setExporting(false);
+      toast.error(`Export failed: ${error.message}`);
+      return;
+    }
 
     const headers = ["First Name", "Last Name", "Email", "Product", "Match %", "Store", "Date", "Discount Code", "Code Status", "Used At"];
     const csvRows = rows.map((s) => [
       s.nome ?? "", s.cognome ?? "", s.email,
-      productName(s.matched_product_id), s.match_percent,
+      sessionProductName(s), s.match_percent,
       storeName(s.store_id), formatDate(s.created_at),
       s.discount_code ?? "",
       s.code_redeemed ? "used" : isCodeExpired(s) ? "expired" : s.discount_code ? "valid" : "no code",
       s.code_redeemed_at ? formatDate(s.code_redeemed_at) : "",
     ]);
 
-    const csvContent = [headers, ...csvRows]
-      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob(["﻿" + csvContent], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `suaipe-sessions-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success(`${rows.length} sessions exported to CSV.`);
+    downloadTextFile(`suaipe-sessions-${new Date().toISOString().slice(0, 10)}.csv`, toCsv([headers, ...csvRows]));
+    if (truncated) toast.warning(`${rows.length} sessions exported — the export stops at ${rows.length}; narrow it by store or date for the rest.`);
+    else toast.success(`${rows.length} sessions exported to CSV.`);
     setExporting(false);
   }, [storeId, isGlobal]);
 
@@ -212,15 +244,21 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
 
   const executePurge = useCallback(async () => {
     setPurging(true);
-    const { data } = await supabase.rpc("purge_sessions_older_than", { p_days: 7 });
+    // A store responsible may only purge their own store (the database enforces it); a manager's
+    // dashboard is global, so no store is named and every store is purged — as the preview says.
+    const { data, error } = await supabase.rpc("purge_sessions_older_than", isGlobal ? { p_days: 7 } : { p_days: 7, p_store_id: storeId });
     setPurging(false);
     setShowPurgeModal(false);
+    if (error) {
+      toast.error(`Could not delete the old sessions: ${error.message}`);
+      return;
+    }
     const deleted = data ?? 0;
     toast.success(`${deleted} sessions deleted successfully.`);
     fetchSessions();
     fetchKpiData();
     fetchNegado();
-  }, [fetchSessions, fetchKpiData, fetchNegado]);
+  }, [fetchSessions, fetchKpiData, fetchNegado, isGlobal, storeId]);
 
   // ── Derived ─────────────────────────────────────────────────────────────
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
@@ -292,6 +330,6 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
     showPurgeModal, setShowPurgeModal, purging, purgePreviewCount,
     openPurgeModal, executePurge,
     // refresh
-    refreshAll,
+    refreshAll, productOptions,
   };
 }

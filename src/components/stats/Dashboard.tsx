@@ -17,7 +17,7 @@ import { FunnelChart } from "./charts/FunnelChart";
 import { useDashboardFilters } from "./useDashboardFilters";
 import { useDashboardData } from "./useDashboardData";
 import { useDashboardMetrics } from "./useDashboardMetrics";
-import { exportCSV, productName } from "./types";
+import { exportCSV, sessionProductName } from "./types";
 
 interface DashboardProps {
   onLogout: () => void;
@@ -31,7 +31,7 @@ export const Dashboard = ({ onLogout }: DashboardProps) => {
   const { dateFrom, dateTo, filterStore, isFiltered, dateRangeInvalid } = filters;
 
   const data = useDashboardData({ dateFrom, dateTo, filterStore, dateRangeInvalid });
-  const { sessions, funnel, loading, hasError } = data;
+  const { sessions, funnel, loading, hasError, truncated } = data;
 
   // Server already filtered by date + store — client-side filtering only adds
   // text search across email / product / name on top of the fetched page.
@@ -64,13 +64,13 @@ export const Dashboard = ({ onLogout }: DashboardProps) => {
       const name = `${s.nome ?? ""} ${s.cognome ?? ""}`.toLowerCase();
       return (
         s.email.toLowerCase().includes(q) ||
-        productName(s.matched_product_id).toLowerCase().includes(q) ||
+        sessionProductName(s).toLowerCase().includes(q) ||
         name.includes(q)
       );
     });
   }, [filteredSessions, search]);
 
-  // Conversion rate (Tasso claim) — derived from the global funnel counts.
+  // Conversion rate (claim rate) — derived from the funnel counts of the selected store and dates.
   const tassoClaimPct = funnel && funnel.resultShown > 0
     ? Math.round((funnel.claimed / funnel.resultShown) * 100)
     : null;
@@ -151,6 +151,12 @@ export const Dashboard = ({ onLogout }: DashboardProps) => {
 
         {!loading && !hasError && !dateRangeInvalid && (
           <>
+            {truncated && (
+              <div role="status" className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-300">
+                More sessions exist than can be charted at once — the figures below cover the {sessions.length.toLocaleString("en-GB")} most
+                recent ones. Narrow the date range or pick a store for exact numbers.
+              </div>
+            )}
             {/* KPI cards */}
             <motion.div
               className="grid grid-cols-2 gap-4"

@@ -1,3 +1,4 @@
+import { downloadTextFile, toCsv } from "@/lib/csv";
 import { useCallback, useMemo, useState } from "react";
 import { Ban, Check, Download, RotateCcw, Search, User, X } from "lucide-react";
 import type { Product } from "@/data/products";
@@ -104,18 +105,7 @@ export const AuditLogTab = ({
       e.user_email ?? "—",
       auditStoreName(e.store_id),
     ]);
-    const csv = [headers, ...rows]
-      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `suaipe-catalog-history-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadTextFile(`suaipe-catalog-history-${new Date().toISOString().slice(0, 10)}.csv`, toCsv([headers, ...rows]));
   };
 
   const chips: { key: ActionFilter; label: string; count: number }[] = [

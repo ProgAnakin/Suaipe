@@ -100,3 +100,19 @@ export function toAbsoluteAssetUrl(
   if (/^\/[^/]/.test(u)) return siteUrl.replace(/\/+$/, "") + u;
   return null;
 }
+
+// ── Links shown to staff ─────────────────────────────────────────────────────
+/**
+ * True for an absolute http(s) URL. Anything else (`javascript:`, `data:`, `vbscript:`, relative
+ * paths…) must never become the href of a link: product and guide video links are typed in by
+ * managers and clicked by other staff.
+ */
+export function isHttpUrl(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  try {
+    const u = new URL(value.trim());
+    return u.protocol === "https:" || u.protocol === "http:";
+  } catch {
+    return false;
+  }
+}

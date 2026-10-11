@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { getStoreById } from "@/data/stores";
-import { formatDate, productName, storeName, type QuizSession } from "./types";
+import { formatDate, sessionProductName, storeName, type QuizSession } from "./types";
 
 const PAGE_SIZE = 20;
 
@@ -123,7 +123,7 @@ export const SessionsList = ({
                       <p className="truncate font-semibold text-foreground">{fullName}</p>
                     )}
                     <p className="truncate font-medium text-foreground/80">{s.email}</p>
-                    <p className="truncate text-xs text-muted-foreground">{productName(s.matched_product_id)}</p>
+                    <p className="truncate text-xs text-muted-foreground">{sessionProductName(s)}</p>
                     {s.store_id && (
                       <p className="text-[10px] text-primary/70 mt-0.5">📍 {storeName(s.store_id)}</p>
                     )}

@@ -22,18 +22,18 @@ const ResetPassword = () => {
   const handleReset = async () => {
     setError("");
     if (password.length < 6) {
-      setError("La password deve avere almeno 6 caratteri.");
+      setError("The password must be at least 6 characters long.");
       return;
     }
     if (password !== confirm) {
-      setError("Le password non coincidono.");
+      setError("The passwords do not match.");
       return;
     }
     setLoading(true);
     const { error: updateError } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (updateError) {
-      setError("Errore durante l'aggiornamento. Riprova.");
+      setError("Could not update the password. Please try again.");
     } else {
       navigate("/stats");
     }
@@ -47,23 +47,23 @@ const ResetPassword = () => {
         animate={{ opacity: 1, y: 0 }}
       >
         <div className="text-5xl">🔑</div>
-        <h1 className="text-2xl font-bold text-foreground">Nuova Password</h1>
+        <h1 className="text-2xl font-bold text-foreground">New password</h1>
         <p className="text-sm text-muted-foreground">
-          {ready ? "Scegli una nuova password per il tuo account." : "Verifica del link in corso…"}
+          {ready ? "Choose a new password for your account." : "Checking your link…"}
         </p>
 
         {ready && (
           <div className="space-y-3 text-left">
             <input
               type="password"
-              placeholder="Nuova password (min. 6 caratteri)"
+              placeholder="New password (min. 6 characters)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-2xl border border-border bg-card px-5 py-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <input
               type="password"
-              placeholder="Conferma password"
+              placeholder="Confirm password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleReset()}
@@ -79,7 +79,7 @@ const ResetPassword = () => {
               disabled={loading || !password || !confirm}
               className="gradient-primary shadow-glow w-full rounded-2xl px-8 py-4 text-lg font-bold text-primary-foreground active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Salvataggio…" : "Salva Password"}
+              {loading ? "Saving…" : "Save password"}
             </button>
           </div>
         )}

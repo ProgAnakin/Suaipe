@@ -9,6 +9,8 @@ export interface Session {
   nome: string | null;
   cognome: string | null;
   matched_product_id: string;
+  /** the name the customer was shown, saved with the lead (survives renames and deleted products) */
+  product_name: string | null;
   match_percent: number;
   email_sent: boolean | null;
   discount_code: string | null;
@@ -28,7 +30,7 @@ export type StatusFilter = "all" | "sent" | "processing" | "no_email" | "failed"
 // Single source of truth for the column list — keeps the paginated list and
 // CSV export in lockstep when the schema drifts.
 export const SESSION_SELECT =
-  "id, email, nome, cognome, matched_product_id, match_percent, email_sent, discount_code, created_at, store_id, code_redeemed, code_redeemed_at";
+  "id, email, nome, cognome, matched_product_id, product_name, match_percent, email_sent, discount_code, created_at, store_id, code_redeemed, code_redeemed_at";
 
 export const STATUS_META = {
   sent:       { label: "SENT",       icon: Mail,        cls: "border-green-500/40 bg-green-500/10 text-green-400"       },
@@ -39,6 +41,11 @@ export const STATUS_META = {
 
 export function productName(id: string): string {
   return products.find((p) => p.id === id)?.name ?? id;
+}
+
+/** The product of a lead: the name saved with it, else the bundled demo catalogue, else the id. */
+export function sessionProductName(s: Pick<Session, "matched_product_id" | "product_name">): string {
+  return s.product_name?.trim() || productName(s.matched_product_id);
 }
 
 export function storeName(id: string | null): string {
