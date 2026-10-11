@@ -11,7 +11,13 @@ CREATE TABLE qa.results(n serial, name text, expected text, actual text, ok bool
 CREATE FUNCTION qa.as_user(p_role text, p_uid uuid, p_sql text, p_headers text DEFAULT '{}') RETURNS text LANGUAGE plpgsql AS $$
 DECLARE n bigint; res text; claims text;
 BEGIN
-  claims := json_build_object('sub', p_uid, 'role', p_role)::text;
+  -- `aal` is what Supabase puts in a signed-in user's token: aal1 = password only, aal2 = password + TOTP.
+  -- qa.aal (default aal2) lets mfa.sql and the second, switch-ON pass vary it; 'none' = a token without the claim.
+  claims := (jsonb_build_object('sub', p_uid, 'role', p_role)
+             || CASE coalesce(nullif(current_setting('qa.aal', true), ''), 'aal2')
+                  WHEN 'none' THEN '{}'::jsonb
+                  ELSE jsonb_build_object('aal', coalesce(nullif(current_setting('qa.aal', true), ''), 'aal2'))
+                END)::text;
   PERFORM set_config('request.jwt.claims', claims, true);
   PERFORM set_config('request.headers', p_headers, true);
   EXECUTE format('SET LOCAL ROLE %I', p_role);
