@@ -73,11 +73,14 @@ export const SessionsTab = ({ storeId, isGlobal }: SessionsTabProps) => {
         </div>
         <div className="rounded-2xl border border-border bg-muted/20 p-4 text-center">
           <p className="text-2xl font-bold text-foreground">{negadoCount}</p>
-          <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/70">No match</p>
-          <p className="mt-0.5 text-[9px] text-foreground/40">({localNegado} from list)</p>
+          <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/70">Not claimed</p>
+          <p className="mt-0.5 text-[9px] text-foreground/40">saw the result, left · {localNegado} leads without a code</p>
         </div>
         <div className={`rounded-2xl border p-4 text-center ${redemptionBorderBg}`}>
-          <p className={`text-2xl font-bold ${redemptionColor}`}>{redemptionUsed}/{redemptionTotal}</p>
+          {/* "250/2249" in the big type overflowed the tile once the numbers grew */}
+          <p className={`text-2xl font-bold tabular-nums ${redemptionColor}`}>
+            {redemptionUsed}<span className="text-sm font-semibold opacity-70">/{redemptionTotal}</span>
+          </p>
           <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Codes used</p>
           <p className={`mt-0.5 text-[9px] font-semibold ${redemptionColor}`}>{redemptionPct}%</p>
         </div>

@@ -14,6 +14,11 @@ export default {
       },
     },
     extend: {
+      // Short screens (an 11" iPad or a mini in landscape, a phone): the kiosk screens compact their
+      // vertical rhythm with `short:` so the whole result still fits without scrolling.
+      screens: {
+        short: { raw: "(max-height: 900px)" },
+      },
       fontFamily: {
         display: ['Space Grotesk', 'sans-serif'],
       },

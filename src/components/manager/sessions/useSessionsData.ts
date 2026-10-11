@@ -276,7 +276,12 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
       if (!s.discount_code) return false;
       return (Date.now() - new Date(s.created_at).getTime()) / 60_000 >= 5;
     }).length,
-    failed:      kpiData.filter((s) => !s.email_sent && !s.discount_code).length,
+    // same precedence as getSessionStatus(): a session younger than 5 minutes is "processing",
+    // never "failed" — the button and the list it opens must agree
+    failed:      kpiData.filter((s) => {
+      if (s.email_sent || s.discount_code) return false;
+      return (Date.now() - new Date(s.created_at).getTime()) / 60_000 >= 5;
+    }).length,
   };
 
   const expiredReusable = kpiData.filter(

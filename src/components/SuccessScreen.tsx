@@ -35,7 +35,7 @@ const SPARKLES = Array.from({ length: 34 }, (_, i) => ({
 // ── Minimal success background — consistent with quiz screen ─────────────────
 const SuccessBackground = ({ skip }: { skip: boolean }) => (
   <div
-    className="pointer-events-none absolute inset-0 overflow-hidden"
+    className="pointer-events-none fixed inset-0 overflow-hidden"
     style={{
       background:
         "radial-gradient(ellipse 120% 90% at 50% 30%, hsl(230, 55%, 22%) 0%, hsl(230, 60%, 12%) 60%, hsl(230, 65%, 8%) 100%)",
@@ -179,12 +179,14 @@ const SuccessScreen = ({ email, userName, productName, onRestart }: SuccessScree
   ];
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-10">
+    // Scrolls inside itself when the screen is short (an iPad mini in landscape): the page is locked
+    // against scrolling on the kiosk, so a taller screen used to push "Play again" out of reach.
+    <div className="relative flex h-dvh flex-col items-center overflow-y-auto overflow-x-hidden px-6 py-10">
 
       <SuccessBackground skip={!!reduceMotion} />
 
       <motion.div
-        className="relative z-10 flex w-full max-w-md flex-col items-center gap-5"
+        className="relative z-10 my-auto flex w-full max-w-md flex-col items-center gap-5"
         initial={{ opacity: 0, y: 36 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 140, damping: 20 }}
@@ -291,7 +293,8 @@ const SuccessScreen = ({ email, userName, productName, onRestart }: SuccessScree
           {t.success.spamNote}
         </motion.p>
 
-        {/* ── Restart button ── */}
+        {/* ── Restart button — sticky: always on screen ── */}
+        <div className="sticky bottom-0 z-20 -mx-6 w-[calc(100%+3rem)] bg-gradient-to-t from-background via-background/90 to-transparent px-6 pb-2 pt-4">
         <motion.button
           onClick={onRestart}
           className="gradient-primary shadow-glow w-full rounded-2xl px-8 py-4 text-lg font-bold text-primary-foreground active:scale-95"
@@ -303,6 +306,7 @@ const SuccessScreen = ({ email, userName, productName, onRestart }: SuccessScree
         >
           {t.success.restart}
         </motion.button>
+        </div>
 
         <motion.p className="text-[10px] text-muted-foreground/40 select-none"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6 }}>

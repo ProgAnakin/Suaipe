@@ -288,11 +288,15 @@ const MatchResult = ({
   }, [setPinLockedSeconds]);
 
   return (
-    <div className="relative flex h-dvh flex-col items-center justify-center overflow-hidden px-6 py-6">
+    // The page itself never scrolls on the kiosk, so this screen scrolls INSIDE itself: on a short
+    // screen (an 11" iPad in landscape, a phone) the content used to be clipped top and bottom and
+    // the "I want it" button sat below the edge, out of reach. `my-auto` on the content centres it
+    // when there is room and lets it start at the top when there is not; the button is sticky.
+    <div className="relative flex h-dvh flex-col items-center overflow-y-auto overflow-x-hidden px-6 py-6 short:py-3">
 
       {/* ── Background — cosmic dark + match-reactive glow (no filter:blur, iPad Safari safe) ── */}
       <div
-        className="pointer-events-none absolute inset-0 overflow-hidden"
+        className="pointer-events-none fixed inset-0 overflow-hidden"
         style={{
           background:
             "radial-gradient(ellipse 120% 90% at 50% 30%, hsl(230, 55%, 22%) 0%, hsl(230, 60%, 12%) 60%, hsl(230, 65%, 8%) 100%)",
@@ -498,7 +502,7 @@ const MatchResult = ({
       </AnimatePresence>
 
       <motion.div
-        className="relative z-10 flex w-full max-w-md flex-col items-center gap-5"
+        className="relative z-10 my-auto flex w-full max-w-md flex-col items-center gap-5 short:gap-3"
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -522,13 +526,13 @@ const MatchResult = ({
         >
           {!isScanning && (
             <motion.div
-              className="absolute rounded-full"
-              style={{ width: 168, height: 168, background: `radial-gradient(circle, ${ringColor}22 0%, transparent 70%)` }}
+              className="absolute h-[168px] w-[168px] rounded-full short:h-[124px] short:w-[124px]"
+              style={{ background: `radial-gradient(circle, ${ringColor}22 0%, transparent 70%)` }}
               animate={{ scale: [1, 1.08, 1], opacity: [0.6, 0.2, 0.6] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
             />
           )}
-          <svg width="160" height="160" viewBox="0 0 120 120" style={{ overflow: "visible" }}>
+          <svg viewBox="0 0 120 120" className="h-40 w-40 short:h-[118px] short:w-[118px]" style={{ overflow: "visible" }}>
             <circle cx="60" cy="60" r="56" fill="none" stroke="hsl(var(--muted))" strokeWidth="7" opacity="0.25" />
             <motion.circle
               cx="60" cy="60" r="56" fill="none"
@@ -550,7 +554,7 @@ const MatchResult = ({
             )}
           </svg>
           <div className="absolute flex flex-col items-center">
-            <span className={`text-5xl font-bold tabular-nums leading-none ${isScanning ? "text-muted-foreground" : "text-gradient"}`}>
+            <span className={`text-5xl short:text-4xl font-bold tabular-nums leading-none ${isScanning ? "text-muted-foreground" : "text-gradient"}`}>
               {displayPercent}%
             </span>
             <span className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -576,7 +580,7 @@ const MatchResult = ({
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.45, duration: 0.5, ease: "easeOut" }}
         >
-          <div className="relative flex h-52 items-center justify-center bg-secondary/50 overflow-hidden">
+          <div className="relative flex h-52 items-center justify-center bg-secondary/50 overflow-hidden short:h-36">
             {product.image && !imgError ? (
               <img
                 src={product.image}
@@ -705,7 +709,8 @@ const MatchResult = ({
           </p>
         </motion.div>
 
-        {/* CTA */}
+        {/* CTA — sticky: always on screen, whatever the screen height */}
+        <div className="sticky bottom-0 z-20 -mx-6 w-[calc(100%+3rem)] bg-gradient-to-t from-background via-background/90 to-transparent px-6 pb-2 pt-4">
         <motion.button
           onClick={handleClaim}
           disabled={claiming || !isOnline}
@@ -726,6 +731,7 @@ const MatchResult = ({
             t.result.cta
           )}
         </motion.button>
+        </div>
 
         {/* Claim error feedback — local validation OR backend error */}
         <AnimatePresence>

@@ -56,14 +56,14 @@ export default defineConfig({
     {
       // Smoke, framing and pixel-diff specs: fast, run on every push.
       name: "ipad-landscape",
-      testIgnore: [/kiosk-resilience/, ...(useChromium ? [/visual-regression/] : [])],
+      testIgnore: [/(kiosk-(resilience|layout)|admin-areas)/, ...(useChromium ? [/visual-regression/] : [])],
       use: ipadLandscape,
     },
     {
       // The real kiosk against a backend that misbehaves (flaky network, lost responses, hostile
       // input, corrupt device storage…) — ~40 scenarios, a few minutes: its own CI job.
       name: "resilience",
-      testMatch: /kiosk-resilience/,
+      testMatch: /(kiosk-(resilience|layout)|admin-areas)/,
       use: ipadLandscape,
     },
   ],

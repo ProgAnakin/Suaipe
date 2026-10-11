@@ -121,15 +121,24 @@ export function seedTables(): Record<string, Row[]> {
 // ── PostgREST filter emulation (eq/neq/gt/gte/lt/lte/in/is/like/ilike, order, limit, offset) ─────
 const RESERVED = new Set(["select", "order", "limit", "offset", "or", "and", "columns", "on_conflict"]);
 
+/** Numbers compare as numbers, ISO timestamps as instants, everything else as text. */
+function cmp(value: unknown, arg: string): number {
+  const asTime = (v: unknown) => (typeof v === "string" && /^\d{4}-\d\d-\d\dT/.test(v) ? Date.parse(v) : Number.NaN);
+  const [a, b] = [asTime(value), asTime(arg)];
+  if (!Number.isNaN(a) && !Number.isNaN(b)) return a - b;
+  const [x, y] = [Number(value), Number(arg)];
+  if (!Number.isNaN(x) && !Number.isNaN(y)) return x - y;
+  return String(value).localeCompare(arg);
+}
+
 function matchesOp(value: unknown, op: string, arg: string): boolean {
-  const num = (v: unknown) => (typeof v === "number" ? v : Number(v));
   switch (op) {
     case "eq": return String(value) === arg;
     case "neq": return String(value) !== arg;
-    case "gt": return num(value) > Number(arg);
-    case "gte": return num(value) >= Number(arg);
-    case "lt": return num(value) < Number(arg);
-    case "lte": return num(value) <= Number(arg);
+    case "gt": return cmp(value, arg) > 0;
+    case "gte": return cmp(value, arg) >= 0;
+    case "lt": return cmp(value, arg) < 0;
+    case "lte": return cmp(value, arg) <= 0;
     case "is": return arg === "null" ? value == null : String(value) === arg;
     case "in": {
       const list = arg.replace(/^\(|\)$/g, "").split(",").map((s) => s.replace(/^"|"$/g, ""));

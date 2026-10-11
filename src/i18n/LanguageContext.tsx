@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { type Lang, type T, translations } from "./translations";
 
 const LS_KEY = "wb_lang";
@@ -26,6 +26,10 @@ const LangContext = createContext<LangContextValue>({
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [lang, setLangState] = useState<Lang>(getInitialLang);
+
+  // <html lang> follows the language on screen: a screen reader picks its voice (and a browser its
+  // hyphenation and quotation rules) from it, and index.html can only declare one language.
+  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
 
   const setLang = (l: Lang) => {
     setLangState(l);
