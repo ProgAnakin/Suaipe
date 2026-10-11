@@ -44,10 +44,17 @@ function makeHeaders(origin: string) {
   return headers;
 }
 
+// The address the platform saw, not one the caller wrote. The FIRST entry of x-forwarded-for is
+// whatever the client put in the header (anyone can send `X-Forwarded-For: 1.2.3.4` and rotate it
+// to dodge a per-address lockout); `cf-connecting-ip` is set by the CDN, and the LAST x-forwarded-for
+// entry is the one the nearest trusted proxy appended.
 function getClientIp(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for");
+  const last = xff ? xff.split(",").map((p) => p.trim()).filter(Boolean).pop() : undefined;
   return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
+    req.headers.get("cf-connecting-ip")?.trim() ||
+    req.headers.get("x-real-ip")?.trim() ||
+    last ||
     "unknown"
   );
 }
@@ -80,6 +87,23 @@ function recordFailure(ip: string): void {
   cur.count += 1;
   if (cur.count >= MAX_FAILURES) cur.resetAt = now + LOCKOUT_MS;
   ipAttempts.set(ip, cur);
+  recentFailures.push(now);
+}
+
+// Guesses spread over many addresses (or a spoofed header) are throttled too: more than
+// GLOBAL_MAX_FAILURES wrong PINs in GLOBAL_WINDOW_MS, from anywhere, locks everybody for the
+// rest of the window. (Per instance, like the per-address limiter; the database keeps its own.)
+const recentFailures: number[] = [];
+const GLOBAL_MAX_FAILURES = 20;
+const GLOBAL_WINDOW_MS    = 5 * 60 * 1000;
+
+function checkGlobalThrottle(): { blocked: boolean; remaining: number } {
+  const now = Date.now();
+  while (recentFailures.length && now - recentFailures[0] > GLOBAL_WINDOW_MS) recentFailures.shift();
+  if (recentFailures.length >= GLOBAL_MAX_FAILURES) {
+    return { blocked: true, remaining: Math.ceil((recentFailures[0] + GLOBAL_WINDOW_MS - now) / 1000) };
+  }
+  return { blocked: false, remaining: 0 };
 }
 
 serve(async (req) => {
@@ -115,11 +139,18 @@ serve(async (req) => {
   const ip       = getClientIp(req);
   const pinInput = String(body.pin_input ?? "");
 
-  // Rate limit check
+  // Rate limit check (per address, then global)
   const rl = checkRateLimit(ip);
   if (rl.blocked) {
     return new Response(
       JSON.stringify({ valid: false, locked_seconds: rl.remaining }),
+      { status: 200, headers: h }
+    );
+  }
+  const gl = checkGlobalThrottle();
+  if (gl.blocked) {
+    return new Response(
+      JSON.stringify({ valid: false, locked_seconds: Math.max(1, gl.remaining) }),
       { status: 200, headers: h }
     );
   }

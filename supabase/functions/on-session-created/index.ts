@@ -98,7 +98,24 @@ function genDiscountCode(discountPct: number): string {
   const bytes = new Uint8Array(4);
   crypto.getRandomValues(bytes);
   const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
-  return `SUP-${hex}${String(discountPct).padStart(2, "0")}`;
+  return `SUP-${hex}${String(clampDiscountPercent(discountPct)).padStart(2, "0")}`;
+}
+
+// The discount is whatever the STORE configured for the product — never a number the browser
+// sent: the row's discount_percent arrives from the public anon key, so anyone could ask for 90 %.
+// Tested reference: supabase/functions/_shared/discountCode.ts (keep in lockstep).
+const DEFAULT_DISCOUNT_PERCENT = 5;
+const MAX_DISCOUNT_PERCENT = 99; // the code carries it in two digits
+function clampDiscountPercent(value: unknown): number {
+  const n = typeof value === "number" ? value : typeof value === "string" && value.trim() !== "" ? Number(value) : Number.NaN;
+  if (!Number.isFinite(n)) return DEFAULT_DISCOUNT_PERCENT;
+  return Math.min(MAX_DISCOUNT_PERCENT, Math.max(0, Math.round(n)));
+}
+
+// Escape the characters that are wildcards in a LIKE/ILIKE pattern (e-mail addresses may
+// legitimately contain `_` and `%`), so ilike() can be used as a case-insensitive equality.
+function escapeLike(s: string): string {
+  return s.replace(/[\\%_]/g, "\\$&");
 }
 
 // ⚠ Synced copy — kept in lockstep with src/lib/validators.ts. Tests in
@@ -322,7 +339,7 @@ function buildEmail(record: Record<string, unknown>, code: string, faq: Array<{ 
   // email clients sandbox <script>/event handlers, so the XSS surface is minimal.
   const headerTitle    = tpl?.header_title    ?? "Abbiamo trovato il tuo match!";
   const headerSubtitle = tpl?.header_subtitle ?? "Il nostro algoritmo ha analizzato le tue risposte e ha selezionato il <strong style=\"color:#f0f4ff;\">gadget perfetto per il tuo stile di vita</strong>.";
-  const footerName     = tpl?.footer_store_name ?? "Costanzo Annichini";
+  const footerName     = tpl?.footer_store_name ?? "Suaipe";
   const nome         = escHtml(String(record.nome    ?? "").trim());
   const cognome      = escHtml(String(record.cognome ?? "").trim());
   const pct          = Number(record.match_percent ?? 0);
@@ -645,6 +662,38 @@ function buildEmail(record: Record<string, unknown>, code: string, faq: Array<{ 
 </html>`.trim();
 }
 
+interface ProductFacts { name: string; price: string; image: string; video: string; discountPct: number }
+
+// What the store sells and at what discount, read from the catalogue — the kiosk shows the same
+// numbers (per-store override first, then the global product).
+async function loadProductFacts(supabase: ReturnType<typeof createClient>, record: Record<string, unknown>): Promise<ProductFacts | null> {
+  const productId = String(record.matched_product_id ?? "").trim();
+  if (!productId) return null;
+  const { data: cp } = await supabase
+    .from("custom_products")
+    .select("name, price, image_url, video_url")
+    .eq("id", productId)
+    .maybeSingle();
+  if (!cp) return null;
+  let ps: Record<string, unknown> | null = null;
+  if (record.store_id) {
+    const { data } = await supabase
+      .from("product_settings")
+      .select("price_override, image_url, video_url, discount_percent")
+      .eq("product_id", productId)
+      .eq("store_id", String(record.store_id))
+      .maybeSingle();
+    ps = data as Record<string, unknown> | null;
+  }
+  return {
+    name:  String(cp.name ?? "").trim(),
+    price: String(ps?.price_override || cp.price || "").trim(),
+    image: String(ps?.image_url || cp.image_url || "").trim(),
+    video: String(ps?.video_url || cp.video_url || "").trim(),
+    discountPct: clampDiscountPercent(ps?.discount_percent),
+  };
+}
+
 serve(async (req) => {
   const origin = req.headers.get("origin") ?? "";
 
@@ -715,9 +764,6 @@ serve(async (req) => {
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   }
 
-  const discountPct = Number(record.discount_percent ?? 5);
-  const code = genDiscountCode(discountPct);
-
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
   // Idempotency guard — a Supabase webhook retry re-delivers the same INSERT
@@ -736,6 +782,22 @@ serve(async (req) => {
     }
   }
 
+  // Everything the e-mail says about the product — and the discount in the code — comes from the
+  // DATABASE, not from the row. The row is written by a public (anon-key) client: a forged
+  // product_name / product_video / discount_percent would otherwise be e-mailed, from our
+  // sender, to any address the caller likes. An unknown product gets no e-mail at all.
+  const facts = await loadProductFacts(supabase, record);
+  if (!facts) {
+    console.warn("[on-session-created] unknown product — no e-mail sent. session:", record.id);
+    return new Response(JSON.stringify({ ok: true, skipped: "unknown product" }), { status: 200 });
+  }
+  record.product_name  = facts.name;
+  record.product_price = facts.price;
+  record.product_image = facts.image;
+  record.product_video = facts.video;
+  const discountPct = facts.discountPct;
+  const code = genDiscountCode(discountPct);
+
   // Customer PII (nome / cognome / email) is stored in plaintext because the
   // manager dashboard must search and display it; it is protected by row-level
   // security (no anon read; managers/consulenti scoped by store), Supabase's
@@ -745,17 +807,17 @@ serve(async (req) => {
   // If this email already received an email in the last hour, save the code to DB
   // but silently skip sending. The customer experience is unaffected; only abusers are blocked.
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const emailNorm = String(record.email).trim().toLowerCase();
   const { count: recentEmails } = await supabase
     .from("quiz_sessions")
     .select("id", { count: "exact", head: true })
-    .eq("email", String(record.email))
+    .ilike("email", escapeLike(emailNorm)) // case-insensitive: Foo@x.com and foo@x.com are one address
     .eq("email_sent", true)
     .neq("id", String(record.id))
     .gte("created_at", oneHourAgo);
 
-  const emailNorm = String(record.email).trim().toLowerCase();
   if ((recentEmails ?? 0) >= 1 && !WHITELIST_EMAILS.has(emailNorm)) {
-    await supabase.from("quiz_sessions").update({ discount_code: code }).eq("id", record.id);
+    await supabase.from("quiz_sessions").update({ discount_code: code, discount_percent: discountPct }).eq("id", record.id);
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   }
 
@@ -764,7 +826,7 @@ serve(async (req) => {
   // receive an email referencing a code that was never persisted to the row.
   const { error: dbErr } = await supabase
     .from("quiz_sessions")
-    .update({ discount_code: code })
+    .update({ discount_code: code, discount_percent: discountPct })
     .eq("id", record.id);
 
   if (dbErr || !code) {
@@ -775,11 +837,16 @@ serve(async (req) => {
   // Fetch product-specific FAQ: check product_settings first, then custom_products as fallback.
   const faq: Array<{ q: string; a: string }> = [];
   if (record.matched_product_id) {
-    const { data: ps } = await supabase
-      .from("product_settings")
-      .select("faq_q1,faq_a1,faq_q2,faq_a2,faq_q3,faq_a3")
-      .eq("product_id", record.matched_product_id)
-      .maybeSingle();
+    // product_settings has one row PER STORE; without the store filter maybeSingle() fails as soon
+    // as two stores configure the same product and the store's own FAQ would silently never be used.
+    const { data: ps } = record.store_id
+      ? await supabase
+          .from("product_settings")
+          .select("faq_q1,faq_a1,faq_q2,faq_a2,faq_q3,faq_a3")
+          .eq("product_id", record.matched_product_id)
+          .eq("store_id", String(record.store_id))
+          .maybeSingle()
+      : { data: null };
     if (ps) {
       for (const n of [1, 2, 3] as const) {
         const q = String((ps as Record<string, unknown>)[`faq_q${n}`] ?? "").trim();
@@ -844,7 +911,7 @@ serve(async (req) => {
     subject_template:  String(tplRow?.subject_template  ?? "{{nome}}, il tuo match è {{pct}}% — Codice sconto valido 24h ⏰"),
     header_title:      String(tplRow?.header_title      ?? "Abbiamo trovato il tuo match!"),
     header_subtitle:   String(tplRow?.header_subtitle   ?? "Il nostro algoritmo ha analizzato le tue risposte e ha selezionato il gadget perfetto per il tuo stile di vita."),
-    footer_store_name: String(tplRow?.footer_store_name ?? "Costanzo Annichini"),
+    footer_store_name: String(tplRow?.footer_store_name ?? "Suaipe"),
   };
 
   const nome     = String(record.nome ?? "").trim();
