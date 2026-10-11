@@ -3,8 +3,20 @@ import { defineConfig, devices } from "@playwright/test";
 // Standalone Playwright config — starts the Vite preview server and runs the
 // kiosk flow specs in /e2e against an iPad-sized WebKit viewport (the engine
 // real kiosks use).
+//
+// WebKit is the default and what CI runs. Where it cannot be installed (some
+// Linux containers / cloud sandboxes) the same suite runs on an installed
+// Chromium with the iPad viewport + touch emulation:
+//
+//   E2E_BROWSER=chromium [CHROMIUM_PATH=/path/to/chrome] npm run test:e2e
+//
+// The pixel-diff specs are WebKit-only (their baselines are WebKit renders), so
+// they are skipped in that mode.
+const useChromium = process.env.E2E_BROWSER === "chromium";
+
 export default defineConfig({
   testDir: "./e2e",
+  testIgnore: useChromium ? /visual-regression/ : undefined,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -34,7 +46,15 @@ export default defineConfig({
   projects: [
     {
       name: "ipad-landscape",
-      use: { ...devices["iPad Pro 11 landscape"] },
+      use: {
+        ...devices["iPad Pro 11 landscape"],
+        ...(useChromium
+          ? {
+              browserName: "chromium" as const,
+              launchOptions: { executablePath: process.env.CHROMIUM_PATH || undefined },
+            }
+          : {}),
+      },
     },
   ],
 
