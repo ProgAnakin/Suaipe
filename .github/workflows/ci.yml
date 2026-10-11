@@ -71,7 +71,7 @@ jobs:
         run: npx playwright install --with-deps webkit
 
       - name: Run E2E tests
-        run: npm run test:e2e
+        run: npm run test:e2e:smoke
 
       - name: Upload Playwright report on failure
         if: failure()
@@ -80,3 +80,64 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  e2e-resilience:
+    name: Kiosk resilience (real app, misbehaving backend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Advisory until it has been green on WebKit for a while: ~40 scenarios that drive the whole
+    # kiosk against an in-memory backend that drops connections, loses responses and hangs.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps webkit
+
+      - name: Run the resilience suite
+        run: npx playwright test --project=resilience --workers=2
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-resilience-report
+          path: playwright-report/
+          if-no-files-found: ignore
+
+  sql:
+    name: SQL · migrations from zero + security checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Apply every migration to an empty database and attack it as each role
+        env:
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: supabase/tests/run.sh

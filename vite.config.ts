@@ -33,12 +33,15 @@ export default defineConfig(() => ({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,woff2}"],
         // Exclude large static assets that aren't needed for offline kiosk operation
         globIgnores: ["screenshots/**", "splash/**"],
-        // Runtime caching for Supabase REST GETs only (network-first, 5 s timeout).
-        // Scoped to /rest/v1/ to avoid caching /auth/v1/* tokens or RPC writes;
-        // method GET filter prevents non-idempotent calls from being cached.
+        // Runtime caching for the four PUBLIC catalogue tables the kiosk reads (network-first,
+        // 5 s timeout, 60 s lifetime). Deliberately NOT every /rest/v1/ GET: customer data
+        // (quiz_sessions: names, e-mails), roles and audit logs are answered per user by RLS and must
+        // never be copied into the device's Cache Storage, where the cache key is the URL alone and
+        // the next user of the device could be served the previous user's answer.
+        // Method GET filter prevents non-idempotent calls from being cached.
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+            urlPattern: /^https:\/\/[^/]+\.supabase\.co\/rest\/v1\/(custom_products|product_settings|product_global_status|quiz_cards)(\?|$)/i,
             handler: "NetworkFirst",
             method: "GET",
             options: {

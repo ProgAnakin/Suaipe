@@ -14,9 +14,18 @@ import { defineConfig, devices } from "@playwright/test";
 // they are skipped in that mode.
 const useChromium = process.env.E2E_BROWSER === "chromium";
 
+const ipadLandscape = {
+  ...devices["iPad Pro 11 landscape"],
+  ...(useChromium
+    ? {
+        browserName: "chromium" as const,
+        launchOptions: { executablePath: process.env.CHROMIUM_PATH || undefined },
+      }
+    : {}),
+};
+
 export default defineConfig({
   testDir: "./e2e",
-  testIgnore: useChromium ? /visual-regression/ : undefined,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -45,16 +54,17 @@ export default defineConfig({
 
   projects: [
     {
+      // Smoke, framing and pixel-diff specs: fast, run on every push.
       name: "ipad-landscape",
-      use: {
-        ...devices["iPad Pro 11 landscape"],
-        ...(useChromium
-          ? {
-              browserName: "chromium" as const,
-              launchOptions: { executablePath: process.env.CHROMIUM_PATH || undefined },
-            }
-          : {}),
-      },
+      testIgnore: [/kiosk-resilience/, ...(useChromium ? [/visual-regression/] : [])],
+      use: ipadLandscape,
+    },
+    {
+      // The real kiosk against a backend that misbehaves (flaky network, lost responses, hostile
+      // input, corrupt device storage…) — ~40 scenarios, a few minutes: its own CI job.
+      name: "resilience",
+      testMatch: /kiosk-resilience/,
+      use: ipadLandscape,
     },
   ],
 

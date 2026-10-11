@@ -1,8 +1,9 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.annichini.webimatch",
-  appName: "Webi Match",
+  // Change both to your own identity before publishing a native build (the id is permanent in the stores).
+  appId: "app.suaipe.kiosk",
+  appName: "Suaipe",
   webDir: "dist",
   android: {
     // Full-screen kiosk feel on Android tablets
