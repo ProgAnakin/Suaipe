@@ -2,18 +2,14 @@ import { test, expect, type Page } from "@playwright/test";
 import { AVAILABLE_TAGS } from "../src/data/products";
 import { questions } from "../src/data/questions";
 import { MockBackend, seedTables } from "./support/mock-backend";
-import {
-  STORE_ID, VISITOR, appErrors, boot, claimButton, installTimeSkew, skewTime, type Booted, consentBox, emailInput, fillWelcome, firstNameInput,
-  noButton, playToResult, restartButton, screenText, startButton, startGame,
-  tapToStart, yesButton, attractCta, BROKEN_TEXT, answerAll,
-} from "./support/kiosk";
+import { STORE_ID, VISITOR, appErrors, boot, claimButton, installTimeSkew, skewTime, type Booted, consentBox, emailInput, fillWelcome, firstNameInput, noButton, playToResult, restartButton, screenText, startButton, startGame, tapToStart, yesButton, attractCta, BROKEN_TEXT, answerAll, T } from "./support/kiosk";
 
 // The REAL kiosk, driven end to end against an in-memory backend that can be told to misbehave.
 // Every test documents one way the real world fails — flaky wifi, a half-down backend, a double
 // tap, a corrupted device — and what a customer standing in front of the iPad must (not) see.
 
 test.use({ serviceWorkers: "block" });
-test.describe.configure({ timeout: 60_000 });
+test.describe.configure({ timeout: T(60_000) });
 
 /** A catalogue with ONE product that is not in the bundled fallback and wins every quiz. */
 const DB_ONLY = {
@@ -34,7 +30,7 @@ test.describe("journey", () => {
     expect(BROKEN_TEXT.test(await screenText(page))).toBe(false);
 
     await claimButton(page, t).click();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
 
     const rows = backend.rows("quiz_sessions");
     expect(rows).toHaveLength(1);
@@ -66,7 +62,7 @@ test.describe("journey", () => {
     for (const email of ["one@example.com", "two@example.com"]) {
       await playToResult(page, t, undefined, { first: "Ana", last: "Souza", email });
       await claimButton(page, t).click();
-      await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+      await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
       await restartButton(page, t).click();
       await expect(attractCta(page, t)).toBeVisible();
     }
@@ -80,7 +76,7 @@ test.describe("catalogue loading", () => {
     const { backend, t } = await boot(page, { backend: backendWithDbOnlyProduct() });
     await playToResult(page, t);
     await claimButton(page, t).click();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
     expect(backend.rows("quiz_sessions")[0].matched_product_id).toBe("only-in-db");
   });
 
@@ -94,7 +90,7 @@ test.describe("catalogue loading", () => {
     await page.reload({ waitUntil: "domcontentloaded" });
     await playToResult(page, t);
     await claimButton(page, t).click();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
     expect(backend.rows("quiz_sessions").at(-1)?.matched_product_id).toBe("only-in-db");
   });
 
@@ -115,7 +111,7 @@ test.describe("catalogue loading", () => {
     backend.rows("custom_products")[0] = RENAMED;
     await skewTime(page, 11 * 60_000);
     await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
-    await expect.poll(() => backend.calls("/rest/v1/custom_products").length, { timeout: 10_000 }).toBe(2);
+    await expect.poll(() => backend.calls("/rest/v1/custom_products").length, { timeout: T(10_000) }).toBe(2);
     await expectRenamedProductOnResult(page, t);
   });
 
@@ -125,12 +121,12 @@ test.describe("catalogue loading", () => {
     const { t } = await boot(page, { backend });
     await playToResult(page, t);
     await claimButton(page, t).click();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
     backend.rows("custom_products")[0] = RENAMED;
     await skewTime(page, 2 * 60_000);
     await restartButton(page, t).click();
     await expect(attractCta(page, t)).toBeVisible();
-    await expect.poll(() => backend.calls("/rest/v1/custom_products").length, { timeout: 10_000 }).toBe(2);
+    await expect.poll(() => backend.calls("/rest/v1/custom_products").length, { timeout: T(10_000) }).toBe(2);
     await expectRenamedProductOnResult(page, t);
   });
 
@@ -152,15 +148,15 @@ test.describe("catalogue loading", () => {
     await fillWelcome(page, t);
     await startGame(page, t);
     await expect(page.getByText(questions[0].text)).toBeVisible();
-    await expect.poll(() => backend.calls("/rest/v1/quiz_cards").length, { timeout: 10_000 }).toBe(2);
+    await expect.poll(() => backend.calls("/rest/v1/quiz_cards").length, { timeout: T(10_000) }).toBe(2);
     await page.waitForTimeout(7_000); // the refreshed data has arrived by now — mid-quiz
     await expect(page.getByText(questions[0].text)).toBeVisible(); // the card under the customer did not change
     await expect(page.getByText("A brand new first question?")).toHaveCount(0);
     await answerAll(page, t);
-    await expect(claimButton(page, t)).toBeVisible({ timeout: 20_000 });
+    await expect(claimButton(page, t)).toBeVisible({ timeout: T(20_000) });
     await expect(page.getByText("Only In DB")).toBeVisible(); // this visit was matched against the data it started with
     await claimButton(page, t).click();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
     // …and the next customer gets the new questions and the new catalogue
     await restartButton(page, t).click();
     await tapToStart(page, t);
@@ -168,7 +164,7 @@ test.describe("catalogue loading", () => {
     await startGame(page, t);
     await expect(page.getByText("A brand new first question?")).toBeVisible();
     await answerAll(page, t);
-    await expect(page.getByText("Renamed By Manager")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText("Renamed By Manager")).toBeVisible({ timeout: T(20_000) });
   });
 
   test("an idle kiosk re-reads its data on a timer (the cache is rewritten)", async ({ page }) => {
@@ -179,8 +175,8 @@ test.describe("catalogue loading", () => {
     await expect.poll(() => backend.calls("/rest/v1/custom_products").length).toBe(1);
     backend.rows("custom_products")[0] = RENAMED;
     await page.clock.fastForward(6 * 60_000);
-    await expect.poll(() => backend.calls("/rest/v1/custom_products").length, { timeout: 10_000 }).toBeGreaterThan(1);
-    await expect.poll(() => page.evaluate(() => localStorage.getItem("wm_cache_startup_milano") ?? ""), { timeout: 10_000 })
+    await expect.poll(() => backend.calls("/rest/v1/custom_products").length, { timeout: T(10_000) }).toBeGreaterThan(1);
+    await expect.poll(() => page.evaluate(() => localStorage.getItem("wm_cache_startup_milano") ?? ""), { timeout: T(10_000) })
       .toContain("Renamed By Manager");
   });
 
@@ -194,7 +190,7 @@ test.describe("catalogue loading", () => {
     await fillWelcome(page, t);
     await startButton(page, t).click();
     // either the quiz starts straight away or after the loading screen's 10 s fallback
-    await expect(yesButton(page, t)).toBeVisible({ timeout: 25_000 });
+    await expect(yesButton(page, t)).toBeVisible({ timeout: T(25_000) });
     expect(appErrors(errors)).toEqual([]);
   });
 });
@@ -206,7 +202,7 @@ test.describe("claiming the match", () => {
     const { t } = await boot(page, { backend });
     await playToResult(page, t);
     await claimButton(page, t).click();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
     expect(backend.rows("quiz_sessions")).toHaveLength(1);
   });
 
@@ -216,12 +212,12 @@ test.describe("claiming the match", () => {
     const { t } = await boot(page, { backend });
     await playToResult(page, t);
     await claimButton(page, t).click();
-    await expect.poll(() => backend.calls("/rest/v1/quiz_sessions", "POST").length, { timeout: 10_000 }).toBe(3);
+    await expect.poll(() => backend.calls("/rest/v1/quiz_sessions", "POST").length, { timeout: T(10_000) }).toBe(3);
     await expect(restartButton(page, t)).toHaveCount(0);
-    await expect(claimButton(page, t)).toBeEnabled({ timeout: 10_000 });
+    await expect(claimButton(page, t)).toBeEnabled({ timeout: T(10_000) });
     backend.clearFaults();
     await claimButton(page, t).click();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
     expect(backend.rows("quiz_sessions")).toHaveLength(1);
   });
 
@@ -231,7 +227,7 @@ test.describe("claiming the match", () => {
     const { t } = await boot(page, { backend });
     await playToResult(page, t);
     await claimButton(page, t).click();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
     expect(backend.rows("quiz_sessions")).toHaveLength(1);
   });
 
@@ -242,7 +238,7 @@ test.describe("claiming the match", () => {
     await playToResult(page, t);
     await claimButton(page, t).click();
     // a timeout turns the hang into a failed attempt; the retry then succeeds
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 40_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(40_000) });
     expect(backend.rows("quiz_sessions")).toHaveLength(1);
   });
 
@@ -252,7 +248,7 @@ test.describe("claiming the match", () => {
     const { t } = await boot(page, { backend });
     await playToResult(page, t);
     await claimButton(page, t).dblclick();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
     expect(backend.rows("quiz_sessions")).toHaveLength(1);
   });
 
@@ -265,9 +261,9 @@ test.describe("claiming the match", () => {
     await expect(restartButton(page, t)).toHaveCount(0);
     await context.setOffline(false);
     await expect(page.getByText(t.welcome.offlineBanner)).toBeHidden();
-    await expect(claimButton(page, t)).toBeEnabled({ timeout: 10_000 });
+    await expect(claimButton(page, t)).toBeEnabled({ timeout: T(10_000) });
     await claimButton(page, t).click();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
     expect(backend.rows("quiz_sessions")).toHaveLength(1);
   });
 });
@@ -280,7 +276,7 @@ test.describe("welcome form", () => {
     await tapToStart(page, t);
     await fillWelcome(page, t);
     await startButton(page, t).click();
-    await expect(yesButton(page, t)).toBeVisible({ timeout: 25_000 });
+    await expect(yesButton(page, t)).toBeVisible({ timeout: T(25_000) });
   });
 
   for (const fault of [{ kind: "status", status: 500 }, { kind: "abort" }, { kind: "malformed" }] as const) {
@@ -347,9 +343,9 @@ test.describe("welcome form", () => {
       await fillWelcome(page, t, { first: typed, last: "Rossi", email: VISITOR.email });
       await startGame(page, t);
       await answerAll(page, t);
-      await expect(claimButton(page, t)).toBeVisible({ timeout: 20_000 });
+      await expect(claimButton(page, t)).toBeVisible({ timeout: T(20_000) });
       await claimButton(page, t).click();
-      await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+      await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
       expect(backend.rows("quiz_sessions")[0].nome.normalize("NFC")).toBe(stored.normalize("NFC"));
     });
   }
@@ -361,7 +357,7 @@ test.describe("welcome form", () => {
     await startGame(page, t);
     await answerAll(page, t);
     await claimButton(page, t).click();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
     const row = backend.rows("quiz_sessions")[0];
     expect(row.nome).not.toMatch(/[<>()]/);
     expect(row.cognome.length).toBeLessThanOrEqual(100);
@@ -412,7 +408,7 @@ test.describe("device configuration", () => {
       await expect(attractCta(page, t)).toBeVisible();
       await playToResult(page, t);
       await claimButton(page, t).click();
-      await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+      await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
       expect(backend.rows("quiz_sessions")).toHaveLength(1);
       expect(appErrors(errors)).toEqual([]);
     });

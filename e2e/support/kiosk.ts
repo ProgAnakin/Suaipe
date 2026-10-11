@@ -27,6 +27,12 @@ export interface Booted {
   t: (typeof translations)[Lang];
 }
 
+/**
+ * Stretch a time budget on a slow machine: CI's software-rendered WebKit needs several times what a laptop
+ * does for the same visit. E2E_TIMEOUT_SCALE=3 triples every timeout of the specs; unset, nothing changes.
+ */
+export const T = (ms: number): number => ms * (Number(process.env.E2E_TIMEOUT_SCALE) || 1);
+
 const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 /** "🚀 START THE GAME!" → /START THE GAME/i ; "Tap to start →" → /Tap to start/i  (emoji/arrows/punctuation dropped) */
 export const labelRe = (s: string) =>
@@ -110,14 +116,14 @@ export async function fillWelcome(
   await lastNameInput(page, t).fill(v.last);
   await emailInput(page, t).fill(v.email);
   // the form scrolls the focused field into view smoothly: let it settle before clicking the checkbox
-  if (v.consent !== false) await consentBox(page).check({ timeout: 10_000 });
+  if (v.consent !== false) await consentBox(page).check({ timeout: T(10_000) });
 }
 
 /** Press START on the welcome form, dismiss the "how does it work" tutorial if it is shown, and wait for the first card. */
 export async function startGame(page: Page, t: Booted["t"]) {
   await startButton(page, t).click();
   // the YES button exists under the tutorial overlay too, so it marks "the quiz is mounted"
-  await expect(yesButton(page, t)).toBeVisible({ timeout: 15_000 });
+  await expect(yesButton(page, t)).toBeVisible({ timeout: T(15_000) });
   const ready = readyButton(page, t);
   if (await ready.isVisible()) {
     await ready.click();
@@ -140,7 +146,7 @@ export async function playToResult(page: Page, t: Booted["t"], answers?: boolean
   await fillWelcome(page, t, v);
   await startGame(page, t);
   await answerAll(page, t, answers);
-  await expect(claimButton(page, t)).toBeVisible({ timeout: 20_000 });
+  await expect(claimButton(page, t)).toBeVisible({ timeout: T(20_000) });
 }
 
 /** Everything the screen currently says, as one string (for "no undefined/NaN on screen" checks). */

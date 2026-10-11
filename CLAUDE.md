@@ -172,6 +172,9 @@ layout or an admin tab → also the Playwright suites. The browser suites never 
 Supabase: `e2e/support/mock-backend.ts` is a PostgREST/RPC/Edge-Function stand-in with fault
 injection (HTTP errors, dropped connections, hangs, "lost response").
 
+Slow machine? `E2E_TIMEOUT_SCALE=3` stretches every timeout of the specs, `E2E_REDUCED_MOTION=1` runs them with the
+iPad's Reduce Motion setting on, `SOAK_VISITS=5` shortens the soak run — the advisory WebKit CI job uses all three.
+
 Where WebKit cannot be installed, run the same suite on an installed Chromium:
 `E2E_BROWSER=chromium CHROMIUM_PATH=/path/to/chromium npx playwright test` (the WebKit-only
 pixel diffs are skipped; CI keeps WebKit, the engine the iPads use).

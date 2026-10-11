@@ -82,23 +82,30 @@ jobs:
           retention-days: 7
 
   e2e-resilience:
-    name: Kiosk resilience · ${{ matrix.spec }} (WebKit, real app, misbehaving backend)
+    name: Kiosk resilience · ${{ matrix.spec }} ${{ matrix.shard }} (WebKit, real app, misbehaving backend)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # Advisory until it has been green on WebKit for a while: ~70 scenarios that drive the whole kiosk
     # (and the staff areas) against an in-memory backend that drops connections, loses responses and
-    # hangs. One job per spec file, so a slow or failing one cannot starve the others of their budget.
+    # hangs. One job per spec file (the 40-scenario one in two shards), so a slow or failing one cannot
+    # starve the others of their 30 minutes.
     continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
-        spec: [kiosk-resilience, kiosk-layout, kiosk-chaos, admin-areas]
+        include:
+          - { spec: kiosk-resilience, shard: "1/2" }
+          - { spec: kiosk-resilience, shard: "2/2" }
+          - { spec: kiosk-layout,     shard: "1/1" }
+          - { spec: kiosk-chaos,      shard: "1/1" }
+          - { spec: admin-areas,      shard: "1/1" }
     env:
-      # Software-rendered WebKit on a shared runner animates several times slower than an iPad's GPU, so
-      # the specs run with the iPad's "Reduce Motion" setting on (the app honours it everywhere). The
-      # animated paths are still exercised by the required `Playwright E2E` job and by local runs.
+      # Software-rendered WebKit on a shared runner is several times slower than an iPad's GPU: a single
+      # visit takes ~40 s here, and the specs' budgets are sized for a laptop. So: the iPad's "Reduce
+      # Motion" setting on (the app honours it everywhere), every timeout ×3, and a shorter soak run.
+      # The animated paths are still exercised by the required `Playwright E2E` job and by local runs.
       E2E_REDUCED_MOTION: "1"
-      # the soak run (kiosk-chaos) makes 12 visits on a real kiosk's schedule; 5 fit this runner's budget
+      E2E_TIMEOUT_SCALE: "3"
       SOAK_VISITS: "5"
 
     steps:
@@ -115,14 +122,14 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps webkit
 
-      - name: Run ${{ matrix.spec }}
-        run: npx playwright test --project=resilience --workers=2 --retries=1 e2e/${{ matrix.spec }}.spec.ts
+      - name: Run ${{ matrix.spec }} (${{ matrix.shard }})
+        run: npx playwright test --project=resilience --workers=2 --retries=1 --shard=${{ matrix.shard }} e2e/${{ matrix.spec }}.spec.ts
 
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-resilience-${{ matrix.spec }}
+          name: playwright-resilience-${{ matrix.spec }}-${{ strategy.job-index }}
           path: playwright-report/
           if-no-files-found: ignore
 

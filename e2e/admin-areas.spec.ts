@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import fs from "node:fs";
 import { MockBackend, seedTables, type Row } from "./support/mock-backend";
-import { appErrors, boot, BROKEN_TEXT } from "./support/kiosk";
+import { appErrors, boot, BROKEN_TEXT, T } from "./support/kiosk";
 import { sampleSessions, signInAs } from "./support/staff";
 
 // The staff areas against a backend with MORE data than one request can carry (PostgREST answers
@@ -9,7 +9,7 @@ import { sampleSessions, signInAs } from "./support/staff";
 // role through an already MFA-verified session; nothing here comes from production.
 
 test.use({ serviceWorkers: "block", viewport: { width: 1366, height: 1024 } });
-test.describe.configure({ timeout: 90_000 });
+test.describe.configure({ timeout: T(90_000) });
 
 const N = 2500;
 
@@ -29,7 +29,7 @@ async function openManager(page: Page, backend: MockBackend, role: "manager" | "
   await signInAs(page, backend, role, store);
   const booted = await boot(page, { backend, storeId: store ?? "milano" });
   await page.goto("/manager", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("button", { name: /Sessions & Codes/ })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole("button", { name: /Sessions & Codes/ })).toBeVisible({ timeout: T(20_000) });
   return booted;
 }
 
@@ -47,7 +47,7 @@ test.describe("manager · sessions", () => {
     const { errors } = await openManager(page, backend);
     await page.getByRole("button", { name: /Sessions & Codes/ }).click();
 
-    await expect(page.getByRole("button", { name: `All (${exp.all})` })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("button", { name: `All (${exp.all})` })).toBeVisible({ timeout: T(20_000) });
     await expect(page.getByRole("button", { name: `Sent (${exp.sent})` })).toBeVisible();
     await expect(page.getByRole("button", { name: `Processing (${exp.processing})` })).toBeVisible();
     await expect(page.getByRole("button", { name: `No email (${exp.noEmail})` })).toBeVisible();
@@ -60,7 +60,7 @@ test.describe("manager · sessions", () => {
 
     // "Failed" is a database filter: the pager and the total follow it, whichever page the rows were on
     await page.getByRole("button", { name: `Failed (${exp.failed})` }).click();
-    await expect(page.getByText(`${exp.failed} sessions · filter: failed · page 1 of ${Math.ceil(exp.failed / 20)}`)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(`${exp.failed} sessions · filter: failed · page 1 of ${Math.ceil(exp.failed / 20)}`)).toBeVisible({ timeout: T(15_000) });
     await expect(page.getByText("FAILED").first()).toBeVisible();
     await expect(page.getByText("SENT", { exact: true })).toHaveCount(0);
 
@@ -75,7 +75,7 @@ test.describe("manager · sessions", () => {
     const backend = withSessions(rows);
     await openManager(page, backend);
     await page.getByRole("button", { name: /Sessions & Codes/ }).click();
-    await expect(page.getByRole("button", { name: `All (${N})` })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("button", { name: `All (${N})` })).toBeVisible({ timeout: T(20_000) });
 
     const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Export CSV" }).click()]);
     const csv = fs.readFileSync(await download.path(), "utf8").replace(/^\uFEFF/, "");
@@ -91,14 +91,14 @@ test.describe("manager · sessions", () => {
     await openManager(page, backend);
     await page.getByRole("button", { name: /Sessions & Codes/ }).click();
     const search = page.getByPlaceholder(/search/i).first();
-    await expect(search).toBeVisible({ timeout: 15_000 });
+    await expect(search).toBeVisible({ timeout: T(15_000) });
     await search.fill('Smith (Jr), "x"%_');
     // the filter that reaches the database: four conditions, each value inside its own quotes
     const orFilter = () => {
       const hit = backend.calls("/rest/v1/quiz_sessions", "GET").map((r) => new URLSearchParams(r.query).get("or")).filter(Boolean).at(-1);
       return hit ?? null;
     };
-    await expect.poll(orFilter, { timeout: 10_000 }).not.toBeNull();
+    await expect.poll(orFilter, { timeout: T(10_000) }).not.toBeNull();
     const conditions: string[] = [];
     let depth = 0, quoted = false, cur = "";
     const inner = orFilter()!.replace(/^\(|\)$/g, "");
@@ -123,13 +123,13 @@ test.describe("manager · sessions", () => {
     await openManager(page, backend, "consulente_responsabile", "milano");
     await expect(page.getByRole("button", { name: /Management/ })).toHaveCount(0); // no Management tab for this role
     await page.getByRole("button", { name: /Sessions & Codes/ }).click();
-    await expect(page.getByRole("button", { name: /^All \(/ })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("button", { name: /^All \(/ })).toBeVisible({ timeout: T(20_000) });
     for (const r of backend.calls("/rest/v1/quiz_sessions", "GET")) {
       expect(decodeURIComponent(r.query), `${r.query}`).toContain("store_id=eq.milano");
     }
     await page.getByRole("button", { name: /Delete > 7d old/ }).click();
     await page.getByRole("button", { name: /^Delete|Confirm/i }).last().click();
-    await expect.poll(() => backend.calls("rpc/purge_sessions_older_than").length, { timeout: 10_000 }).toBe(1);
+    await expect.poll(() => backend.calls("rpc/purge_sessions_older_than").length, { timeout: T(10_000) }).toBe(1);
     expect(backend.calls("rpc/purge_sessions_older_than")[0].body).toEqual({ p_days: 7, p_store_id: "milano" });
   });
 
@@ -140,7 +140,7 @@ test.describe("manager · sessions", () => {
     await page.getByRole("button", { name: /Sessions & Codes/ }).click();
     await page.getByRole("button", { name: /Delete > 7d old/ }).click();
     await page.getByRole("button", { name: /^Delete|Confirm/i }).last().click();
-    await expect(page.getByText(/Could not delete the old sessions/)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/Could not delete the old sessions/)).toBeVisible({ timeout: T(10_000) });
     await expect(page.getByText(/sessions deleted successfully/)).toHaveCount(0);
   });
 });
@@ -160,7 +160,7 @@ test.describe("stats", () => {
     const { errors } = await boot(page, { backend });
     await page.goto("/stats", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByText("TOTAL SESSIONS")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText("TOTAL SESSIONS")).toBeVisible({ timeout: T(20_000) });
     await expect(page.getByText(String(N), { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Claim rate", { exact: true })).toBeVisible();
     await expect(page.getByText("4 / 8")).toBeVisible(); // every store: 4 claimed of 8 results shown
@@ -168,7 +168,7 @@ test.describe("stats", () => {
     // pick one store: the sessions AND the funnel follow it
     await page.getByRole("button", { name: "Filter" }).first().click();
     await page.getByRole("button", { name: "Milano", exact: true }).click();
-    await expect(page.getByText("3 / 4")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("3 / 4")).toBeVisible({ timeout: T(10_000) });
     const funnelReads = backend.calls("/rest/v1/quiz_funnel_events").filter((r) => r.query.includes("store_id=eq.milano"));
     expect(funnelReads.length).toBeGreaterThanOrEqual(3);
     expect(BROKEN_TEXT.test(await page.locator("body").innerText())).toBe(false);
@@ -180,7 +180,7 @@ test.describe("stats", () => {
     await signInAs(page, backend, "manager");
     await boot(page, { backend });
     await page.goto("/stats", { waitUntil: "domcontentloaded" });
-    await expect(page.getByText("TOTAL SESSIONS")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText("TOTAL SESSIONS")).toBeVisible({ timeout: T(20_000) });
     await expect(page.getByText("1200", { exact: true }).first()).toBeVisible();
     await expect(page.getByText(/More sessions exist than can be charted/)).toHaveCount(0);
   });
@@ -206,10 +206,10 @@ test.describe("every staff area survives hostile and missing data", () => {
     const backend = withSessions(rows);
     await openManager(page, backend);
     await page.getByRole("button", { name: /Sessions & Codes/ }).click();
-    await expect(page.getByText("lead2@example.com")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText("lead2@example.com")).toBeVisible({ timeout: T(20_000) });
     expect(await page.evaluate(() => (window as unknown as { __pwned?: number }).__pwned)).toBeUndefined();
     await page.goto("/stats", { waitUntil: "domcontentloaded" });
-    await expect(page.getByText("TOTAL SESSIONS")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText("TOTAL SESSIONS")).toBeVisible({ timeout: T(20_000) });
     expect(await page.evaluate(() => (window as unknown as { __pwned?: number }).__pwned)).toBeUndefined();
     await expect(page.getByTestId("error-boundary")).toHaveCount(0);
   });
@@ -220,7 +220,7 @@ test.describe("every staff area survives hostile and missing data", () => {
     await signInAs(page, backend, "manager");
     await boot(page, { backend });
     await page.goto("/stats", { waitUntil: "domcontentloaded" });
-    await expect(page.getByText(/Unable to load data/)).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/Unable to load data/)).toBeVisible({ timeout: T(20_000) });
     await expect(page.getByTestId("error-boundary")).toHaveCount(0);
   });
 });

@@ -1,9 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { translations, type Lang } from "../src/i18n/translations";
-import {
-  BROKEN_TEXT, answerAll, appErrors, attractCta, boot, claimButton, fillWelcome, noButton, restartButton,
-  screenText, startButton, startGame, tapToStart, yesButton,
-} from "./support/kiosk";
+import { BROKEN_TEXT, answerAll, appErrors, attractCta, boot, claimButton, fillWelcome, noButton, restartButton, screenText, startButton, startGame, tapToStart, yesButton, T } from "./support/kiosk";
 
 // Every screen of the kiosk, in every language and on every screen size an iPad (or a phone, or a
 // desktop browser) can have: nothing the customer must tap may sit outside the screen or under
@@ -11,7 +8,7 @@ import {
 // a customer who is stuck — and no screen may print "undefined", "NaN" or a raw template.
 
 test.use({ serviceWorkers: "block" });
-test.describe.configure({ timeout: 90_000 });
+test.describe.configure({ timeout: T(90_000) });
 
 const LANGS = Object.keys(translations) as Lang[];
 
@@ -89,10 +86,10 @@ test.describe("every language", () => {
       await startGame(page, t);
       await check("quiz");
       await answerAll(page, t, [true, false, true, true, false, true, false, true]);
-      await expect(claimButton(page, t)).toBeVisible({ timeout: 20_000 });
+      await expect(claimButton(page, t)).toBeVisible({ timeout: T(20_000) });
       await check("result");
       await claimButton(page, t).click();
-      await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+      await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
       await check("success");
 
       expect(backend.rows("quiz_sessions")).toHaveLength(1);
@@ -123,13 +120,13 @@ test.describe("every screen size", () => {
       await expectReachable(page, noButton(page, t), "quiz: NO");
 
       await answerAll(page, t);
-      await expect(claimButton(page, t)).toBeVisible({ timeout: 20_000 });
+      await expect(claimButton(page, t)).toBeVisible({ timeout: T(20_000) });
       await page.waitForTimeout(600);
       await expectNoHorizontalOverflow(page, "result");
       await expectReachable(page, claimButton(page, t), "result: I want it");
 
       await claimButton(page, t).click();
-      await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+      await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
       await page.waitForTimeout(600);
       await expectNoHorizontalOverflow(page, "success");
       await expectReachable(page, restartButton(page, t), "success: Play again");

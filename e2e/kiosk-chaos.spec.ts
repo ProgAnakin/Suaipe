@@ -1,8 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { MockBackend } from "./support/mock-backend";
-import {
-  VISITOR, answerAll, appErrors, attractCta, boot, claimButton, fillWelcome, restartButton, startGame, tapToStart,
-} from "./support/kiosk";
+import { VISITOR, answerAll, appErrors, attractCta, boot, claimButton, fillWelcome, restartButton, startGame, tapToStart, T } from "./support/kiosk";
 
 // Brute force: a seeded random sequence of everything a customer (or a child, or a cat) can do to
 // an iPad — tap anything, drag half a card, mash the keys, type nonsense, rotate the tablet, lose
@@ -11,7 +9,7 @@ import {
 // it replays exactly.
 
 test.use({ serviceWorkers: "block" });
-test.describe.configure({ timeout: 180_000 });
+test.describe.configure({ timeout: T(180_000) });
 
 function rng(seed: number) {
   let s = seed >>> 0;
@@ -32,7 +30,7 @@ async function act(page: Page, pick: () => number, log: string[]) {
   const r = pick();
   const buttons = page.locator("button:visible");
   const nButtons = await buttons.count().catch(() => 0);
-  const quiet = { timeout: 1_200 };
+  const quiet = { timeout: T(1_200) };
   try {
     if (r < 0.34 && nButtons) { // tap a random button
       const i = Math.floor(pick() * nButtons);
@@ -40,7 +38,7 @@ async function act(page: Page, pick: () => number, log: string[]) {
       await buttons.nth(i).click(quiet);
     } else if (r < 0.5) { // drag the card: a swipe, half a swipe, a cancelled one, in any direction
       const card = page.locator("[aria-roledescription='quiz card']").first();
-      const box = await card.boundingBox({ timeout: 500 }).catch(() => null);
+      const box = await card.boundingBox({ timeout: T(500) }).catch(() => null);
       if (box) {
         const [dx, dy] = [(pick() - 0.5) * 700, (pick() - 0.5) * 300];
         log.push(`drag card (${Math.round(dx)}, ${Math.round(dy)})`);
@@ -120,9 +118,9 @@ for (const seed of [11, 22, 33, 44, 55, 66]) {
     await fillWelcome(page, t, { first: "Ana", last: "Souza", email: `chaos${seed}@example.com` });
     await startGame(page, t);
     await answerAll(page, t);
-    await expect(claimButton(page, t)).toBeVisible({ timeout: 20_000 });
+    await expect(claimButton(page, t)).toBeVisible({ timeout: T(20_000) });
     await claimButton(page, t).click();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
     expect(backend.rows("quiz_sessions")).toHaveLength(before + 1);
   });
 }
@@ -132,7 +130,7 @@ for (const seed of [11, 22, 33, 44, 55, 66]) {
 const VISITS = Math.max(3, Number(process.env.SOAK_VISITS ?? 12));
 
 test(`soak: ${VISITS} visits in a row without a reload — nothing accumulates`, async ({ page }) => {
-  test.setTimeout(420_000);
+  test.setTimeout(T(420_000));
   await page.context().addInitScript(() => {
     // Track audio contexts that are open AT THE SAME TIME: iOS Safari allows only a handful per page, and
     // a kiosk that never closes them stops making sound after a few customers. (Creating one per screen
@@ -168,9 +166,9 @@ test(`soak: ${VISITS} visits in a row without a reload — nothing accumulates`,
     await fillWelcome(page, t, { ...VISITOR, email: `soak${visit}@example.com` });
     await startGame(page, t);
     await answerAll(page, t);
-    await expect(claimButton(page, t)).toBeVisible({ timeout: 20_000 });
+    await expect(claimButton(page, t)).toBeVisible({ timeout: T(20_000) });
     await claimButton(page, t).click();
-    await expect(restartButton(page, t)).toBeVisible({ timeout: 15_000 });
+    await expect(restartButton(page, t)).toBeVisible({ timeout: T(15_000) });
     await restartButton(page, t).click();
     await expect(attractCta(page, t)).toBeVisible();
     await page.waitForTimeout(800);
