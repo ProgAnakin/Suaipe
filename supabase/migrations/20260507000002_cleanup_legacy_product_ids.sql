@@ -20,7 +20,9 @@ WHERE product_id IN (
   'nomad-charger'
 );
 
--- Insert the actual product IDs (idempotent thanks to ON CONFLICT).
+-- Insert the actual product IDs (idempotent thanks to ON CONFLICT). The primary key
+-- has been (product_id, store_id) since 20260406000001; the conflict target must name
+-- both columns or the statement fails on a database built from zero.
 INSERT INTO public.product_settings (product_id, active) VALUES
   ('blnd-blender',         true),
   ('fitring-air',          true),
@@ -32,4 +34,4 @@ INSERT INTO public.product_settings (product_id, active) VALUES
   ('terraillon-massager',  true),
   ('veho-pebble-mg5',      true),
   ('veho-zb7',             true)
-ON CONFLICT (product_id) DO NOTHING;
+ON CONFLICT (product_id, store_id) DO NOTHING;
