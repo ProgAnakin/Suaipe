@@ -31,8 +31,25 @@ const VIEWPORTS: Array<[string, number, number]> = [
   ["desktop", 1440, 900],
 ];
 
+/**
+ * Wait until the element has stopped moving (its entrance animation is over). A fixed pause is not enough
+ * on a slow, software-rendered browser (CI WebKit): the frames of a spring animation arrive late, so a
+ * measurement taken 600 ms after the screen appeared can still see it mid-flight.
+ */
+async function settled(locator: ReturnType<Page["locator"]>, timeoutMs = 8_000) {
+  const t0 = Date.now();
+  let prev = JSON.stringify(await locator.boundingBox());
+  for (let still = 0; still < 3 && Date.now() - t0 < timeoutMs;) {
+    await new Promise((r) => setTimeout(r, 150));
+    const now = JSON.stringify(await locator.boundingBox());
+    still = now === prev ? still + 1 : 0;
+    prev = now;
+  }
+}
+
 /** The element is fully on screen and nothing sits on top of its centre. */
 async function expectReachable(page: Page, locator: ReturnType<Page["locator"]>, what: string) {
+  await settled(locator);
   const box = await locator.boundingBox();
   const vp = page.viewportSize()!;
   expect(box, `${what}: not rendered`).not.toBeNull();

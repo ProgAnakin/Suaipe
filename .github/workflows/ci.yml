@@ -82,12 +82,22 @@ jobs:
           retention-days: 7
 
   e2e-resilience:
-    name: Kiosk resilience (real app, misbehaving backend)
+    name: Kiosk resilience · ${{ matrix.spec }} (WebKit, real app, misbehaving backend)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Advisory until it has been green on WebKit for a while: ~40 scenarios that drive the whole
-    # kiosk against an in-memory backend that drops connections, loses responses and hangs.
+    # Advisory until it has been green on WebKit for a while: ~70 scenarios that drive the whole kiosk
+    # (and the staff areas) against an in-memory backend that drops connections, loses responses and
+    # hangs. One job per spec file, so a slow or failing one cannot starve the others of their budget.
     continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        spec: [kiosk-resilience, kiosk-layout, kiosk-chaos, admin-areas]
+    env:
+      # Software-rendered WebKit on a shared runner animates several times slower than an iPad's GPU, so
+      # the specs run with the iPad's "Reduce Motion" setting on (the app honours it everywhere). The
+      # animated paths are still exercised by the required `Playwright E2E` job and by local runs.
+      E2E_REDUCED_MOTION: "1"
 
     steps:
       - uses: actions/checkout@v7
@@ -103,14 +113,14 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps webkit
 
-      - name: Run the resilience suite
-        run: npx playwright test --project=resilience --workers=2
+      - name: Run ${{ matrix.spec }}
+        run: npx playwright test --project=resilience --workers=2 --retries=1 e2e/${{ matrix.spec }}.spec.ts
 
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-resilience-report
+          name: playwright-resilience-${{ matrix.spec }}
           path: playwright-report/
           if-no-files-found: ignore
 

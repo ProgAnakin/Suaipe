@@ -20,7 +20,12 @@ const browser = useChromium
     }
   : {};
 
-const ipadLandscape = { ...devices["iPad Pro 11 landscape"], ...browser };
+// E2E_REDUCED_MOTION=1 runs a project with the iPad's "Reduce Motion" setting on (prefers-reduced-motion:
+// reduce) — the app honours it everywhere (MotionConfig reducedMotion="user", the low-effects tier), and a
+// kiosk operator can switch it on. It also makes slow, software-rendered browsers (CI WebKit) far faster.
+const reducedMotion = process.env.E2E_REDUCED_MOTION === "1" ? ("reduce" as const) : undefined;
+
+const ipadLandscape = { ...devices["iPad Pro 11 landscape"], ...browser, ...(reducedMotion ? { reducedMotion } : {}) };
 
 // `npm run docs:screenshots` (DOCS_SCREENSHOTS=1) takes the README / manifest screenshots from the REAL
 // app, in a build whose stores are neutral ("Store A", "Store B") and whose backend is the in-memory mock
