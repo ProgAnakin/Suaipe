@@ -11,6 +11,8 @@ interface ManagerHeaderProps {
   activeCount: number;
   bulkSelectionSize: number;
   showCatalogActions: boolean;
+  /** the heading of the tab that is open — it used to say "Catalog" on every tab */
+  title?: string;
   onOpenStoreModal: () => void;
   onBulkActivate: () => void;
   onBulkDeactivate: () => void;
@@ -38,6 +40,7 @@ export const ManagerHeader = ({
   activeCount,
   bulkSelectionSize,
   showCatalogActions,
+  title = "📦 Catalog",
   onOpenStoreModal,
   onBulkActivate,
   onBulkDeactivate,
@@ -58,7 +61,7 @@ export const ManagerHeader = ({
     {/* ── Row 1 · identity + navigation ─────────────────────────────────── */}
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="text-2xl font-bold text-foreground">📦 Catalog</h1>
+        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
         <button
           onClick={() => !storeLocked && onOpenStoreModal()}
           className={`mt-0.5 flex items-center gap-1 text-xs ${
@@ -69,9 +72,11 @@ export const ManagerHeader = ({
           {currentStore?.shortName ?? storeId}
           {storeLocked && <span className="ml-1 opacity-50">(locked)</span>}
         </button>
-        <p className="text-xs text-muted-foreground">
-          {loading ? "Loading…" : `${activeCount} of ${catalogSize} products active in the quiz`}
-        </p>
+        {showCatalogActions && (
+          <p className="text-xs text-muted-foreground">
+            {loading ? "Loading…" : `${activeCount} of ${catalogSize} products active in the quiz`}
+          </p>
+        )}
       </div>
 
       {/* Navigation cluster — one pill group, one accent (Analytics). */}

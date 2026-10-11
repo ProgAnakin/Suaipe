@@ -71,10 +71,13 @@ export const SessionsTab = ({ storeId, isGlobal }: SessionsTabProps) => {
           <p className="text-2xl font-bold text-destructive">{counts.failed}</p>
           <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/70">Failed</p>
         </div>
-        <div className="rounded-2xl border border-border bg-muted/20 p-4 text-center">
+        <div
+          className="rounded-2xl border border-border bg-muted/20 p-4 text-center"
+          title="Customers who saw their match but left without claiming it. The small number counts leads that were saved but never got a code."
+        >
           <p className="text-2xl font-bold text-foreground">{negadoCount}</p>
           <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/70">Not claimed</p>
-          <p className="mt-0.5 text-[9px] text-foreground/40">saw the result, left · {localNegado} leads without a code</p>
+          <p className="mt-0.5 text-[9px] text-foreground/40">{localNegado} no code</p>
         </div>
         <div className={`rounded-2xl border p-4 text-center ${redemptionBorderBg}`}>
           {/* "250/2249" in the big type overflowed the tile once the numbers grew */}

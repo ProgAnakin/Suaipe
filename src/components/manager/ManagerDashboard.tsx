@@ -234,6 +234,7 @@ export const ManagerDashboard = ({ onLogout }: ManagerDashboardProps) => {
           activeCount={activeCount}
           bulkSelectionSize={bulkSelection.size}
           showCatalogActions={activeTab === "catalogo"}
+          title={{ catalogo: "📦 Catalog", sessioni: "📬 Sessions & Codes", storico: "🕘 History", gestione: "🗂️ Management" }[activeTab]}
           onOpenStoreModal={() => setShowStoreModal(true)}
           onBulkActivate={() => requestBulkToggle(true)}
           onBulkDeactivate={() => requestBulkToggle(false)}
