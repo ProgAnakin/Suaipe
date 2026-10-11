@@ -98,6 +98,8 @@ jobs:
       # the specs run with the iPad's "Reduce Motion" setting on (the app honours it everywhere). The
       # animated paths are still exercised by the required `Playwright E2E` job and by local runs.
       E2E_REDUCED_MOTION: "1"
+      # the soak run (kiosk-chaos) makes 12 visits on a real kiosk's schedule; 5 fit this runner's budget
+      SOAK_VISITS: "5"
 
     steps:
       - uses: actions/checkout@v7

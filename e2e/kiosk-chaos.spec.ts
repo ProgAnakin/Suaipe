@@ -127,7 +127,11 @@ for (const seed of [11, 22, 33, 44, 55, 66]) {
   });
 }
 
-test("soak: twelve visits in a row without a reload — nothing accumulates", async ({ page }) => {
+// Twelve visits in a row, as a busy afternoon. CI's software-rendered WebKit is several times slower than an
+// iPad, so its job sets SOAK_VISITS=5 (three is the least that leaves something to compare).
+const VISITS = Math.max(3, Number(process.env.SOAK_VISITS ?? 12));
+
+test(`soak: ${VISITS} visits in a row without a reload — nothing accumulates`, async ({ page }) => {
   test.setTimeout(420_000);
   await page.context().addInitScript(() => {
     // Track audio contexts that are open AT THE SAME TIME: iOS Safari allows only a handful per page, and
@@ -159,7 +163,7 @@ test("soak: twelve visits in a row without a reload — nothing accumulates", as
   const nodes: number[] = [];
   const heap: number[] = [];
 
-  for (let visit = 1; visit <= 12; visit++) {
+  for (let visit = 1; visit <= VISITS; visit++) {
     await tapToStart(page, t);
     await fillWelcome(page, t, { ...VISITOR, email: `soak${visit}@example.com` });
     await startGame(page, t);
@@ -174,12 +178,12 @@ test("soak: twelve visits in a row without a reload — nothing accumulates", as
     heap.push(await page.evaluate(() => (performance as unknown as { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize ?? 0));
   }
 
-  expect(backend.rows("quiz_sessions")).toHaveLength(12);
-  expect(backend.rows("quiz_funnel_events")).toHaveLength(12 * 3); // started, result shown, claimed — once per visit
-  // the DOM at the attract screen is the same size after twelve visits as after the second
+  expect(backend.rows("quiz_sessions")).toHaveLength(VISITS);
+  expect(backend.rows("quiz_funnel_events")).toHaveLength(VISITS * 3); // started, result shown, claimed — once per visit
+  // the DOM at the attract screen is the same size after the last visit as after the second
   expect(Math.max(...nodes.slice(1)) - Math.min(...nodes.slice(1)), `DOM nodes per visit: ${nodes.join(", ")}`).toBeLessThanOrEqual(Math.ceil(nodes[1] * 0.05));
   const audio = await page.evaluate(() => (window as unknown as { __audio: { open: number; maxOpen: number; created: number } }).__audio);
-  expect(audio.maxOpen, `audio contexts open at once (${audio.created} created over 12 visits)`).toBeLessThanOrEqual(3);
+  expect(audio.maxOpen, `audio contexts open at once (${audio.created} created over ${VISITS} visits)`).toBeLessThanOrEqual(3);
   expect(audio.open, "audio contexts still open after the last visit").toBeLessThanOrEqual(3);
   if (heap[1] > 0) expect(heap.at(-1)!, `JS heap per visit: ${heap.join(", ")}`).toBeLessThan(heap[1] * 2.5);
   expect(appErrors(errors)).toEqual([]);
