@@ -154,7 +154,7 @@ Roles: `manager` / `consulente_responsabile` / `consulente`. RPCs are
 npm run dev         # Vite dev server (http://localhost:8080)
 npm run typecheck   # tsc --noEmit (tsconfig.app.json)
 npm run lint        # eslint (4 known react-refresh warnings, 0 errors)
-npm test            # vitest (197 unit tests)
+npm test            # vitest (208 unit tests)
 npm run test:e2e    # Playwright — all projects (82 browser tests, in-memory backend)
 npm run test:e2e:smoke       # only the ipad-landscape smoke project (what CI requires)
 npm run test:e2e:resilience  # kiosk resilience / layout / chaos + staff areas

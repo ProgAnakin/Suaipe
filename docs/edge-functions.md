@@ -35,6 +35,7 @@ language, and optionally copies the lead to a Google Sheet.
 | `BREVO_API_KEY` | ✅ | Brevo API key for transactional e-mail |
 | `WEBHOOK_SECRET` | ✅ | Compared (constant time) with the `x-webhook-secret` header. **If it is unset the function rejects every call** — no customer gets an e-mail, and the log says so |
 | `EMAIL_SENDER` | recommended | The Brevo `sender` address. Must be a verified sender/domain with SPF/DKIM or the mail lands in spam. Falls back to `noreply@suaipe.app` |
+| `EMAIL_REPLY_TO` | optional | Where a customer's *Reply* goes (default: `EMAIL_SENDER`). Point it at a mailbox of your domain — or leave the default, a no-reply address |
 | `SITE_URL` | recommended | The deployed origin; turns root-relative product images (`/products/x.png`) into absolute URLs so they render in the mail. Keep equal to the front end's `VITE_SITE_URL` |
 | `ALLOWED_ORIGIN` | optional | CORS allow-list for browser callers. The database webhook sends no `Origin` and is unaffected |
 | `GOOGLE_SHEETS_WEBHOOK_URL` | optional | Apps Script `doPost` URL — if set, every sent e-mail is also appended to the Sheet |

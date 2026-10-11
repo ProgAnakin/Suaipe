@@ -102,6 +102,7 @@ Import the repository; production is the `main` branch. Environment variables:
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | the **anon / publishable** key — never the service-role key |
 | `VITE_STORES` | step 4 |
 | `VITE_SITE_URL` | your production origin |
+| `VITE_PRIVACY_CONTROLLER`, `VITE_PRIVACY_EMAIL` | **the company that operates the kiosks** and a contact it reads — they are printed in the GDPR notice the customer accepts. Have the notice reviewed by your legal adviser / DPO before launch |
 | `VITE_SENTRY_DSN`, `SENTRY_*` | optional, see `.env.example` |
 
 `vercel.json` already carries the security headers, the CSP and the SPA routing. If your Supabase project is

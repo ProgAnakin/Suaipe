@@ -75,14 +75,18 @@ iPad size in every language. What broke is fixed below; the full account is in
 - "No match" (an unexplained funnel number) is now "Not claimed", with a tooltip; the Manager header
   names the active tab; the Failed counter agrees with the "Processing" window.
 - `ResetPassword` was in Italian although the staff UI is English-only (ADR 006).
+- Leftovers of the rebrand: the footers read "© 2026 Suaipe · Suaipe" (kiosk) and "Suaipe · Analytics · Suaipe" (staff).
 - The migration chain applies to an **empty** database (`20260507000002` failed on a fresh project).
 
 ### Added
-- **Test suites:** 197 unit tests · 82 browser tests (kiosk resilience, layout in 5 languages × 8
+- **Test suites:** 208 unit tests · 82 browser tests (kiosk resilience, layout in 5 languages × 8
   screens, seeded chaos and a soak run, staff areas against 2 500 leads) · 84 database checks that
   attack the schema as every role. `npm run test:e2e`, `test:e2e:smoke`, `test:e2e:resilience`,
   `test:sql`; CI runs them (the resilience job is advisory). See `supabase/tests/README.md`.
 - `VITE_STORES` — define your own stores at build time (one line of JSON) instead of editing code.
+- `VITE_PRIVACY_CONTROLLER` / `VITE_PRIVACY_EMAIL` — the GDPR notice names the company that operates the kiosks and a
+  contact it reads (it said "Suaipe" / `privacy@suaipe.app` in five hard-coded translations); `EMAIL_REPLY_TO` for the
+  e-mail's Reply-To (it was hard-coded to the product's own domain).
 - `docs/deployment.md` — the go-live checklist; `npm run docs:screenshots` regenerates the screenshots
   from the running app with neutral sample data.
 

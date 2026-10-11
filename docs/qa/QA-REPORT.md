@@ -16,7 +16,7 @@ has to do.
 | Gate | Result |
 |---|---|
 | `npm run typecheck` · `npm run lint` | clean (lint: 0 errors, 4 known `react-refresh` warnings) |
-| `npm test` | **197** unit tests, 25 files |
+| `npm test` | **208** unit tests, 26 files |
 | `npm run build` | passes |
 | `npm audit --omit=dev --audit-level=high` | passes — 2 *moderate* `react-router` advisories remain ([residual risks](#residual-risks-not-fixed)) |
 | Database attack suite (`npm run test:sql`) | **84** checks, 57 migrations applied to an **empty** PostgreSQL first |
@@ -99,14 +99,37 @@ What these numbers mean: the app has been exercised far beyond a happy path, and
 
 ## WebKit, the engine the iPads use
 
-All local runs here were on Chromium (WebKit cannot be installed in the build sandbox). CI runs WebKit:
+The Playwright suites in the build sandbox run on Chromium (Playwright's WebKit cannot be downloaded there), so
+WebKit was covered in two other ways.
 
-- The **smoke project** (`ipad-landscape`, the required check) runs on WebKit and was green on the last full run.
-- The **resilience project** is an *advisory* CI job. Its first WebKit runs showed that the suites need
-  WebKit-specific tolerance, not that the app is broken: the Chrome-only `interactive-widget` viewport hint is
-  logged as a warning, an abandoned request is reported as a page error, and software-rendered WebKit on a
-  shared runner is several times slower than Chromium. The harness now ignores the two messages; see
-  [Residual risks](#residual-risks-not-fixed) for what is still unverified.
+**In CI (Playwright's WebKit build).** The *smoke* project is a required check and was green on the latest runs.
+The *resilience* project (everything in `e2e/` except the smoke specs) is an **advisory** job. Its first WebKit
+runs failed, almost entirely for reasons of the harness: the Chrome-only `interactive-widget` viewport hint is
+logged as a warning, an abandoned request is reported as a page error, and software-rendered WebKit on a shared
+runner animates several times slower than an iPad (60 s test timeouts, a 30 min job cap). One layout assertion
+(the success screen's button at 1440×900, measured 47 px below the edge) could not be reproduced on a real WebKit
+engine — see below — and was most likely measured while the entrance animation was still running. The harness now
+ignores the two messages, waits for an element to stop moving before measuring it, and the job runs one spec file
+per matrix entry with the iPad's *Reduce Motion* setting on (`E2E_REDUCED_MOTION=1`). The same 70 scenarios pass
+locally on Chromium with Reduce Motion on — the app honours it everywhere, and a kiosk operator can switch it on.
+Treat the job as advisory until it has been green for a while.
+
+**By hand, on a real WebKit engine.** WebKitGTK 2.52 (the GTK port of WebKit: the same WebCore layout and
+JavaScriptCore engine as Safari — *not* iOS Safari itself) was driven through WebDriver against the same in-memory
+backend (`MockBackend`, over HTTP, with its fault injection). Results:
+
+| Probe | Result |
+|---|---|
+| Every kiosk screen at 6 sizes (iPad Pro 11" and mini landscape, iPad Pro 12.9" and mini portrait, a phone, a desktop) — is each button the customer needs on screen, tappable, uncovered? | **36 / 36.** Where a screen is taller than the display (result 853–880 px, success 918 px) its scroll container scrolls and the sticky "I want it!" / "Play again" button stays pinned at the bottom |
+| Swipe gestures on the quiz card | a short drag (40 px) snaps back; eight full swipes, left and right, each advance; the visit ends on the success screen and restarts |
+| Console errors and uncaught rejections during a whole visit | **0** |
+| Faults: a lost response · two HTTP 500s · a request that never answers · dead catalogue endpoints on a device with an empty cache | one lead each (the lost response retried into a unique violation, counted as success) · the hang abandoned after 12 s and retried · the quiz still ran on the bundled fallback |
+| All 5 languages × iPad mini landscape and portrait × 5 screens: any text clipped by its box, any horizontal overflow? | **none** |
+| /manager (every tab), /stats, /consulente with 600 sample leads | all render; 0 console errors; no horizontal overflow |
+
+What this does **not** prove: iOS-only behaviour (touch events and gestures, safe areas, standalone-PWA mode,
+Guided Access, Safari's audio-autoplay policy, the device fonts) or anything against a real Supabase project.
+Do an acceptance pass on a real iPad before the first store (go-live step 7).
 
 ## Residual risks (not fixed)
 
@@ -124,8 +147,9 @@ Stated plainly, so the buyer does not discover them:
    loaded at all. A customer matched to a demo product has their lead stored but gets **no e-mail**, because
    the e-mail function (correctly) refuses a product that is not in `custom_products`. The kiosk shows the
    "Catalog offline" badge in that mode.
-4. **Code validity (24 h) is a convention**, printed in the e-mail and in /manager; the database does not
-   enforce it. Staff decide at the till.
+4. **The code validity window is a per-browser setting.** The 6 / 12 / 24 / 48 / 72 h choice in the Manager changes
+   what *that browser* marks as "expired"; it is not stored in the database (which enforces no expiry), and the
+   e-mail text says 24 hours. Staff decide at the till.
 5. **Product copy is single-language** (the description, FAQ and training text are one string each); the
    quiz cards and the e-mail template are per language.
 6. **`react-router` 6 has two moderate advisories** (open redirect via backslash; SSR hydration). The app
@@ -152,9 +176,6 @@ Stated plainly, so the buyer does not discover them:
 5. Storage: create the **public** `product-images` bucket (the migrations add its policies, not the bucket).
 6. Run the verification queries in [`../server-hardening.md`](../server-hardening.md), then one full visit with
    your own address: the e-mail should arrive within a minute and the lead should appear in /manager.
-7. The `reset-password` visual-regression baseline (`e2e/visual-regression.spec.ts-snapshots/`) was rendered
-   with the old Italian text; if the required `Playwright E2E` check fails on it, regenerate the baselines with
-   the **Update Visual Baselines** workflow (they are WebKit/Linux pixels and cannot be made locally).
 
 Full go-live order: [`../deployment.md`](../deployment.md). Triage: [`../runbook.md`](../runbook.md).
 

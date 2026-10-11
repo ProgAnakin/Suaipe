@@ -8,7 +8,7 @@
 
 [![CI](https://github.com/ProgAnakin/Suaipe/actions/workflows/ci.yml/badge.svg)](https://github.com/ProgAnakin/Suaipe/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-2.0.1-3b82f6)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-194%20unit%20%C2%B7%2085%20e2e%20%C2%B7%2084%20SQL-22d3ee)](#-quality)
+[![Tests](https://img.shields.io/badge/tests-208%20unit%20%C2%B7%2082%20e2e%20%C2%B7%2084%20SQL-22d3ee)](#-quality)
 [![Languages](https://img.shields.io/badge/i18n-5%20languages-22d3ee)](./src/i18n/translations.ts)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
@@ -198,6 +198,7 @@ npm run dev               # http://localhost:8080
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | build | your Supabase project (anon key only — never the service-role key) |
 | `VITE_STORES` | build, optional | your stores as one-line JSON; the built-in list is used when unset or malformed |
 | `VITE_SITE_URL` | build, optional | the deployed origin, used to make product images absolute in e-mails |
+| `VITE_PRIVACY_CONTROLLER`, `VITE_PRIVACY_EMAIL` | build, **set them** | the company that operates the kiosks and a contact it reads — printed in the GDPR notice (defaults: Suaipe / privacy@suaipe.app) |
 | `VITE_SENTRY_DSN` | build, optional | error tracking |
 | `VITE_COOLDOWN_BYPASS_EMAILS` | build, optional | staff addresses that skip the cooldown *screen* (cosmetic) |
 | Edge Function secrets | Supabase | `BREVO_API_KEY`, `EMAIL_SENDER`, `WEBHOOK_SECRET` (**required**), `STAFF_PIN`, `ALLOWED_ORIGIN`, `SITE_URL`, `GOOGLE_SHEETS_WEBHOOK_URL` — see [`.env.example`](./.env.example) |
@@ -221,8 +222,8 @@ npm run dev               # http://localhost:8080
 | Layer | What runs | Where |
 |---|---|---|
 | **Types, lint, build** | `tsc`, ESLint, Vite production build, `npm audit` on production dependencies | every push (GitHub Actions) |
-| **Unit — 194 tests** | matching algorithm, validators, CSV / pagination / search-filter helpers, i18n completeness, hooks, the Edge-Function helpers | every push |
-| **Browser — 85 tests** | the **real kiosk** driven end to end against an in-memory backend that can misbehave: dropped and lost responses, hangs, offline, corrupt device storage, hostile input, 5 languages × the whole visit, 8 screen sizes × every screen, seeded random-tap chaos, a 12-visit soak; and the staff areas with 2,500 leads | smoke on every push; the brute-force suite as its own (advisory) job |
+| **Unit — 208 tests** | matching algorithm, validators, CSV / pagination / search-filter helpers, i18n completeness, hooks, the Edge-Function helpers | every push |
+| **Browser — 82 tests** | the **real kiosk** driven end to end against an in-memory backend that can misbehave: dropped and lost responses, hangs, offline, corrupt device storage, hostile input, 5 languages × the whole visit, 8 screen sizes × every screen, seeded random-tap chaos, a 12-visit soak; and the staff areas with 2,500 leads | smoke on every push; the brute-force suite as its own (advisory) job |
 | **SQL — 84 checks** | all 57 migrations applied to an empty PostgreSQL, then every role attacks the schema (forged discounts, mass deletion, PIN guessing, cross-store reads…) | every push |
 
 The browser suite runs on **WebKit** (the engine of a real iPad) in CI. Where WebKit cannot be installed, `E2E_BROWSER=chromium npm run test:e2e` runs the same specs on Chromium with iPad emulation.
