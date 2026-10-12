@@ -191,7 +191,10 @@ test.describe("catalogue loading", () => {
     await startButton(page, t).click();
     // either the quiz starts straight away or after the loading screen's 10 s fallback
     await expect(yesButton(page, t)).toBeVisible({ timeout: T(25_000) });
-    expect(appErrors(errors)).toEqual([]);
+    // every startup request hangs ON PURPOSE, so the kiosk logs — once its own 12 s timeout fires, which a
+    // slow runner reaches before this line and a laptop does not — that the refresh failed: that log is the
+    // behaviour under test, not an error
+    expect(appErrors(errors).filter((e) => !/startup data refresh failed: TimeoutError/.test(e))).toEqual([]);
   });
 });
 
