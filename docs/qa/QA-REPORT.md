@@ -21,7 +21,7 @@ has to do.
 | `npm audit --omit=dev --audit-level=high` | passes — 2 *moderate* `react-router` advisories remain ([residual risks](#residual-risks-not-fixed)) |
 | Database attack suite (`npm run test:sql`) | **84** attack checks (run twice: second factor off, then on) + **63** second-factor checks; 58 migrations applied to an **empty** PostgreSQL first |
 | Browser suites (`npm run test:e2e`, Chromium, iPad viewport) | **82** tests green in ~10 min |
-| WebKit (the iPad engine) | the smoke project is a required CI job and was green on the last full run; the resilience project is advisory — see [WebKit](#webkit-the-engine-the-ipads-use) |
+| WebKit (the iPad engine) | the smoke project is a required CI job and green; the whole browser suite (70 further scenarios) was also green on Playwright's WebKit on the last CI run — an advisory job, with *Reduce Motion* on and timeouts ×3 — and the main flows were checked by hand on a real WebKit engine, see [WebKit](#webkit-the-engine-the-ipads-use) |
 
 What these numbers mean: the app has been exercised far beyond a happy path, and every hole found is closed
 *and* pinned by a test that fails if it returns. What they do not mean: that nothing is left — the
@@ -102,17 +102,20 @@ What these numbers mean: the app has been exercised far beyond a happy path, and
 The Playwright suites in the build sandbox run on Chromium (Playwright's WebKit cannot be downloaded there), so
 WebKit was covered in two other ways.
 
-**In CI (Playwright's WebKit build).** The *smoke* project is a required check and was green on the latest runs.
-The *resilience* project (everything in `e2e/` except the smoke specs) is an **advisory** job. Its first WebKit
-runs failed, almost entirely for reasons of the harness: the Chrome-only `interactive-widget` viewport hint is
-logged as a warning, an abandoned request is reported as a page error, and software-rendered WebKit on a shared
-runner animates several times slower than an iPad (60 s test timeouts, a 30 min job cap). One layout assertion
-(the success screen's button at 1440×900, measured 47 px below the edge) could not be reproduced on a real WebKit
-engine — see below — and was most likely measured while the entrance animation was still running. The harness now
-ignores the two messages, waits for an element to stop moving before measuring it, and the job runs one spec file
-per matrix entry with the iPad's *Reduce Motion* setting on (`E2E_REDUCED_MOTION=1`). The same 70 scenarios pass
-locally on Chromium with Reduce Motion on — the app honours it everywhere, and a kiosk operator can switch it on.
-Treat the job as advisory until it has been green for a while.
+**In CI (Playwright's WebKit build).** The *smoke* project is a required check and was green on every recent run.
+The rest of the browser suite (`e2e/` minus the smoke specs) runs as an **advisory** job. Its first WebKit runs failed,
+almost entirely for reasons of the harness: the Chrome-only `interactive-widget` viewport hint is logged as a warning,
+an abandoned request is reported as a page error, and software-rendered WebKit on a shared runner is several times
+slower than an iPad — one visit takes ~40 s there against ~12 s on a laptop, so 60 s test budgets, 5 s `expect` defaults
+and a 30-minute job cap were all too tight. One layout assertion (the success screen's button at 1440×900, measured 47 px
+below the edge) could not be reproduced on a real WebKit engine — see below — and was most likely measured while the
+entrance animation was still running. What changed: the harness ignores the two messages and waits for an element to stop
+moving before measuring it; every timeout goes through `T()` and is tripled in CI (`E2E_TIMEOUT_SCALE=3`); the specs run
+with the iPad's *Reduce Motion* setting on (`E2E_REDUCED_MOTION=1` — the app honours it everywhere, a kiosk operator can
+switch it on, and the same 70 scenarios pass on Chromium with it); the soak run makes 5 visits instead of 12
+(`SOAK_VISITS=5`); and the job is a matrix, one spec file per entry (the 40-scenario one in two shards). **On the last run
+every entry was green: layout 13/13, staff areas 10/10, the 40 resilience scenarios, the six seeded chaos runs and the soak
+run.** Keep the job advisory until it has been green for several runs in a row.
 
 **By hand, on a real WebKit engine.** WebKitGTK 2.52 (the GTK port of WebKit: the same WebCore layout and
 JavaScriptCore engine as Safari — *not* iOS Safari itself) was driven through WebDriver against the same in-memory
