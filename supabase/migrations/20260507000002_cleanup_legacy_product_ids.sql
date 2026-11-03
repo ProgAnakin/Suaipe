@@ -32,4 +32,4 @@ INSERT INTO public.product_settings (product_id, active) VALUES
   ('terraillon-massager',  true),
   ('veho-pebble-mg5',      true),
   ('veho-zb7',             true)
-ON CONFLICT (product_id) DO NOTHING;
+ON CONFLICT (product_id, store_id) DO NOTHING;

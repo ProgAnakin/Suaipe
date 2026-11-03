@@ -17,7 +17,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -34,6 +34,9 @@ jobs:
         # advisories don't ship to users, so they don't block the build.
         run: npm audit --omit=dev --audit-level=high
 
+      - name: Database security regression
+        run: bash supabase/tests/run-local.sh
+
       - name: Test
         run: npm test
 
@@ -49,16 +52,14 @@ jobs:
     name: Playwright E2E
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Required check — a red Playwright run blocks the PR. The earlier failures
-    # were a wrong browser install (chromium instead of the iPad project's
-    # WebKit), now fixed; the suite is green (8/8).
+    # Run the iPad project's WebKit suite on every PR; keep assertions enabled.
 
     steps:
       - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Install dependencies

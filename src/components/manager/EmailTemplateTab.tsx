@@ -3,18 +3,6 @@ import { Check, Clock, Eye, EyeOff, RotateCcw, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const TTL_STORAGE_KEY = "wm_code_ttl_hours";
-const TTL_OPTIONS = [6, 12, 24, 48, 72] as const;
-type TtlOption = typeof TTL_OPTIONS[number];
-
-export function getCodeTtlMs(): number {
-  try {
-    const v = localStorage.getItem(TTL_STORAGE_KEY);
-    const hours = v ? parseInt(v, 10) : 24;
-    return (Number.isFinite(hours) ? hours : 24) * 3_600_000;
-  } catch { return 24 * 3_600_000; }
-}
-
 const SUPPORTED_LANGS = ["it", "en", "fr", "es", "pt"] as const;
 type Lang = typeof SUPPORTED_LANGS[number];
 
@@ -186,14 +174,6 @@ export function EmailTemplateTab() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [codeTtl, setCodeTtl] = useState<TtlOption>(() => {
-    try {
-      const v = localStorage.getItem(TTL_STORAGE_KEY);
-      const h = v ? parseInt(v, 10) : 24;
-      return (TTL_OPTIONS.includes(h as TtlOption) ? h : 24) as TtlOption;
-    } catch { return 24; }
-  });
-
   const fetchTemplates = useCallback(async () => {
     setLoading(true);
     const { data } = await supabase
@@ -246,7 +226,6 @@ export function EmailTemplateTab() {
       // Reflect the sanitized values back into the form so the user sees
       // exactly what was persisted (and won't re-introduce scrubbed markup).
       setForms((prev) => ({ ...prev, [activeLang]: cleaned }));
-      try { localStorage.setItem(TTL_STORAGE_KEY, String(codeTtl)); } catch { /* ignore */ }
       setSaved(true);
       toast.success(`Template ${LANG_META[activeLang].flag} saved.`);
       setTimeout(() => setSaved(false), 2500);
@@ -373,24 +352,9 @@ export function EmailTemplateTab() {
             </p>
           </div>
           <p className="text-[10px] text-muted-foreground">
-            Duration shown in the email and sessions panel. The code is treated as expired after this period.
+            The same expiration time applies to every device and to redemption.
           </p>
-          <div className="flex flex-wrap gap-2">
-            {TTL_OPTIONS.map((h) => (
-              <button
-                key={h}
-                onClick={() => setCodeTtl(h)}
-                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                  codeTtl === h ? "bg-primary text-primary-foreground" : "border border-border bg-muted/30 text-muted-foreground"
-                }`}
-              >
-                {h}h
-              </button>
-            ))}
-          </div>
-          <p className="text-[10px] text-muted-foreground/60">
-            Saved locally — applied on the next template save.
-          </p>
+          <p className="text-sm">24 hours from creation, enforced by the server.</p>
         </div>
       )}
 

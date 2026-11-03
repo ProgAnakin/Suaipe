@@ -33,9 +33,11 @@ describe("getMatchedProduct", () => {
     expect(product.id).toBe("brevia-gopress");
   });
 
-  it("falls back to full catalogue when activeIds is empty", () => {
-    const { product } = getMatchedProduct({ 1: true }, new Set());
-    expect(products.some((p) => p.id === product.id)).toBe(true);
+  it("refuses an explicitly empty active set", () => {
+    expect(() => getMatchedProduct({ 1: true }, new Set())).toThrow("No active products");
+  });
+  it("refuses an active set with no matching catalog rows", () => {
+    expect(() => getMatchedProduct({}, new Set(["missing"]), products)).toThrow("No active products");
   });
 
   it("scores audio+productivity+travel answers toward Aurae Pulse Pro", () => {
@@ -62,14 +64,7 @@ describe("getMatchedProduct", () => {
     expect(matchPercent).toBeLessThanOrEqual(98);
   });
 
-  it("falls back to the bundled catalogue when allProducts is empty (no crash)", () => {
-    // A store with no active custom products passes an empty array. The
-    // function must not deref an undefined product — it falls back to the
-    // bundled catalogue instead of crashing the kiosk on the result screen.
-    const { product, matchPercent } = getMatchedProduct({ 1: true }, undefined, []);
-    expect(product).toBeDefined();
-    expect(products.some((p) => p.id === product.id)).toBe(true);
-    expect(matchPercent).toBeGreaterThanOrEqual(45);
-    expect(matchPercent).toBeLessThanOrEqual(98);
+  it("refuses an explicitly empty catalog", () => {
+    expect(() => getMatchedProduct({}, undefined, [])).toThrow("No active products");
   });
 });

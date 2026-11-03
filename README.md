@@ -8,9 +8,9 @@
 
 [![CI](https://github.com/ProgAnakin/Suaipe/actions/workflows/ci.yml/badge.svg)](https://github.com/ProgAnakin/Suaipe/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-2.0.1-3b82f6)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-145%20unit-22d3ee)](./src/__tests__)
+[![Tests](https://img.shields.io/badge/tests-155%20unit-22d3ee)](./src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-5%20languages-22d3ee)](./src/i18n/translations.ts)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%2B%20Edge%20Functions-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](./LICENSE)
@@ -140,18 +140,18 @@ flowchart LR
 ### Customer-facing (kiosk)
 - 🃏 **Tinder-style swipe quiz** — 8 questions, gesture-driven, haptic feedback
 - 🌍 **5 languages** — Italian, English, Portuguese, Spanish, French
-- 🧠 **Deterministic matching algorithm** — weighted scoring across 8 product categories with random tie-break
-- 🎁 **Personalised discount codes** — unique per session, configurable TTL (6h / 12h / 24h / 48h / 72h)
+- 🧠 **Product matching** — tag-overlap scoring across 8 product categories with random tie-break
+- 🎁 **Personalised discount codes** — unique per session, 24-hour validity enforced by the server
 - 📧 **Multilingual automated emails** — product info, consultant video, discount, FAQ — all translated to the language the customer picked
 - 🎵 **Synthesised ambient soundtrack** — Web Audio API generative music, zero audio assets
 - 💤 **Inactivity reset** — auto-returns to attract loop after 45s of idle (90s on result screen)
 - 🔒 **Wake lock** — prevents iPad screen from sleeping
-- 📵 **Offline-capable PWA** — service worker, runtime cache, graceful degradation
+- 📵 **Offline-capable PWA** — app asset precaching, explicit public-catalog snapshots, graceful degradation
 
 ### Manager dashboard (`/manager`)
 - 📊 **Real-time sessions** — live updates via Supabase Realtime, KPI cards, advanced filters (date, product, match %), CSV export, retention purge
 - 🛍️ **Product catalogue** — slug-collision-safe custom products, per-store overrides (price, image, video, discount %), drag-and-drop quiz cards
-- ✉️ **Email template editor** — live preview, configurable code TTL
+- ✉️ **Email template editor** — live preview, server-enforced 24-hour code validity
 - 🏪 **Multi-store support** — per-store activation, role-based access (`manager` sees all, `consulente_responsabile` sees own store)
 - ⌨️ **Keyboard shortcuts** — `Ctrl+S` refresh, `Esc` close modals
 
@@ -198,7 +198,7 @@ Suaipe was designed and validated in tech retail, but the model transfers cleanl
 | **Webhooks** | DB webhooks gated by valid `store_id` allowlist · unknown stores silently dropped |
 | **Accessibility** | Kiosk-targeted tap targets (≥ 64 px on the PIN keypad and quiz buttons) · `focus-visible:ring-2` rings on interactive elements · `prefers-reduced-motion` respected via Framer Motion `MotionConfig` · informational copy bumped above the `/65` opacity threshold for in-store lighting |
 | **Internationalisation** | 5 fully translated languages, including the transactional emails sent to customers |
-| **Testing** | 145 unit tests (Vitest) · 16 E2E tests (Playwright, incl. visual-regression pixel diffs) · typecheck + lint + build on every push via GitHub Actions |
+| **Testing** | 155 unit tests (Vitest) · 16 E2E tests (Playwright, incl. visual-regression pixel diffs) · typecheck + lint + build on every push via GitHub Actions |
 | **Observability** | Sentry error tracking + session replay (live) · sourcemaps uploaded on build for readable production stack traces · tagged error logging in Edge Functions |
 | **Performance** | Manual chunk splitting · lazy-loaded admin routes · image auto-resize ≤ 1024px JPEG q=80 · PWA precaching · debounced search |
 | **iPad / Kiosk** | `interactive-widget=resizes-content` prevents URL bar on keyboard · `visualViewport` API for keyboard-aware layouts · iOS splash screens · wake lock · `100dvh` everywhere |
@@ -211,7 +211,7 @@ Suaipe was designed and validated in tech retail, but the model transfers cleanl
 |---|---|---|
 | **Bundle (main chunk)** | ~60 KB gzip | Manual `manualChunks` splits react-vendor, framer-motion, supabase and radix into separate cacheable chunks; admin routes lazy-loaded |
 | **LCP** | Attract screen paints from CSS only | No image in the critical path |
-| **PWA** | Full manifest + service worker + runtime cache | Installable on iPad standalone |
+| **PWA** | Full manifest + service worker + public-catalog snapshots | Installable on iPad standalone; claims require connectivity |
 | **Image pipeline** | Auto-resize ≤ 1024 px JPEG q=80 | Runs in the manager catalog before Supabase Storage upload |
 | **Search debounce** | 300 ms | Prevents a DB hit on every keystroke |
 | **Animation budget** | ≤ 0.15 s stagger | Capped to prevent jank on 20+ row session lists on iPad |
@@ -298,7 +298,7 @@ supabase/
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 24 LTS (see `.nvmrc`)
 - npm
 - Supabase project (URL + anon key)
 
@@ -398,7 +398,7 @@ The current release is intentionally **zero-cost**: every component runs on free
 
 ### Resilience (paid tiers)
 
-- **Automated daily database backups.** Supabase Free retains 7 days of point-in-time recovery; Supabase Pro (€25/mo) extends this and adds nightly snapshots. Deferred until the project goes beyond pilot stage.
+- **Automated daily database backups.** Backup and point-in-time recovery availability depends on the Supabase plan and configured add-ons; verify the current plan and test restores. Deferred until the project goes beyond pilot stage.
 - **Public status page.** A read-only health endpoint (Vercel + Supabase + Brevo) so store staff can self-diagnose outages without calling support.
 
 ### Developer experience
@@ -430,3 +430,7 @@ Architectural decisions: [`docs/adr/`](./docs/adr/) · Operational triage: [`doc
 ### License
 
 Proprietary — © Costanzo Annichini. All rights reserved.
+
+## Security release deployment
+
+These changes require a coordinated database, Edge Function and frontend rollout. See [deployment and validation notes](docs/security-hardening.md) before deploying this branch.

@@ -229,6 +229,7 @@ const AttractScreen = ({ onComplete }: AttractScreenProps) => {
             }}
             transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
             whileTap={{ scale: 0.96 }}
+            data-testid="start-quiz"
             onClick={onComplete}
           >
             {t.splash.tap}{" "}

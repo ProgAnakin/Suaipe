@@ -268,7 +268,7 @@ export const ManagerDashboard = ({ onLogout }: ManagerDashboardProps) => {
 
         <PrimaryTabs
           active={activeTab}
-          showManagement={userRole?.role !== "consulente_responsabile"}
+          showManagement={userRole?.role === "manager"}
           onChange={setActiveTab}
         />
 
@@ -296,7 +296,7 @@ export const ManagerDashboard = ({ onLogout }: ManagerDashboardProps) => {
           >
             <SessionsTab
               storeId={storeId}
-              isGlobal={userRole?.role !== "consulente_responsabile"}
+              isGlobal={userRole?.role === "manager"}
             />
           </ErrorBoundary>
         )}

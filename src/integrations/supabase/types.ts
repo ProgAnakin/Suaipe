@@ -221,6 +221,7 @@ export type Database = {
           discount_code: string | null
           discount_percent: number | null
           code_redeemed: boolean
+          expires_at: string
           code_redeemed_at: string | null
           language: string | null
           consent_given_at: string | null
@@ -442,6 +443,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      submit_quiz_session: { Args: { p_request_id: string; p_payload: Json }; Returns: string }
       check_email_cooldown: {
         Args: { p_email: string }
         Returns: { in_cooldown: boolean; hours_remaining: number }[]

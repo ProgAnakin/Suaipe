@@ -22,40 +22,38 @@ const Manager = () => {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data, error }) => {
-      if (error) {
-        console.error("[suaipe] getSession failed:", error);
-        navigate("/stats", { replace: true });
-        setChecking(false);
-        return;
+    let generation = 0;
+    let disposed = false;
+    const check = async () => {
+      const current = ++generation;
+      setAuthed(false);
+      setChecking(true);
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error || !session) throw new Error("Session unavailable");
+        const { data: aal, error: mfaError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (mfaError || aal?.currentLevel !== "aal2") throw new Error("MFA required");
+        const { data: roles, error: roleError } = await supabase.rpc("get_my_store_role");
+        if (roleError || !roles?.some((r) => ["manager", "consulente_responsabile"].includes(r.role))) throw new Error("Role denied");
+        if (!disposed && current === generation) setAuthed(true);
+      } catch {
+        if (!disposed && current === generation) navigate("/stats", { replace: true });
+      } finally {
+        if (!disposed && current === generation) setChecking(false);
       }
-      if (data.session) {
-        // Enforce MFA (aal2). /manager delegates login + enrolment to /stats, so
-        // bounce there whenever the session isn't fully 2FA-verified — including
-        // accounts with no TOTP factor yet (which /stats now forces to enrol).
-        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-        if (aal?.currentLevel !== "aal2") {
-          navigate("/stats", { replace: true });
-          setChecking(false);
-          return;
-        }
-        setAuthed(true);
-      } else {
-        navigate("/stats", { replace: true });
-      }
-      setChecking(false);
-    }).catch((err) => {
-      console.error("[suaipe] auth check threw:", err);
-      navigate("/stats", { replace: true });
-      setChecking(false);
+    };
+    void check();
+    // Return from auth callbacks before making additional auth requests.
+    let pending: ReturnType<typeof setTimeout>;
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      ++generation;
+      setAuthed(false);
+      setChecking(true);
+      clearTimeout(pending);
+      pending = setTimeout(() => { void check(); }, 0);
     });
+    return () => { disposed = true; ++generation; clearTimeout(pending); listener.subscription.unsubscribe(); };
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) navigate("/stats", { replace: true });
-      else setAuthed(true);
-    });
-
-    return () => listener.subscription.unsubscribe();
   }, [navigate]);
 
   if (checking) return <AdminSpinner />;

@@ -1,6 +1,6 @@
 // Supabase Edge Function — triggered by Database Webhook on quiz_sessions INSERT
-// Generates a unique discount code, sends the match email via Brevo,
-// then updates the session row with the code and email_sent = true.
+// Reserves delivery of the database's stable discount code, sends via Brevo,
+// then records provider acceptance on the session.
 // Deploy: supabase functions deploy on-session-created
 //
 // Required secrets (set via Supabase Dashboard → Edge Functions → Secrets):
@@ -18,7 +18,7 @@ const ALLOWED_ORIGIN   = Deno.env.get("ALLOWED_ORIGIN") ?? "";
 const SHEETS_WEBHOOK   = Deno.env.get("GOOGLE_SHEETS_WEBHOOK_URL") ?? "";
 // Shared secret for the Supabase Database Webhook. When set, the function
 // rejects requests that don't carry a matching x-webhook-secret header.
-// Leave unset only for local development — production must always set this.
+// Required in every environment that sends mail; absence fails closed.
 const WEBHOOK_SECRET   = Deno.env.get("WEBHOOK_SECRET") ?? "";
 const EMAIL_SENDER     = Deno.env.get("EMAIL_SENDER") ?? "noreply@suaipe.app";
 // Deployed site origin used to absolutise root-relative product images
@@ -88,18 +88,7 @@ function youtubeId(url: string): string | null {
   return m ? m[1] : null;
 }
 
-// Format: SUP-XXXXXXXX## — 8 uppercase hex chars (4 random bytes, 2^32 space, so
-// enumeration is impractical) + the 2-digit discount % for at-a-glance readability.
-// Kept INLINE so this Edge Function is a single self-contained file (easy to deploy
-// from the Supabase Dashboard). It is the tested reference in
-// supabase/functions/_shared/discountCode.ts (src/__tests__/discountCode.test.ts) —
-// keep the two in sync if you ever change the format.
-function genDiscountCode(discountPct: number): string {
-  const bytes = new Uint8Array(4);
-  crypto.getRandomValues(bytes);
-  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
-  return `SUP-${hex}${String(discountPct).padStart(2, "0")}`;
-}
+// Codes are generated and persisted by the database before delivery.
 
 // ⚠ Synced copy — kept in lockstep with src/lib/validators.ts. Tests in
 // src/__tests__/validators.test.ts cover both code paths.
@@ -213,7 +202,7 @@ const EMAIL_I18N: Record<Lang, {
     imagesNote: "Le immagini non si caricano? Clicca <strong style=\"color:#f0f4ff;\">&ldquo;Mostra immagini&rdquo;</strong> in cima all&rsquo;email per visualizzare il prodotto e il video del consulente.",
     gdpr: "Dati crittografati · Conformità GDPR",
     receivedNote: "Hai ricevuto questa email perché hai partecipato a Suaipe in negozio.",
-    codeExpiry: "Il codice sconto è valido 24 ore dalla ricezione.",
+    codeExpiry: "Il codice sconto è valido 24 ore dalla creazione.",
   },
   en: {
     htmlLang: "en",
@@ -237,7 +226,7 @@ const EMAIL_I18N: Record<Lang, {
     imagesNote: "Images not loading? Click <strong style=\"color:#f0f4ff;\">&ldquo;Show images&rdquo;</strong> at the top of the email to display the product and consultant video.",
     gdpr: "Encrypted data · GDPR compliant",
     receivedNote: "You received this email because you participated in Suaipe in store.",
-    codeExpiry: "The discount code is valid for 24 hours from receipt.",
+    codeExpiry: "The discount code is valid for 24 hours from creation.",
   },
   pt: {
     htmlLang: "pt",
@@ -261,7 +250,7 @@ const EMAIL_I18N: Record<Lang, {
     imagesNote: "Imagens não carregam? Clique em <strong style=\"color:#f0f4ff;\">&ldquo;Mostrar imagens&rdquo;</strong> no topo do email para visualizar o produto e o vídeo do consultor.",
     gdpr: "Dados encriptados · Conformidade GDPR",
     receivedNote: "Recebeu este email porque participou no Suaipe na loja.",
-    codeExpiry: "O código de desconto é válido por 24 horas após a receção.",
+    codeExpiry: "O código de desconto é válido por 24 horas após a criação.",
   },
   es: {
     htmlLang: "es",
@@ -285,7 +274,7 @@ const EMAIL_I18N: Record<Lang, {
     imagesNote: "¿Las imágenes no cargan? Haz clic en <strong style=\"color:#f0f4ff;\">&ldquo;Mostrar imágenes&rdquo;</strong> en la parte superior del email.",
     gdpr: "Datos cifrados · Cumplimiento GDPR",
     receivedNote: "Recibiste este email porque participaste en Suaipe en tienda.",
-    codeExpiry: "El código de descuento es válido 24 horas desde la recepción.",
+    codeExpiry: "El código de descuento es válido 24 horas desde la creación.",
   },
   fr: {
     htmlLang: "fr",
@@ -309,7 +298,7 @@ const EMAIL_I18N: Record<Lang, {
     imagesNote: "Images non chargées ? Cliquez sur <strong style=\"color:#f0f4ff;\">&ldquo;Afficher les images&rdquo;</strong> en haut de l'email.",
     gdpr: "Données chiffrées · Conformité RGPD",
     receivedNote: "Vous avez reçu cet email car vous avez participé à Suaipe en boutique.",
-    codeExpiry: "Le code de réduction est valable 24 heures après réception.",
+    codeExpiry: "Le code de réduction est valable 24 heures après sa création.",
   },
 };
 
@@ -705,7 +694,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ skipped: true }), { status: 200 });
   }
 
-  const record = payload.record as Record<string, unknown>;
+  let record = payload.record as Record<string, unknown>;
   if (!record?.email) {
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   }
@@ -715,194 +704,165 @@ serve(async (req) => {
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   }
 
-  const discountPct = Number(record.discount_percent ?? 5);
-  const code = genDiscountCode(discountPct);
-
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+  const { data: recipient, error: recipientError } = await supabase.from("quiz_sessions")
+    .select("email").eq("id", record.id).maybeSingle();
+  if (recipientError) return new Response("Database unavailable", { status: 503 });
+  if (!recipient) return new Response("Session not found", { status: 404 });
+  const { data: reserved, error: reserveError } = await supabase.rpc("begin_session_email", {
+    p_session_id: record.id,
+    p_bypass: WHITELIST_EMAILS.has(String(recipient.email).trim().toLowerCase()),
+  });
+  if (reserveError) return new Response("Reservation failed", { status: 503 });
+  if (!reserved) return new Response(JSON.stringify({ ok: true, skipped: true }), { status: 200 });
+  record = reserved as Record<string, unknown>;
+  const code = String(record.discount_code);
 
-  // Idempotency guard — a Supabase webhook retry re-delivers the same INSERT
-  // payload (email_sent=false in that snapshot). If the email for this session
-  // already went out, skip: don't regenerate the code or re-send. Covers the
-  // common retry-after-success case without a schema change. (A fully race-proof
-  // atomic-claim variant is documented in docs/server-hardening.md.)
-  {
-    const { data: existing } = await supabase
-      .from("quiz_sessions")
-      .select("email_sent")
-      .eq("id", record.id)
-      .maybeSingle();
-    if (existing?.email_sent === true) {
-      return new Response(JSON.stringify({ ok: true, deduped: true }), { status: 200 });
-    }
-  }
-
-  // Customer PII (nome / cognome / email) is stored in plaintext because the
-  // manager dashboard must search and display it; it is protected by row-level
-  // security (no anon read; managers/consulenti scoped by store), Supabase's
-  // at-rest storage encryption, and a retention purge. See ADR 003.
-
-  // Server-side email rate limit — bypass-proof regardless of how the session was created.
-  // If this email already received an email in the last hour, save the code to DB
-  // but silently skip sending. The customer experience is unaffected; only abusers are blocked.
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const { count: recentEmails } = await supabase
-    .from("quiz_sessions")
-    .select("id", { count: "exact", head: true })
-    .eq("email", String(record.email))
-    .eq("email_sent", true)
-    .neq("id", String(record.id))
-    .gte("created_at", oneHourAgo);
-
-  const emailNorm = String(record.email).trim().toLowerCase();
-  if ((recentEmails ?? 0) >= 1 && !WHITELIST_EMAILS.has(emailNorm)) {
-    await supabase.from("quiz_sessions").update({ discount_code: code }).eq("id", record.id);
-    return new Response(JSON.stringify({ ok: true }), { status: 200 });
-  }
-
-  // Write discount_code first — email_sent stays false until Brevo confirms.
-  // If the UPDATE fails we ABORT the email send: otherwise the customer would
-  // receive an email referencing a code that was never persisted to the row.
-  const { error: dbErr } = await supabase
-    .from("quiz_sessions")
-    .update({ discount_code: code })
-    .eq("id", record.id);
-
-  if (dbErr || !code) {
-    console.error("[on-session-created] db update failed — aborting email:", dbErr?.message);
-    return new Response(JSON.stringify({ ok: false, error: "discount code persistence failed" }), { status: 500 });
-  }
-
-  // Fetch product-specific FAQ: check product_settings first, then custom_products as fallback.
-  const faq: Array<{ q: string; a: string }> = [];
-  if (record.matched_product_id) {
-    const { data: ps } = await supabase
-      .from("product_settings")
-      .select("faq_q1,faq_a1,faq_q2,faq_a2,faq_q3,faq_a3")
-      .eq("product_id", record.matched_product_id)
-      .maybeSingle();
-    if (ps) {
-      for (const n of [1, 2, 3] as const) {
-        const q = String((ps as Record<string, unknown>)[`faq_q${n}`] ?? "").trim();
-        const a = String((ps as Record<string, unknown>)[`faq_a${n}`] ?? "").trim();
-        if (q && a) faq.push({ q: escHtml(q), a: escHtml(a) });
-      }
-    }
-    // Fallback: custom products store FAQ as a JSONB array
-    if (faq.length === 0) {
-      const { data: cp } = await supabase
-        .from("custom_products")
-        .select("faq")
-        .eq("id", String(record.matched_product_id))
-        .maybeSingle();
-      if (cp?.faq) {
-        for (const item of (cp.faq as { q: string; a: string }[])) {
-          if (item.q?.trim() && item.a?.trim())
-            faq.push({ q: escHtml(item.q.trim()), a: escHtml(item.a.trim()) });
-        }
-      }
-    }
-  }
-
-  // Product image fallback — if the session snapshot carries no usable image
-  // (an older kiosk build stored null for a root-relative asset, or the column
-  // was never written), recover it from the catalog so the email still shows
-  // the product instead of the 📦 placeholder. Per-store override first, then
-  // the global custom_products row. safeUrl() (in buildEmail) absolutises any
-  // root-relative path against SITE_URL.
-  if (!safeUrl(String(record.product_image ?? "")) && record.matched_product_id) {
-    let img = "";
-    if (record.store_id) {
-      const { data: psImg } = await supabase
+  try {
+    // Fetch product-specific FAQ: check product_settings first, then custom_products as fallback.
+    const faq: Array<{ q: string; a: string }> = [];
+    if (record.matched_product_id) {
+      const { data: ps } = await supabase
         .from("product_settings")
-        .select("image_url")
+        .select("faq_q1,faq_a1,faq_q2,faq_a2,faq_q3,faq_a3")
         .eq("product_id", record.matched_product_id)
         .eq("store_id", record.store_id)
         .maybeSingle();
-      img = String(psImg?.image_url ?? "").trim();
+      if (ps) {
+        for (const n of [1, 2, 3] as const) {
+          const q = String((ps as Record<string, unknown>)[`faq_q${n}`] ?? "").trim();
+          const a = String((ps as Record<string, unknown>)[`faq_a${n}`] ?? "").trim();
+          if (q && a) faq.push({ q: escHtml(q), a: escHtml(a) });
+        }
+      }
+      // Fallback: custom products store FAQ as a JSONB array
+      if (faq.length === 0) {
+        const { data: cp } = await supabase
+          .from("custom_products")
+          .select("faq")
+          .eq("id", String(record.matched_product_id))
+          .maybeSingle();
+        if (cp?.faq) {
+          for (const item of (cp.faq as { q: string; a: string }[])) {
+            if (item.q?.trim() && item.a?.trim())
+              faq.push({ q: escHtml(item.q.trim()), a: escHtml(item.a.trim()) });
+          }
+        }
+      }
     }
-    if (!img) {
-      const { data: cpImg } = await supabase
-        .from("custom_products")
-        .select("image_url")
-        .eq("id", String(record.matched_product_id))
-        .maybeSingle();
-      img = String(cpImg?.image_url ?? "").trim();
+
+    // Product image fallback — if the session snapshot carries no usable image
+    // (an older kiosk build stored null for a root-relative asset, or the column
+    // was never written), recover it from the catalog so the email still shows
+    // the product instead of the 📦 placeholder. Per-store override first, then
+    // the global custom_products row. safeUrl() (in buildEmail) absolutises any
+    // root-relative path against SITE_URL.
+    if (!safeUrl(String(record.product_image ?? "")) && record.matched_product_id) {
+      let img = "";
+      if (record.store_id) {
+        const { data: psImg } = await supabase
+          .from("product_settings")
+          .select("image_url")
+          .eq("product_id", record.matched_product_id)
+          .eq("store_id", record.store_id)
+          .maybeSingle();
+        img = String(psImg?.image_url ?? "").trim();
+      }
+      if (!img) {
+        const { data: cpImg } = await supabase
+          .from("custom_products")
+          .select("image_url")
+          .eq("id", String(record.matched_product_id))
+          .maybeSingle();
+        img = String(cpImg?.image_url ?? "").trim();
+      }
+      if (img) record.product_image = img;
     }
-    if (img) record.product_image = img;
-  }
 
-  // Load the editable email template row for this session's language.
-  // Each supported language has its own row in email_template (keyed by language column).
-  const sessionLang = (String(record.language ?? "it")) as Lang;
-  const { data: tplRow } = await supabase
-    .from("email_template")
-    .select("sender_name, subject_template, header_title, header_subtitle, footer_store_name")
-    .eq("language", sessionLang)
-    .maybeSingle();
-  const tpl = {
-    sender_name:       String(tplRow?.sender_name       ?? "Suaipe Shop"),
-    subject_template:  String(tplRow?.subject_template  ?? "{{nome}}, il tuo match è {{pct}}% — Codice sconto valido 24h ⏰"),
-    header_title:      String(tplRow?.header_title      ?? "Abbiamo trovato il tuo match!"),
-    header_subtitle:   String(tplRow?.header_subtitle   ?? "Il nostro algoritmo ha analizzato le tue risposte e ha selezionato il gadget perfetto per il tuo stile di vita."),
-    footer_store_name: String(tplRow?.footer_store_name ?? "Costanzo Annichini"),
-  };
-
-  const nome     = String(record.nome ?? "").trim();
-  const pct      = Number(record.match_percent ?? 0);
-  const subject  = tpl.subject_template
-    .replace(/\{\{nome\}\}/g, nome || "Cliente")
-    .replace(/\{\{pct\}\}/g,  String(pct));
-  const html     = buildEmail(record, code, faq, tpl);
-
-  const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: { "api-key": BREVO_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sender: { name: tpl.sender_name, email: EMAIL_SENDER },
-      // Customers should not reply directly. Point Reply-To at a noreply mailbox
-      // so the "Reply" button in email clients doesn't send anything to a real inbox.
-      replyTo: { name: "Suaipe (no-reply)", email: "noreply@suaipe.app" },
-      to: [{ email: record.email, name: [nome, String(record.cognome ?? "")].filter(Boolean).join(" ") }],
-      subject,
-      htmlContent: html,
-    }),
-  });
-
-  if (!brevoRes.ok) {
-    const errText = await brevoRes.text();
-    console.error("[on-session-created] Brevo error:", errText);
-    // Don't leak the provider's raw error body (may include internals / the
-    // recipient address) to the webhook caller — log it server-side only.
-    return new Response(JSON.stringify({ ok: false }), { status: 500 });
-  }
-
-  // Mark email as sent only after Brevo confirms delivery.
-  await supabase.from("quiz_sessions").update({ email_sent: true }).eq("id", record.id);
-
-  const brevoData = await brevoRes.json();
-  // Log messageId only — never raw email (Supabase Edge logs are operational, not for PII).
-  console.log("[on-session-created] email sent:", brevoData.messageId, "session:", record.id);
-
-  // Server-side Google Sheets relay — fire-and-forget, never blocks email delivery.
-  if (SHEETS_WEBHOOK) {
-    const sheetsPayload = {
-      data:     new Date().toLocaleString("it-IT"),
-      nome:     String(record.nome    ?? ""),
-      cognome:  String(record.cognome ?? ""),
-      email:    String(record.email   ?? ""),
-      prodotto: String(record.product_name ?? ""),
-      match:    `${Number(record.match_percent ?? 0)}%`,
-      store_id: String(record.store_id ?? ""),
+    // Load the editable email template row for this session's language.
+    // Each supported language has its own row in email_template (keyed by language column).
+    const sessionLang = (String(record.language ?? "it")) as Lang;
+    const { data: tplRow } = await supabase
+      .from("email_template")
+      .select("sender_name, subject_template, header_title, header_subtitle, footer_store_name")
+      .eq("language", sessionLang)
+      .maybeSingle();
+    const tpl = {
+      sender_name:       String(tplRow?.sender_name       ?? "Suaipe Shop"),
+      subject_template:  String(tplRow?.subject_template  ?? "{{nome}}, il tuo match è {{pct}}% — Codice sconto valido 24h ⏰"),
+      header_title:      String(tplRow?.header_title      ?? "Abbiamo trovato il tuo match!"),
+      header_subtitle:   String(tplRow?.header_subtitle   ?? "Il nostro algoritmo ha analizzato le tue risposte e ha selezionato il gadget perfetto per il tuo stile di vita."),
+      footer_store_name: String(tplRow?.footer_store_name ?? "Costanzo Annichini"),
     };
-    fetch(SHEETS_WEBHOOK, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify(sheetsPayload),
-    }).catch((err) => console.error("[on-session-created] sheets relay failed:", err));
-  }
 
-  return new Response(JSON.stringify({ ok: true, code, emailId: brevoData.messageId }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+    const nome     = String(record.nome ?? "").trim();
+    const pct      = Number(record.match_percent ?? 0);
+    const subject  = tpl.subject_template
+      .replace(/\{\{nome\}\}/g, nome || "Cliente")
+      .replace(/\{\{pct\}\}/g,  String(pct));
+    const html     = buildEmail(record, code, faq, tpl);
+
+    const brevoRes = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      signal: AbortSignal.timeout(15_000),
+      headers: { "api-key": BREVO_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sender: { name: tpl.sender_name, email: EMAIL_SENDER },
+        // Customers should not reply directly. Point Reply-To at a noreply mailbox
+        // so the "Reply" button in email clients doesn't send anything to a real inbox.
+        replyTo: { name: "Suaipe (no-reply)", email: "noreply@suaipe.app" },
+        to: [{ email: record.email, name: [nome, String(record.cognome ?? "")].filter(Boolean).join(" ") }],
+        subject,
+        htmlContent: html,
+      }),
+    });
+
+    if (!brevoRes.ok) {
+      await brevoRes.text();
+      console.error("[on-session-created] Brevo rejected request, status:", brevoRes.status);
+      await supabase.from("quiz_sessions").update({ email_status: brevoRes.status >= 500 ? "uncertain" : "failed" }).eq("id", record.id);
+      // Don't leak the provider's raw error body (may include internals / the
+      // recipient address) to the webhook caller — log it server-side only.
+      return new Response(JSON.stringify({ ok: false }), { status: 500 });
+    }
+
+    // Mark email as sent only after Brevo confirms delivery.
+    const { error: completionError } = await supabase.from("quiz_sessions")
+      .update({ email_sent: true, email_status: "sent" }).eq("id", record.id);
+    if (completionError) {
+      console.error("[on-session-created] provider accepted; DB completion failed", record.id);
+      return new Response("Delivery status requires reconciliation", { status: 503 });
+    }
+
+    const brevoData = await brevoRes.json();
+    // Log messageId only — never raw email (Supabase Edge logs are operational, not for PII).
+    console.log("[on-session-created] email sent:", brevoData.messageId, "session:", record.id);
+
+    // Await the relay so the runtime cannot discard it after returning.
+    if (SHEETS_WEBHOOK) {
+      const sheetsPayload = {
+        data:     new Date().toLocaleString("it-IT"),
+        nome:     String(record.nome    ?? ""),
+        cognome:  String(record.cognome ?? ""),
+        email:    String(record.email   ?? ""),
+        prodotto: String(record.product_name ?? ""),
+        match:    `${Number(record.match_percent ?? 0)}%`,
+        store_id: String(record.store_id ?? ""),
+      };
+      await fetch(SHEETS_WEBHOOK, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(sheetsPayload),
+      }).then((response) => { if (!response.ok) console.error("[on-session-created] sheets relay status", response.status); })
+        .catch(() => console.error("[on-session-created] sheets relay failed", record.id));
+    }
+
+    return new Response(JSON.stringify({ ok: true, code, emailId: brevoData.messageId }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch {
+    await supabase.from("quiz_sessions").update({ email_status: "uncertain" }).eq("id", record.id).eq("email_status", "sending");
+    return new Response("Delivery status requires reconciliation", { status: 503 });
+  }
 });

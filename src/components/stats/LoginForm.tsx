@@ -15,7 +15,7 @@ interface LoginFormProps {
   icon?: string;
 }
 
-// Rate limiting is enforced server-side via check_login_rate_limit RPC.
+// UI cooldown is advisory; Supabase Auth must enforce its own server-side limits.
 export const LoginForm = ({
   onLoginSuccess,
   onMfaRequired,
@@ -31,45 +31,50 @@ export const LoginForm = ({
   const { lockedSeconds, isLocked, setLockedSeconds } = useLockoutCountdown();
 
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim() || isLocked) return;
+    if (!email.trim() || !password.trim() || isLocked || loading) return;
     setLoading(true); setError("");
 
-    const { data: limitData } = await supabase.rpc("check_login_rate_limit", {
-      p_email: email.trim().toLowerCase(),
-    });
-    const limit = limitData as { locked: boolean; locked_seconds: number } | null;
-    if (limit?.locked) {
-      setLockedSeconds(limit.locked_seconds);
-      setLoading(false);
-      setError("Too many attempts. Try again in a few minutes.");
-      return;
-    }
-
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(), password,
-    });
-
-    supabase.rpc("record_login_attempt", {
-      p_email: email.trim().toLowerCase(),
-      p_success: !authError,
-    });
-
-    setLoading(false);
-    if (authError) {
-      setError("Invalid credentials.");
-    } else {
-      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (aal?.currentLevel === "aal2") {
-        onLoginSuccess();
-      } else if (aal?.nextLevel === "aal2") {
-        onMfaRequired();
-      } else if (onEnrollRequired) {
-        // No TOTP factor enrolled — enforce enrolment before granting access.
-        onEnrollRequired();
-      } else {
-        onLoginSuccess();
+    try {
+      const { data: limitData } = await supabase.rpc("check_login_rate_limit", {
+        p_email: email.trim().toLowerCase(),
+      });
+      const limit = limitData as { locked: boolean; locked_seconds: number } | null;
+      if (limit?.locked) {
+        setLockedSeconds(limit.locked_seconds);
+        setLoading(false);
+        setError("Too many attempts. Try again in a few minutes.");
+        return;
       }
-    }
+
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(), password,
+      });
+
+      const { error: recordError } = await supabase.rpc("record_login_attempt", {
+        p_email: email.trim().toLowerCase(),
+        p_success: !authError,
+      });
+      if (recordError) console.error("[suaipe] login audit failed", recordError.code);
+
+      setLoading(false);
+      if (authError) {
+        setError("Invalid credentials.");
+      } else {
+        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aal?.currentLevel === "aal2") {
+          onLoginSuccess();
+        } else if (aal?.nextLevel === "aal2") {
+          onMfaRequired();
+        } else if (onEnrollRequired) {
+          // No TOTP factor enrolled — enforce enrolment before granting access.
+          onEnrollRequired();
+        } else {
+          onLoginSuccess();
+        }
+      }
+    } catch {
+      setError("Connection problem. Please try again.");
+    } finally { setLoading(false); }
   };
 
   return (

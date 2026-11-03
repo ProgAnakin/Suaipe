@@ -46,21 +46,27 @@ export const useDashboardData = ({ dateFrom, dateTo, filterStore, dateRangeInval
     if (error) setHasError(true);
     else setSessions((data ?? []) as QuizSession[]);
 
-    // Funnel counts are global, not date-filtered. Wrapped so a network
-    // rejection here can't abort the dashboard and leave it stuck on
-    // the loading spinner.
+    // Use the same store/date scope as the session list.
     try {
+      const countEvent = (event: string) => {
+        let q = supabase.from("quiz_funnel_events").select("*", { count: "exact", head: true }).eq("event_type", event);
+        if (dateFrom) q = q.gte("created_at", dateFrom);
+        if (dateTo) q = q.lte("created_at", dateTo + "T23:59:59.999");
+        if (filterStore) q = q.eq("store_id", filterStore);
+        return q;
+      };
       const [startedRes, resultRes, claimedRes] = await Promise.all([
-        supabase.from("quiz_funnel_events").select("*", { count: "exact", head: true }).eq("event_type", "quiz_started"),
-        supabase.from("quiz_funnel_events").select("*", { count: "exact", head: true }).eq("event_type", "result_shown"),
-        supabase.from("quiz_funnel_events").select("*", { count: "exact", head: true }).eq("event_type", "claimed"),
+        countEvent("quiz_started"), countEvent("result_shown"), countEvent("claimed"),
       ]);
+      if ([startedRes, resultRes, claimedRes].some((r) => r.error)) throw new Error("Funnel unavailable");
       setFunnel({
         started:     startedRes.count ?? 0,
         resultShown: resultRes.count  ?? 0,
         claimed:     claimedRes.count ?? 0,
       });
     } catch (err) {
+      setHasError(true);
+      setFunnel(null);
       console.error("[suaipe] funnel counts fetch failed:", err);
     }
 

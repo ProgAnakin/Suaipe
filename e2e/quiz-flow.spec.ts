@@ -23,22 +23,32 @@ test.describe("Quiz kiosk flow", () => {
   });
 
   test("welcome screen shows name and email fields after attract click", async ({ page }) => {
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    await expectRouteMounts(page);
-    const attractClickable = page.locator("[data-testid='attract-screen'], .attract-cta").first();
-    if (await attractClickable.isVisible().catch(() => false)) {
-      await attractClickable.click();
-    } else {
-      await page.click("body");
-    }
-    await page.waitForSelector("input[type='text'], input[type='email']", { timeout: 5000 }).catch(() => null);
+    await page.addInitScript(() => localStorage.setItem("wb_store_id", "lisboa"));
+    await page.route("https://placeholder.supabase.co/rest/v1/**", async (route) => {
+      const table = new URL(route.request().url()).pathname.split("/").pop();
+      const rows = table === "custom_products" ? [{ id: "demo", name: "Demo", description: "Demo product", price: "€10", rating: 4, tags: ["tech"], faq: [] }] : [];
+      await route.fulfill({ json: rows });
+    });
+    await page.goto("/");
+    await page.getByTestId("start-quiz").click();
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[type="text"]')).toHaveCount(2);
+
+  });
+
+  test("unconfigured kiosk does not collect personal data", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("start-quiz").click();
+    await expect(page.getByRole("status")).toContainText("Il chiosco non è disponibile");
+    await expect(page.locator('input[type="email"]')).toHaveCount(0);
   });
 
   test("manager page requires authentication", async ({ page }) => {
     await page.goto("/manager", { waitUntil: "domcontentloaded" });
     await expectRouteMounts(page);
     // The authenticated catalog UI must not render without a session.
-    await expect(page.getByText("Gestione Catalogo")).toHaveCount(0);
+    await expect(page).toHaveURL(/\/stats$/);
+    await expect(page.getByRole("heading", { name: "Analytics Dashboard" })).toBeVisible();
   });
 
   test("stats page loads without crashing", async ({ page }) => {
@@ -79,6 +89,7 @@ test.describe("Manager dashboard — public paths", () => {
     await page.goto("/manager", { waitUntil: "domcontentloaded" });
     await expectRouteMounts(page);
     // Dashboard data sections must NOT be visible without auth.
-    await expect(page.getByText("Sessioni & Codici")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Sign in", exact: true })).toBeVisible();
+    await expect(page.locator('input[type="password"]')).toBeVisible();
   });
 });

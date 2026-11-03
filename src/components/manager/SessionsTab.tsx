@@ -92,7 +92,7 @@ export const SessionsTab = ({ storeId, isGlobal }: SessionsTabProps) => {
           className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
         >
-          💡 <strong className="text-foreground">{expiredReusable}</strong> expired codes (older than 24h) can be reused manually for new customers.
+          💡 <strong className="text-foreground">{expiredReusable}</strong> expired codes cannot be redeemed. Start a new quiz to issue a new code.
         </motion.div>
       )}
 
@@ -360,7 +360,7 @@ export const SessionsTab = ({ storeId, isGlobal }: SessionsTabProps) => {
                           {!s.code_redeemed && (
                             <button
                               onClick={() => markRedeemed(s)}
-                              disabled={isRedeeming}
+                              disabled={isRedeeming || expired || !s.email_sent}
                               className="flex min-h-[32px] items-center gap-1 rounded-lg border border-border bg-muted/30 px-2 py-1 text-[10px] font-semibold text-foreground/70 hover:border-green-500/40 hover:bg-green-500/10 hover:text-green-400 active:scale-95 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                               title="Mark code as used by the customer"
                             >

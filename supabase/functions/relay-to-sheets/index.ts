@@ -14,7 +14,7 @@ import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const WEBHOOK_URL    = Deno.env.get("GOOGLE_SHEETS_WEBHOOK_URL") ?? "";
-const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") ?? "*";
+const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") ?? "";
 const SUPABASE_URL   = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY    = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -58,8 +58,10 @@ serve(async (req) => {
   }
   {
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-    const { error } = await admin.auth.getUser(token);
-    if (error) {
+    const { data: userData, error } = await admin.auth.getUser(token);
+    const caller = createClient(SUPABASE_URL, SERVICE_KEY, { global: { headers: { Authorization: `Bearer ${token}` } } });
+    const { error: roleError } = error ? { error } : await caller.rpc("list_store_roles_admin");
+    if (error || !userData.user || roleError) {
       return new Response(SILENT_OK, { headers: { ...CORS, "Content-Type": "application/json" } });
     }
   }

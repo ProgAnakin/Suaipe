@@ -1,7 +1,7 @@
 import { Mail, Clock, AlertCircle, XCircle } from "lucide-react";
 import { products } from "@/data/products";
 import { STORES } from "@/data/stores";
-import { getCodeTtlMs } from "../EmailTemplateTab";
+
 
 export interface Session {
   id: string;
@@ -16,6 +16,7 @@ export interface Session {
   store_id: string | null;
   code_redeemed: boolean;
   code_redeemed_at: string | null;
+  expires_at: string;
 }
 
 export type SessionKpi = Pick<
@@ -28,7 +29,7 @@ export type StatusFilter = "all" | "sent" | "processing" | "no_email" | "failed"
 // Single source of truth for the column list — keeps the paginated list and
 // CSV export in lockstep when the schema drifts.
 export const SESSION_SELECT =
-  "id, email, nome, cognome, matched_product_id, match_percent, email_sent, discount_code, created_at, store_id, code_redeemed, code_redeemed_at";
+  "id, email, nome, cognome, matched_product_id, match_percent, email_sent, discount_code, created_at, store_id, code_redeemed, code_redeemed_at, expires_at";
 
 export const STATUS_META = {
   sent:       { label: "SENT",       icon: Mail,        cls: "border-green-500/40 bg-green-500/10 text-green-400"       },
@@ -62,11 +63,11 @@ export function getSessionStatus(s: Session): "sent" | "processing" | "no_email"
 }
 
 export function isCodeExpired(s: Session): boolean {
-  return (Date.now() - new Date(s.created_at).getTime()) > getCodeTtlMs();
+  return !s.expires_at || Date.now() >= new Date(s.expires_at).getTime();
 }
 
 export function hoursUntilExpiry(s: Session): number | null {
-  const msLeft = (new Date(s.created_at).getTime() + getCodeTtlMs()) - Date.now();
+  const msLeft = new Date(s.expires_at).getTime() - Date.now();
   if (msLeft <= 0) return null;
   return Math.ceil(msLeft / 3_600_000);
 }

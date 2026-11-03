@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion, type TargetAndTransition, type Transition } from "framer-motion";
 import WelcomeScreen, { type UserInfo } from "@/components/WelcomeScreen";
 import QuizScreen from "@/components/QuizScreen";
@@ -17,11 +17,12 @@ import { useLockBodyScroll } from "@/hooks/useLockBodyScroll";
 import { useLang } from "@/i18n/LanguageContext";
 import { getStoredStoreId } from "@/data/stores";
 import { RESULT_INACTIVITY_TIMEOUT_MS } from "@/config/timings";
-import { SITE_URL } from "@/config/siteUrl";
+import { submitClaim } from "@/lib/submitClaim";
+import type { Json } from "@/integrations/supabase/types";
 import type { QuizCard } from "@/data/quiz-cards";
 import { buildTagMap, MAX_ACTIVE_QUIZ_CARDS } from "@/data/quiz-cards";
 import { readCache, writeCache } from "@/lib/startupCache";
-import { toAbsoluteAssetUrl } from "@/lib/validators";
+
 
 type Screen = "splash" | "welcome" | "loading_quiz" | "quiz" | "result" | "success";
 
@@ -90,14 +91,21 @@ const Index = () => {
   const [matchPercent, setMatchPercent] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, boolean>>({});
   const [claiming, setClaiming] = useState(false);
+  const claimInFlight = useRef(false);
+  const claimId = useRef(crypto.randomUUID());
+  const claimPayload = useRef<Json | null>(null);
+  const [storeId, setStoreId] = useState(getStoredStoreId);
+  useEffect(() => {
+    const update = () => setStoreId(getStoredStoreId());
+    window.addEventListener("suaipe-store-changed", update);
+    return () => window.removeEventListener("suaipe-store-changed", update);
+  }, []);
   const [claimError, setClaimError] = useState(false);
   const [inactivitySecondsLeft, setInactivitySecondsLeft] = useState<number | null>(null);
   const [funnelKey, setFunnelKey] = useState(() => crypto.randomUUID());
   const [activeProductIds, setActiveProductIds] = useState<Set<string> | null>(null);
   const [priceOverrides, setPriceOverrides] = useState<Record<string, string>>({});
   const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
-  const [videoOverrides, setVideoOverrides] = useState<Record<string, string>>({});
-  const [discountOverrides, setDiscountOverrides] = useState<Record<string, number>>({});
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [settingsLoadFailed, setSettingsLoadFailed] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
@@ -105,7 +113,12 @@ const Index = () => {
   const [tagMap, setTagMap] = useState<Record<number, string> | undefined>(undefined);
 
   useEffect(() => {
-    const storeId = getStoredStoreId() ?? "rio-de-janeiro";
+    if (!storeId) return;
+    let cancelled = false;
+    setSettingsLoaded(false);
+    setSettingsLoadFailed(false);
+    setActiveProductIds(new Set());
+    setAllProducts([]);
     const cacheKey = `startup_${storeId}`;
 
     interface StartupSnapshot {
@@ -157,21 +170,17 @@ const Index = () => {
         });
         const prices: Record<string, string>  = {};
         const images: Record<string, string>  = {};
-        const videos: Record<string, string>  = {};
-        const discounts: Record<string, number> = {};
         data.forEach((r) => {
           if (r.price_override)  prices[r.product_id]    = r.price_override;
           if (r.image_url)       images[r.product_id]    = r.image_url;
-          if (r.video_url)       videos[r.product_id]    = r.video_url;
-          if (r.discount_percent) discounts[r.product_id] = r.discount_percent;
         });
         setActiveProductIds(active);
         setPriceOverrides(prices);
-        setVideoOverrides(videos);
         setImageOverrides(images);
-        setDiscountOverrides(discounts);
       } else {
         setActiveProductIds(new Set(merged.map((p) => p.id)));
+        setPriceOverrides({});
+        setImageOverrides({});
       }
       if (snap.cardsData.length > 0) {
         // Defensive cap — never expose more than the fixed 8 swipes, even if a
@@ -180,6 +189,7 @@ const Index = () => {
         setQuizCards(capped);
         setTagMap(buildTagMap(capped));
       }
+      setSettingsLoadFailed(false);
       // Cache hit + live refresh both mark loaded — idempotent via React state batching.
       setSettingsLoaded(true);
     }
@@ -207,9 +217,11 @@ const Index = () => {
         .order("sort_order", { ascending: true })
         .limit(MAX_ACTIVE_QUIZ_CARDS),
     ]).then(([settingsRes, customRes, globalRes, cardsRes]) => {
-      if (settingsRes.error) {
-        console.error("[suaipe] product_settings fetch failed:", settingsRes.error);
+      if (cancelled) return;
+      if ([settingsRes, customRes, globalRes, cardsRes].some((r) => r.error)) {
         if (!cached) setSettingsLoadFailed(true);
+        setSettingsLoaded(true);
+        return;
       }
 
       const snap: StartupSnapshot = {
@@ -227,11 +239,13 @@ const Index = () => {
       // Network rejection (vs. a Supabase error object handled above) would
       // otherwise leave settingsLoaded=false forever and the kiosk stuck on the
       // spinner until the 10 s fallback timeout fires.
+      if (cancelled) return;
       console.error("[suaipe] startup Promise.all rejected:", err);
       if (!cached) setSettingsLoadFailed(true);
       setSettingsLoaded(true);
     });
-  }, []);
+    return () => { cancelled = true; };
+  }, [storeId]);
 
   // Fallback: if startup data doesn't arrive within 10 s, force progress so the
   // kiosk never gets permanently stuck on the loading screen.
@@ -254,6 +268,7 @@ const Index = () => {
   };
 
   const handleStart = (userInfo: UserInfo) => {
+    if (!storeId || !settingsLoaded || settingsLoadFailed || !allProducts.some((p) => activeProductIds?.has(p.id))) return;
     setUser(userInfo);
     trackFunnel(funnelKey, "quiz_started");
     // If product settings haven't loaded yet, show a brief loading screen
@@ -262,6 +277,7 @@ const Index = () => {
   };
 
   const handleQuizComplete = (answers: Record<number, boolean>) => {
+    if (!allProducts.some((p) => activeProductIds?.has(p.id))) { setScreen("welcome"); return; }
     const { product: baseProduct, matchPercent: pct } = getMatchedProduct(answers, activeProductIds ?? undefined, allProducts, tagMap);
     // Apply store-specific overrides (price + image) set by manager
     const priceOverride = baseProduct && priceOverrides[baseProduct.id];
@@ -281,7 +297,7 @@ const Index = () => {
   // Email is collected on the welcome screen — user.email is already set when
   // handleClaim fires. We just persist the session and advance to success.
   const handleClaim = async () => {
-    if (!matchedProduct || claiming) return;
+    if (!matchedProduct || claimInFlight.current) return;
 
     // Hard guard: a session without a configured store must NOT be silently
     // assigned to a default — that would attribute it to the wrong location
@@ -295,48 +311,27 @@ const Index = () => {
 
     setClaimError(false);
     setClaiming(true);
+    claimInFlight.current = true;
 
     const payload = {
       email: user.email,
       answers: quizAnswers,
       matched_product_id: matchedProduct.id,
       match_percent: matchPercent,
-      email_sent: false,
       nome: user.nome,
       cognome: user.cognome,
       store_id: storeId,
-      // Product snapshot — used by the Edge Function to build the email.
-      // Video falls back to the product's own video_url when no per-store
-      // override exists (custom products carry their own link).
-      product_name:  matchedProduct.name,
-      product_price: matchedProduct.price,
-      // Resolve to an absolute URL so the match email can render it. Bundled
-      // fallback assets are root-relative ("/products/x.png") and would never
-      // load in an email client; custom products carry absolute Storage URLs.
-      product_image: toAbsoluteAssetUrl(matchedProduct.image, SITE_URL),
-      product_video: videoOverrides[matchedProduct.id]
-        ?? (matchedProduct.videoUrl && matchedProduct.videoUrl !== "#" ? matchedProduct.videoUrl : null),
-      discount_percent: discountOverrides[matchedProduct.id] ?? 5,
       language: lang,
       // GDPR Art. 7(1) — demonstrable record of consent at the moment
       // the customer ticked the privacy checkbox on the welcome screen.
       consent_given_at: user.consentGivenAt,
     };
 
-    // Retry up to 2 times with exponential backoff before giving up.
-    let lastError: unknown;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      if (attempt > 0) await new Promise((r) => setTimeout(r, 500 * 2 ** (attempt - 1)));
-      const { error } = await supabase.from("quiz_sessions").insert(payload);
-      if (!error) { lastError = null; break; }
-      lastError = error;
-    }
-    if (lastError) {
-      console.error("[suaipe] quiz_sessions insert failed:", lastError);
-      setClaiming(false);
-      setClaimError(true);
-      return;
-    }
+    claimPayload.current ??= payload;
+    const saved = await submitClaim(claimId.current, claimPayload.current);
+    claimInFlight.current = false;
+    setClaiming(false);
+    if (!saved) { setClaimError(true); return; }
 
     // Google Sheets relay is handled server-side in the on-session-created Edge Function.
     trackFunnel(funnelKey, "claimed");
@@ -358,6 +353,10 @@ const Index = () => {
     setInactivitySecondsLeft(null);
     setClaimError(false);
     setFunnelKey(crypto.randomUUID());
+    claimId.current = crypto.randomUUID();
+    claimPayload.current = null;
+    claimInFlight.current = false;
+    setClaiming(false);
     setScreen("splash");
   };
 
@@ -370,7 +369,7 @@ const Index = () => {
   useBgMusic(screen === "welcome",                                         "welcome");
   useBgMusic(screen === "quiz" || screen === "result",                     "quiz");
   const { dismiss } = useInactivityReset({
-    enabled: screen !== "welcome" && screen !== "splash" && screen !== "loading_quiz",
+    enabled: screen !== "splash" && !claiming,
     timeout: screen === "result" ? RESULT_INACTIVITY_TIMEOUT_MS : undefined,
     onWarn:    (seconds) => setInactivitySecondsLeft(seconds),
     onReset:   handleRestart,
@@ -461,7 +460,7 @@ const Index = () => {
           transition={anim.transition}
         >
           {screen === "splash" && <AttractScreen onComplete={handleSplashComplete} />}
-          {screen === "welcome" && <WelcomeScreen onStart={handleStart} settingsLoadFailed={settingsLoadFailed} />}
+          {screen === "welcome" && <WelcomeScreen onStart={handleStart} settingsLoadFailed={settingsLoadFailed} unavailable={!storeId || !settingsLoaded || settingsLoadFailed || !allProducts.some((p) => activeProductIds?.has(p.id))} />}
           {screen === "loading_quiz" && (
             <div className="fixed inset-0 flex flex-col items-center justify-center bg-background p-8 text-center">
               <div className="max-w-xs w-full space-y-8">

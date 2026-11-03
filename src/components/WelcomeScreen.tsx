@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import DiscoveryBackground from "./DiscoveryBackground";
@@ -27,6 +27,7 @@ export interface UserInfo {
 interface WelcomeScreenProps {
   onStart: (user: UserInfo) => void;
   settingsLoadFailed?: boolean;
+  unavailable?: boolean;
 }
 
 // Email/name validation + sanitize live in src/lib/validators.ts (shared with the
@@ -58,6 +59,8 @@ const LanguageSelector = () => {
 // ─── Welcome Form ───────────────────────────────────────────────────────────────────────────
 const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
   const { t } = useLang();
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useViewportKeyboard();
   const [nome, setNome] = useState("");
   const [cognome, setCognome] = useState("");
@@ -133,6 +136,7 @@ const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
       }
       setChecking(false);
     }
+    if (!mounted.current) return;
     play("start");
     onStart({
       nome: nome.trim(),
@@ -319,8 +323,8 @@ const StoreBadge = ({ onTap, refreshKey }: { onTap: () => void; refreshKey: numb
 // ─── Welcome Screen ────────────────────────────────────────────────────────────────────────────
 const LOGO_TAPS_REQUIRED = 6;
 
-const WelcomeScreen = ({ onStart, settingsLoadFailed = false }: WelcomeScreenProps) => {
-  const { t } = useLang();
+const WelcomeScreen = ({ onStart, settingsLoadFailed = false, unavailable = false }: WelcomeScreenProps) => {
+  const { t, lang } = useLang();
   const [showPin, setShowPin] = useState(false);
   const [storeBadgeKey, setStoreBadgeKey] = useState(0);
   // Mirror tapCount.current to React state once it passes the discoverability
@@ -455,7 +459,13 @@ const WelcomeScreen = ({ onStart, settingsLoadFailed = false }: WelcomeScreenPro
           {t.welcome.subtitle}
         </motion.p>
 
-        <WelcomeForm onStart={onStart} />
+        {unavailable ? <p role="status" className="rounded-xl border border-border bg-card p-5 text-center text-sm">{ {
+          it: "Il chiosco non è disponibile. Chiedi assistenza al personale.",
+          en: "The kiosk is unavailable. Please ask a member of staff for help.",
+          pt: "O quiosque está indisponível. Peça ajuda a um funcionário.",
+          es: "El quiosco no está disponible. Pide ayuda al personal.",
+          fr: "Le kiosque est indisponible. Demandez de l’aide au personnel.",
+        }[lang] }</p> : <WelcomeForm onStart={onStart} />}
       </motion.div>
     </div>
   );

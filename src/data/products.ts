@@ -198,16 +198,10 @@ export function getMatchedProduct(
   tagMap?: Record<number, string>,
 ): { product: Product; matchPercent: number } {
   const resolvedTagMap = tagMap ?? STATIC_TAG_MAP;
-  // Fall back to the bundled catalogue when the caller passes an empty array
-  // (e.g. a store that has deactivated/archived every product). Without this,
-  // `pool` ends up empty, `bestProduct` is undefined, and the `bestProduct.tags`
-  // access below throws — crashing the kiosk on the result screen.
-  const pool_source = allProducts && allProducts.length > 0 ? allProducts : products;
-  const filtered =
-    activeIds && activeIds.size > 0
-      ? pool_source.filter((p) => activeIds.has(p.id))
-      : pool_source;
-  const pool = filtered.length > 0 ? filtered : pool_source;
+  // Undefined selects the fixture; an explicitly empty catalog means unavailable.
+  const source = allProducts ?? products;
+  const pool = activeIds ? source.filter((p) => activeIds.has(p.id)) : source;
+  if (!pool.length) throw new Error("No active products available");
 
   const activeTags: string[] = [];
   Object.entries(answers).forEach(([qId, answered]) => {
@@ -228,7 +222,7 @@ export function getMatchedProduct(
     }
   });
 
-  const bestProduct = tied[Math.floor(Math.random() * tied.length)] ?? pool[0] ?? pool_source[0];
+  const bestProduct = tied[Math.floor(Math.random() * tied.length)] ?? pool[0];
 
   const totalTags = bestProduct.tags.length || 1;
   const rawPercent = Math.round((bestScore / totalTags) * 100);

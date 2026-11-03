@@ -33,21 +33,10 @@ export default defineConfig(() => ({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,woff2}"],
         // Exclude large static assets that aren't needed for offline kiosk operation
         globIgnores: ["screenshots/**", "splash/**"],
-        // Runtime caching for Supabase REST GETs only (network-first, 5 s timeout).
-        // Scoped to /rest/v1/ to avoid caching /auth/v1/* tokens or RPC writes;
-        // method GET filter prevents non-idempotent calls from being cached.
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-            handler: "NetworkFirst",
-            method: "GET",
-            options: {
-              cacheName: "supabase-rest",
-              networkTimeoutSeconds: 5,
-              expiration: { maxEntries: 50, maxAgeSeconds: 60 },
-            },
-          },
-        ],
+        // REST responses can contain customer/staff data. Cache API data only
+        // through the explicit public-catalog snapshot in startupCache.ts.
+        // On activation, delete the previous worker's broad REST cache too.
+        importScripts: ["/sw-cache-cleanup.js"],
         // Don't wait for old SW to unload — update immediately
         skipWaiting: true,
         clientsClaim: true,

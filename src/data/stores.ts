@@ -18,7 +18,7 @@ export function getStoredStoreId(): string | null {
 }
 
 export function setStoredStoreId(id: string): void {
-  try { localStorage.setItem(STORE_LS_KEY, id); } catch { /* localStorage unavailable — private browsing or storage quota exceeded */ }
+  try { localStorage.setItem(STORE_LS_KEY, id); window.dispatchEvent(new Event("suaipe-store-changed")); } catch { /* localStorage unavailable — private browsing or storage quota exceeded */ }
 }
 
 export function getStoreById(id: string): Store | undefined {

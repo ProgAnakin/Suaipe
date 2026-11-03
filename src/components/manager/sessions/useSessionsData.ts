@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebounce } from "@/hooks/useDebounce";
-import { getCodeTtlMs } from "../EmailTemplateTab";
+
 import {
   formatDate,
   isCodeExpired,
@@ -154,7 +154,7 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
       );
       toast.success("Code marked as used.");
     } else if (!error && (rowsUpdated as number) === 0) {
-      toast.error("0 rows updated — check the SQL function.");
+      toast.error("Code unavailable, expired, already redeemed or outside your store.");
     } else if (error) {
       toast.error(`Error: ${error.message}`);
     }
@@ -199,6 +199,7 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
   }, [storeId, isGlobal]);
 
   const openPurgeModal = useCallback(async () => {
+    if (!isGlobal) { toast.error("Only managers may delete sessions."); return; }
     setPurgePreviewCount(null);
     setShowPurgeModal(true);
     let query = supabase
@@ -212,9 +213,10 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
 
   const executePurge = useCallback(async () => {
     setPurging(true);
-    const { data } = await supabase.rpc("purge_sessions_older_than", { p_days: 7 });
+    const { data, error } = await supabase.rpc("purge_sessions_older_than", { p_days: 7 });
     setPurging(false);
     setShowPurgeModal(false);
+    if (error) { toast.error("Sessions could not be deleted."); return; }
     const deleted = data ?? 0;
     toast.success(`${deleted} sessions deleted successfully.`);
     fetchSessions();
@@ -242,7 +244,7 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
   };
 
   const expiredReusable = kpiData.filter(
-    (s) => (Date.now() - new Date(s.created_at).getTime()) > getCodeTtlMs()
+    (s) => (Date.now() - new Date(s.created_at).getTime()) > (24 * 3_600_000)
       && s.discount_code && !s.code_redeemed,
   ).length;
 
