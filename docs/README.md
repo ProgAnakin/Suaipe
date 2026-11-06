@@ -8,6 +8,7 @@ Reference material for the suaipe codebase.
 | [`runbook.md`](./runbook.md) | Operational triage for the most common incidents (email not delivered, kiosk stuck, PIN lockout, etc.) |
 | [`adr/`](./adr/) | Architecture Decision Records — the *why* behind the key technical choices |
 | [`screenshots/`](./screenshots/) | UI screenshots referenced by the top-level `README.md` |
+| [`audits/2026-11-06/`](./audits/2026-11-06/README.md) | Prelaunch review, prioritized findings, test evidence, SBOM, license inventory and diagnostic reproductions |
 
 ## Architecture Decision Records
 

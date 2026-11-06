@@ -1,0 +1,559 @@
+{
+  "date": "2026-11-06",
+  "timezone": "Europe/Rome",
+  "code_commit": "8acdb6156e3223d94dd5533fed587be71ab7febe",
+  "tools": {
+    "node": "24.19.0",
+    "npm": "11.9.0",
+    "vitest": "5.1.0",
+    "gitleaks": "8.24.3",
+    "semgrep": "1.184.0",
+    "semgrep_rules_commit": "16b9e6d45f10649f6a531ec4838ed9924372c3bc"
+  },
+  "application_tests": {
+    "files": 22,
+    "passed": 155,
+    "exit_code": 0,
+    "coverage_lines_percent": 9.44,
+    "coverage_statements_percent": 9.15,
+    "coverage_branches_percent": 4.76
+  },
+  "database_regression": {
+    "passed": 24,
+    "exit_code": 0,
+    "uses_minimal_supabase_stand_ins": true
+  },
+  "new_web_probes": {
+    "failed": 3,
+    "passed": 0,
+    "exit_code": 1,
+    "purpose": "Desired protections; current defects reproduced, not an approval gate"
+  },
+  "database_probes": [
+    {
+      "id": "DB01",
+      "result": "VULNERABLE",
+      "detail": "Store lead aal1 can read another store funnel"
+    },
+    {
+      "id": "DB02",
+      "result": "PROTECTED",
+      "detail": "Session PII unavailable with aal1"
+    },
+    {
+      "id": "DB03",
+      "result": "PROTECTED",
+      "detail": "Session PII isolated from another store at aal2"
+    },
+    {
+      "id": "DB04",
+      "result": "VULNERABLE",
+      "detail": "Account with no staff role can read training guides"
+    },
+    {
+      "id": "DB05",
+      "result": "VULNERABLE",
+      "detail": "Account with no staff role can forge a manager audit entry"
+    },
+    {
+      "id": "DB06",
+      "result": "VULNERABLE",
+      "detail": "Manager password session can upload catalog media without MFA"
+    },
+    {
+      "id": "DB07",
+      "result": "VULNERABLE",
+      "detail": "PIN lockout branch errors: ambiguous ip_address (SQLSTATE 42702)"
+    },
+    {
+      "id": "DB08",
+      "result": "VULNERABLE",
+      "detail": "Caller bypasses PIN lockout by changing client_id and omitting IP"
+    },
+    {
+      "id": "DB09",
+      "result": "VULNERABLE",
+      "detail": "Anonymous caller can fabricate failures and lock a victim out of UI"
+    },
+    {
+      "id": "DB10",
+      "result": "VULNERABLE",
+      "detail": "Anonymous cooldown reveals recent activity of a known customer address"
+    },
+    {
+      "id": "DB11",
+      "result": "VULNERABLE",
+      "detail": "Anonymous caller inserts a historical claimed event without a quiz session"
+    },
+    {
+      "id": "DB13",
+      "result": "VULNERABLE",
+      "detail": "Server accepts a spreadsheet formula in customer name despite UI name validation"
+    },
+    {
+      "id": "DB12",
+      "result": "VULNERABLE",
+      "detail": "Delayed webhook can reserve delivery for an expired coupon"
+    }
+  ],
+  "concurrency": {
+    "concurrent_claims": 12,
+    "persisted_sessions": 1,
+    "concurrent_email_attempts": 12,
+    "email_reservations": 1
+  },
+  "query_plan": {
+    "synthetic_rows": 20000,
+    "email_lookup_plan": [
+      {
+        "Plan": {
+          "Node Type": "Aggregate",
+          "Strategy": "Plain",
+          "Partial Mode": "Simple",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 864.28,
+          "Total Cost": 864.29,
+          "Plan Rows": 1,
+          "Plan Width": 8,
+          "Actual Startup Time": 9.587,
+          "Actual Total Time": 9.587,
+          "Actual Rows": 1,
+          "Actual Loops": 1,
+          "Shared Hit Blocks": 364,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "quiz_sessions",
+              "Alias": "quiz_sessions",
+              "Startup Cost": 0.0,
+              "Total Cost": 864.03,
+              "Plan Rows": 100,
+              "Plan Width": 0,
+              "Actual Startup Time": 4.695,
+              "Actual Total Time": 9.583,
+              "Actual Rows": 1,
+              "Actual Loops": 1,
+              "Filter": "((created_at > (now() - '01:00:00'::interval)) AND (lower(TRIM(BOTH FROM email)) = 'audit-load-10000@example.com'::text))",
+              "Rows Removed by Filter": 20000,
+              "Shared Hit Blocks": 364,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 212,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.833,
+        "Triggers": [],
+        "Execution Time": 9.609
+      }
+    ]
+  },
+  "typecheck": {
+    "exit_code": 0
+  },
+  "lint": {
+    "exit_code": 0,
+    "errors": 0,
+    "warnings": 4
+  },
+  "build": {
+    "exit_code": 0,
+    "backend": "placeholder"
+  },
+  "gitleaks": {
+    "history_reported_commits": 421,
+    "local_reachable_commits": 500,
+    "is_shallow": false,
+    "findings": [
+      {
+        "rule": "generic-api-key",
+        "file": "docs/security-hardening.md",
+        "line": 51,
+        "commit": "8acdb6156e3223d94dd5533fed587be71ab7febe",
+        "classification": "test placeholder"
+      },
+      {
+        "rule": "generic-api-key",
+        "file": "playwright.config.ts",
+        "line": 31,
+        "commit": "18266611de4c31224bdaada09cf61f1caecfa464",
+        "classification": "test placeholder"
+      },
+      {
+        "rule": "generic-api-key",
+        "file": ".github/workflows/ci.yml",
+        "line": 40,
+        "commit": "69095eb4e3870e8792d924e808ab2b74e6f41f0e",
+        "classification": "test placeholder"
+      },
+      {
+        "rule": "generic-api-key",
+        "file": ".github/workflows/ci.yml",
+        "line": 40,
+        "commit": "a91a61fcc0ec2d1e5f751db06b93579643cc4a37",
+        "classification": "test placeholder"
+      },
+      {
+        "rule": "jwt",
+        "file": ".env",
+        "line": 1,
+        "commit": "91cda2fe4e30b90504834e6c1a69ceee0b1ab509",
+        "classification": "public anon JWT; not service-role"
+      },
+      {
+        "rule": "jwt",
+        "file": ".env",
+        "line": 4,
+        "commit": "91cda2fe4e30b90504834e6c1a69ceee0b1ab509",
+        "classification": "public anon JWT; not service-role"
+      }
+    ],
+    "build_findings": 0
+  },
+  "semgrep": {
+    "rules_run": 441,
+    "targets_scanned": 246,
+    "raw_findings": 250,
+    "parser_errors": 0,
+    "rule_counts": {
+      "generic.secrets.gitleaks.generic-api-key": 1,
+      "typescript.react.portability.i18next.jsx-not-internationalized": 221,
+      "typescript.react.best-practice.react-props-spreading": 12,
+      "typescript.react.best-practice.react-props-in-state": 1,
+      "javascript.lang.security.html-in-template-string": 13,
+      "javascript.lang.correctness.missing-template-string-indicator": 2
+    },
+    "metrics": "off",
+    "interpretation": "raw findings triaged; not 250 confirmed vulnerabilities"
+  },
+  "npm_audit_full": {
+    "info": 0,
+    "low": 2,
+    "moderate": 15,
+    "high": 0,
+    "critical": 0,
+    "total": 17
+  },
+  "npm_audit_production": {
+    "info": 0,
+    "low": 0,
+    "moderate": 5,
+    "high": 0,
+    "critical": 0,
+    "total": 5
+  },
+  "sbom_components": 734,
+  "lockfile": {
+    "resolved_registry_entries": 826,
+    "install_script_entries": [
+      "node_modules/@sentry/cli",
+      "node_modules/@swc/core",
+      "node_modules/esbuild",
+      "node_modules/fsevents",
+      "node_modules/playwright/node_modules/fsevents"
+    ]
+  },
+  "e2e": {
+    "discovered": 16,
+    "executed": 0,
+    "status": "blocked; WebKit absent and download hosts outside enforced policy"
+  },
+  "unverified": [
+    "hosted Supabase ACLs and Auth settings",
+    "Vercel deployment and effective HTTP headers",
+    "WebKit/iPad",
+    "real inbox delivery",
+    "backup restore",
+    "alerts",
+    "load capacity and soak",
+    "legal applicability, processor agreements and IP rights"
+  ],
+  "built_artifacts": [
+    {
+      "path": "dist/assets/Consulente-CLX1QBk3.js",
+      "bytes": 15530,
+      "sha256": "a048775132a23fbfa41fecbbda314b267591ad159d5f689af7fedb875fe6291e"
+    },
+    {
+      "path": "dist/assets/Manager-BAtERJhP.js",
+      "bytes": 203905,
+      "sha256": "b636cbbc76d0d44facc2b932ba39c024f7b2ac920f2742255b1c414506377027"
+    },
+    {
+      "path": "dist/assets/MfaSetupModal-B9qAyTwb.js",
+      "bytes": 10507,
+      "sha256": "4ceaefb02ef945e16e0f14d276f3e736b30196b0aa3a5af5c13233dcf5ae46bc"
+    },
+    {
+      "path": "dist/assets/Privacy-GFrGm4mo.js",
+      "bytes": 684,
+      "sha256": "564442cb556af970fa32e6469824dbcb66b103a0373f1df9ea9b4c2c1888b766"
+    },
+    {
+      "path": "dist/assets/ResetPassword-DXV__GcE.js",
+      "bytes": 2334,
+      "sha256": "51dbce2c1d48724b3ef0d5690c2f5e11b4efa521d02f03de37a0a5db8030e49a"
+    },
+    {
+      "path": "dist/assets/Stats-IscMmjlv.js",
+      "bytes": 36575,
+      "sha256": "8f367d46502987b6a10debc4b93f09c7b58599ed28a7fe23c7e90cb51d702458"
+    },
+    {
+      "path": "dist/assets/chevron-left-DndpNwAh.js",
+      "bytes": 303,
+      "sha256": "dedcebb60f4ce3340203211200cf14bd37411907b0c949699892b4d3e1d73c66"
+    },
+    {
+      "path": "dist/assets/framer-motion-hqAebP9L.js",
+      "bytes": 136962,
+      "sha256": "7f1e5b0a9a60a619a638e1b919f3bb610a2ec3c800666127b688d7e688807bdd"
+    },
+    {
+      "path": "dist/assets/index-DO_gmk7T.js",
+      "bytes": 218128,
+      "sha256": "6e4ad5ccf16fdd292fbcb02800bdb49c80212bffbd66e89af93e754439bbb982"
+    },
+    {
+      "path": "dist/assets/index-LAPkllVo.css",
+      "bytes": 51806,
+      "sha256": "75d87494aecff7cb7d1305ce78a2c92800b064aed24b79a5704ea7c6b73f6663"
+    },
+    {
+      "path": "dist/assets/log-out-DhA8Zs5S.js",
+      "bytes": 657,
+      "sha256": "03ce09f60b78dcfb3b7fe63c88ef3b90da058673cc47d910912e2e2632ca0e69"
+    },
+    {
+      "path": "dist/assets/radix-qpsybIJb.js",
+      "bytes": 58661,
+      "sha256": "65d512110be90effa442cb46ae9b5be888a7196352ab13e2b8b4cd22cadc450f"
+    },
+    {
+      "path": "dist/assets/react-query-DAKq0dqE.js",
+      "bytes": 36659,
+      "sha256": "bc90cf516bfeb64946437f8c0a86d7bef7085e723b84e28fa512dc42b4f77408"
+    },
+    {
+      "path": "dist/assets/react-vendor-l0sNRNKZ.js",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "dist/assets/router-CAMzvALW.js",
+      "bytes": 153734,
+      "sha256": "eb0df0970b899b0402be3c1aca5a6f60d9776a001ba2d5ec2dc4a14c0e62ab07"
+    },
+    {
+      "path": "dist/assets/search-Cp9j-9eX.js",
+      "bytes": 1540,
+      "sha256": "7945e241099b851867495adbbcb42382efdd8cd58e068c4d62ce5c808949d74b"
+    },
+    {
+      "path": "dist/assets/suaipe-logo-9v3AcpHV.png",
+      "bytes": 253207,
+      "sha256": "d3f7018c22991be591a86d174a8987b0a7330d3e464b01aa47d720132faf0177"
+    },
+    {
+      "path": "dist/assets/supabase-dIChsWQP.js",
+      "bytes": 212376,
+      "sha256": "26354940baa19c21956e2f4e73f712bdb73090b991f62448ff8b4b79c8f29fea"
+    },
+    {
+      "path": "dist/assets/useIdleLogout-B59L2mwv.js",
+      "bytes": 1690,
+      "sha256": "aaa3322d6df0fca3f8ed1417c7958cde946322be3fafc3492f62e9b14416399f"
+    },
+    {
+      "path": "dist/favicon.ico",
+      "bytes": 58626,
+      "sha256": "e31b686a129cecd4f4d8dee41aaf1f0ac5c74bca10d41f6ce7336b66595c4992"
+    },
+    {
+      "path": "dist/favicon.svg",
+      "bytes": 1180,
+      "sha256": "18e0d3a70e0f8bf4ca5db678e52b24ab91e0a632eb36c8805d77c11d978bc5f3"
+    },
+    {
+      "path": "dist/icon.png",
+      "bytes": 95508,
+      "sha256": "ec69ecba3525545ca2b76eaecd73b5ea7f0a4abf785d571c458d16a98251dc84"
+    },
+    {
+      "path": "dist/index.html",
+      "bytes": 4852,
+      "sha256": "cfeeace9472f1c6a1e227a1886c2a79f4ad9ad07bbd373cc09ff8ae8a5b3840f"
+    },
+    {
+      "path": "dist/manifest.json",
+      "bytes": 1382,
+      "sha256": "2ab14b8e0265791f393f4d34e538f0bf89254de29f000be898c1ece8152ef911"
+    },
+    {
+      "path": "dist/og-image.png",
+      "bytes": 173765,
+      "sha256": "c9a9f145c1ae8ca946fd77a6380b2d0b0d97a5932fcfe68c56130b649ff16630"
+    },
+    {
+      "path": "dist/products/aeris-glow.png",
+      "bytes": 400784,
+      "sha256": "87654d6fe4cce46e6201f9eab853c67d0a60afe78eb052eac537bdfe7c804a29"
+    },
+    {
+      "path": "dist/products/aurae-pulse-pro.png",
+      "bytes": 522498,
+      "sha256": "17740d3e971284be5532f3126f1971e800857afac2a57ce5dff4992401b625b2"
+    },
+    {
+      "path": "dist/products/brevia-gopress.png",
+      "bytes": 311058,
+      "sha256": "0bed1949b9f9eaaea7d3c32d6e5a5ba99c96ecfed8ef479502a4457353e6cdbe"
+    },
+    {
+      "path": "dist/products/echobox-riff.png",
+      "bytes": 1250096,
+      "sha256": "7b997bc317cccb6e278a6e6c96ebf5d1adc836bfb32639bb0a1bd17adc5c45ec"
+    },
+    {
+      "path": "dist/products/lumio-air.png",
+      "bytes": 784361,
+      "sha256": "6cf9736dafa518fcf8682794ce7d17fa2bc3716d7122490d0d6901cabd40d535"
+    },
+    {
+      "path": "dist/products/lunaring-halo.png",
+      "bytes": 568317,
+      "sha256": "c360490958732226f506e930ffb7168fb05162824d1fcb94911c3fc810f5d8c2"
+    },
+    {
+      "path": "dist/products/nimbus-sip.png",
+      "bytes": 217837,
+      "sha256": "740ec100eed47e37ca60f0f6d635c96831c2ecb5be47db063b194d7e808912f7"
+    },
+    {
+      "path": "dist/products/pulsar-recover-x.png",
+      "bytes": 448528,
+      "sha256": "9170fcfa1460390941f7abcd503210bf78a0a96a7e01abdd30207af18c484397"
+    },
+    {
+      "path": "dist/products/vibewave-open.png",
+      "bytes": 562234,
+      "sha256": "997c673e816c3989326bf6232f1267426713df43e76329ab0693efd570a73a14"
+    },
+    {
+      "path": "dist/products/voltik-snapcell.png",
+      "bytes": 269258,
+      "sha256": "bbbe6de310d40a7849db4c466ff2e0ed364e3efa3afbb708437ef4a582f9b64f"
+    },
+    {
+      "path": "dist/registerSW.js",
+      "bytes": 134,
+      "sha256": "9742073ef7fc795e7673d98f272992843298426a0ffd8cb3507784df5143608b"
+    },
+    {
+      "path": "dist/robots.txt",
+      "bytes": 461,
+      "sha256": "7a7c9d6cdd98884c292a156c281397057ab58ccf72a5e3c3b9e11a73a9efd473"
+    },
+    {
+      "path": "dist/screenshots/attract.png",
+      "bytes": 133249,
+      "sha256": "23634d2bd31b78df988406d0b002ebd1ffdd9391975ad122e5831889d5c339df"
+    },
+    {
+      "path": "dist/screenshots/manager.png",
+      "bytes": 139323,
+      "sha256": "ab93240b2f13cc991ee343c7b657faffe025e1ec289594798ba928bfa93e700e"
+    },
+    {
+      "path": "dist/screenshots/quiz.png",
+      "bytes": 144972,
+      "sha256": "cbe12f40c1de8a53ffe3182e826f41ba10a53cd004ec6a62f4c31f83309d7446"
+    },
+    {
+      "path": "dist/screenshots/result.png",
+      "bytes": 136466,
+      "sha256": "f73bc61eb829d4caba0066ba9314246e6a01906fcda090804e06168d91afaa41"
+    },
+    {
+      "path": "dist/splash/splash-1488x2266.png",
+      "bytes": 163232,
+      "sha256": "674134cfa6bdf736bc9509d7be28e03407a00d132c40a1b338d9907fd94ae93c"
+    },
+    {
+      "path": "dist/splash/splash-1536x2048.png",
+      "bytes": 165455,
+      "sha256": "8e46baae479a61429b225f19bf052852c139474005b2e8acd9360967fb536d1e"
+    },
+    {
+      "path": "dist/splash/splash-1640x2360.png",
+      "bytes": 192200,
+      "sha256": "39b8548a3665dda01de1422a47d3ca4e30b2c76d4a1c467e01e64784f19a4b9c"
+    },
+    {
+      "path": "dist/splash/splash-1668x2388.png",
+      "bytes": 196260,
+      "sha256": "4693fc2b2d9a646627889525258947df45fb5abaf51dd67c25db18c8127ad4b4"
+    },
+    {
+      "path": "dist/splash/splash-2048x2732.png",
+      "bytes": 277279,
+      "sha256": "af7620e7700a16b984d6c8e5c8f3b7f19311ccbbe7a3061b2f044de70b3a16c5"
+    },
+    {
+      "path": "dist/splash/splash-2388x1668.png",
+      "bytes": 196947,
+      "sha256": "91258e9a6b46a60ca829c3b17a2350c894172ee6db0447c5394a8e3368972cab"
+    },
+    {
+      "path": "dist/splash/splash-2732x2048.png",
+      "bytes": 277081,
+      "sha256": "2f9839a14851046e61025a60dfc0e5f27015e812f09ddd9863848e9234dbcff2"
+    },
+    {
+      "path": "dist/sw-cache-cleanup.js",
+      "bytes": 272,
+      "sha256": "6e3b384af92b1def9eb6dd3301fffeede90942247837fd78b18a0972a2b4ea94"
+    },
+    {
+      "path": "dist/sw.js",
+      "bytes": 3046,
+      "sha256": "0dceb9316f33695f7c6a54c081a6e039abcbf19e459bc8cd68ffa98ef7453d35"
+    },
+    {
+      "path": "dist/workbox-9c191d2f.js",
+      "bytes": 15112,
+      "sha256": "04b086f1b2f4215ee4b659a7bc9c76162894abdb43fa876247bc7c0bd6fd1c37"
+    }
+  ]
+}

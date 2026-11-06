@@ -1,0 +1,13 @@
+DB01 | VULNERABLE | Store lead aal1 can read another store funnel
+DB02 | PROTECTED | Session PII unavailable with aal1
+DB03 | PROTECTED | Session PII isolated from another store at aal2
+DB04 | VULNERABLE | Account with no staff role can read training guides
+DB05 | VULNERABLE | Account with no staff role can forge a manager audit entry
+DB06 | VULNERABLE | Manager password session can upload catalog media without MFA
+DB07 | VULNERABLE | PIN lockout branch errors: ambiguous ip_address (SQLSTATE 42702)
+DB08 | VULNERABLE | Caller bypasses PIN lockout by changing client_id and omitting IP
+DB09 | VULNERABLE | Anonymous caller can fabricate failures and lock a victim out of UI
+DB10 | VULNERABLE | Anonymous cooldown reveals recent activity of a known customer address
+DB11 | VULNERABLE | Anonymous caller inserts a historical claimed event without a quiz session
+DB13 | VULNERABLE | Server accepts a spreadsheet formula in customer name despite UI name validation
+DB12 | VULNERABLE | Delayed webhook can reserve delivery for an expired coupon

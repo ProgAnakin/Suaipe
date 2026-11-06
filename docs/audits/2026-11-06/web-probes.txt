@@ -1,0 +1,79 @@
+
+ RUN  v5.1.0 /workspace/Suaipe
+
+ ❯ docs/audits/2026-11-06/web-probes.test.tsx (3 tests | 3 failed) 51ms
+   ❯ Prelaunch probes: desired protections, currently failing (3)
+     × neutralizes spreadsheet formulas in the manager CSV export 40ms
+     × does not report a successful export after a denied database query 4ms
+     × bounds a stalled claim so kiosk personal data can eventually reset 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  docs/audits/2026-11-06/web-probes.test.tsx > Prelaunch probes: desired protections, currently failing > neutralizes spreadsheet formulas in the manager CSV export
+AssertionError: expected '\ufeff"First Name","Last Name","Email…' not to contain '"=1+1"'
+
+- Expected
++ Received
+
+- "=1+1"
++ ﻿"First Name","Last Name","Email","Product","Match %","Store","Date","Discount Code","Code Status","Used At"
++ "=1+1","Synthetic","synthetic@example.com","synthetic-product","80","Lisboa","06/11/26, 12:00","","expired",""
+
+ ❯ docs/audits/2026-11-06/web-probes.test.tsx:51:26
+     49|     const { result } = renderHook(() => useSessionsData({ storeId: 'li…
+     50|     await act(async () => { await result.current.exportToCSV(); });
+     51|     expect(exported).not.toContain('"=1+1"');
+       |                          ^
+     52|   });
+     53|   it('does not report a successful export after a denied database quer…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  docs/audits/2026-11-06/web-probes.test.tsx > Prelaunch probes: desired protections, currently failing > does not report a successful export after a denied database query
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      "0 sessions exported to CSV.",
+    ]
+
+
+Number of calls: 1
+
+ ❯ docs/audits/2026-11-06/web-probes.test.tsx:57:31
+     55|     const { result } = renderHook(() => useSessionsData({ storeId: 'li…
+     56|     await act(async () => { await result.current.exportToCSV(); });
+     57|     expect(mocks.success).not.toHaveBeenCalled();
+       |                               ^
+     58|     expect(mocks.error).toHaveBeenCalled();
+     59|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  docs/audits/2026-11-06/web-probes.test.tsx > Prelaunch probes: desired protections, currently failing > bounds a stalled claim so kiosk personal data can eventually reset
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ docs/audits/2026-11-06/web-probes.test.tsx:66:21
+     64|     void submitClaim('90000000-0000-4000-8000-000000000009', {}).then(…
+     65|     await vi.advanceTimersByTimeAsync(120_000);
+     66|     expect(settled).toBe(true);
+       |                     ^
+     67|   });
+     68| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  12:21:03
+   Duration  737ms (environment 44%, import 22%, transform 18%, tests 8%, setup 6%, worker 1%)

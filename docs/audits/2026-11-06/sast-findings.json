@@ -1,0 +1,1502 @@
+[
+  {
+    "rule": "generic.secrets.gitleaks.generic-api-key",
+    "file": ".github/workflows/ci.yml",
+    "line": 48,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/App.tsx",
+    "line": 26,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/__tests__/ErrorBoundary.test.tsx",
+    "line": 9,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/__tests__/ErrorBoundary.test.tsx",
+    "line": 19,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/__tests__/ErrorBoundary.test.tsx",
+    "line": 28,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/__tests__/ErrorBoundary.test.tsx",
+    "line": 40,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/__tests__/ErrorBoundary.test.tsx",
+    "line": 60,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/__tests__/ErrorBoundary.test.tsx",
+    "line": 63,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/AttractScreen.tsx",
+    "line": 142,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/ErrorBoundary.tsx",
+    "line": 100,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-spreading",
+    "file": "src/components/MatchResult.tsx",
+    "line": 372,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/SuaipeLogo.tsx",
+    "line": 40,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/WelcomeScreen.tsx",
+    "line": 434,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ConsulenteDashboard.tsx",
+    "line": 68,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ConsulenteDashboard.tsx",
+    "line": 69,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ConsulenteDashboard.tsx",
+    "line": 114,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideDetail.tsx",
+    "line": 35,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideDetail.tsx",
+    "line": 60,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideDetail.tsx",
+    "line": 73,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideDetail.tsx",
+    "line": 74,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideDetail.tsx",
+    "line": 83,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideDetail.tsx",
+    "line": 97,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideDetail.tsx",
+    "line": 109,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideDetail.tsx",
+    "line": 118,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideDetail.tsx",
+    "line": 145,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideDetail.tsx",
+    "line": 146,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideDetail.tsx",
+    "line": 150,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideList.tsx",
+    "line": 25,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideList.tsx",
+    "line": 26,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/consulente/ProductGuideList.tsx",
+    "line": 67,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/AuditLogTab.tsx",
+    "line": 133,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/AuditLogTab.tsx",
+    "line": 134,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/AuditLogTab.tsx",
+    "line": 159,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/AuditLogTab.tsx",
+    "line": 163,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/AuditLogTab.tsx",
+    "line": 167,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/AuditLogTab.tsx",
+    "line": 171,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/AuditLogTab.tsx",
+    "line": 214,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/AuditLogTab.tsx",
+    "line": 219,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/AuditLogTab.tsx",
+    "line": 220,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/AuditLogTab.tsx",
+    "line": 224,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/AuditLogTab.tsx",
+    "line": 225,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/BulkConfirmBanner.tsx",
+    "line": 23,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/BulkConfirmBanner.tsx",
+    "line": 27,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/BulkConfirmBanner.tsx",
+    "line": 33,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/CsvPreviewModal.tsx",
+    "line": 36,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/CsvPreviewModal.tsx",
+    "line": 52,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/CsvPreviewModal.tsx",
+    "line": 58,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 119,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 121,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 129,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 131,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 141,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 144,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 158,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 159,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 241,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 242,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 300,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 304,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 306,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 312,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 350,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 354,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/EmailTemplateTab.tsx",
+    "line": 364,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/FaqModal.tsx",
+    "line": 88,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/FaqModal.tsx",
+    "line": 105,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/FaqModal.tsx",
+    "line": 117,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/GuideEditorTab.tsx",
+    "line": 200,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/GuideEditorTab.tsx",
+    "line": 219,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/GuideEditorTab.tsx",
+    "line": 226,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/GuideEditorTab.tsx",
+    "line": 265,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/GuideEditorTab.tsx",
+    "line": 266,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/GuideEditorTab.tsx",
+    "line": 270,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/GuideEditorTab.tsx",
+    "line": 295,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/GuideEditorTab.tsx",
+    "line": 296,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/GuideEditorTab.tsx",
+    "line": 312,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/GuideEditorTab.tsx",
+    "line": 356,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ManagerDashboard.tsx",
+    "line": 326,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ManagerDashboard.tsx",
+    "line": 349,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ManagerDashboard.tsx",
+    "line": 384,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ManagerDashboard.tsx",
+    "line": 399,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ManagerDashboard.tsx",
+    "line": 477,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 376,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 377,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 404,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 416,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 431,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 443,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 455,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 471,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 483,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 503,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 511,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 534,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 561,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 581,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 625,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 626,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 666,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 751,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductCatalogTab.tsx",
+    "line": 763,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductRow.tsx",
+    "line": 108,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductRow.tsx",
+    "line": 114,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductRow.tsx",
+    "line": 177,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/ProductRow.tsx",
+    "line": 189,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 56,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-spreading",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 168,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-spreading",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 169,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 481,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 519,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 531,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 541,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 549,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 580,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 589,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 605,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 633,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 667,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 691,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 697,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 698,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 711,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 735,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 786,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 787,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 794,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/QuizCardsTab.tsx",
+    "line": 801,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 104,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 105,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 108,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 124,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 136,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 142,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 143,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 144,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 151,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 172,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 182,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 184,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 185,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 200,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/RolesTab.tsx",
+    "line": 239,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SendToStoreModal.tsx",
+    "line": 40,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SendToStoreModal.tsx",
+    "line": 42,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SendToStoreModal.tsx",
+    "line": 60,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 64,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 68,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 72,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 76,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 80,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 85,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 143,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 151,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 156,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 161,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 164,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 171,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 177,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 249,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 337,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 339,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 341,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 345,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 372,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 400,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 439,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 440,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 455,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 456,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/SessionsTab.tsx",
+    "line": 460,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/StoreSelectorModal.tsx",
+    "line": 54,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/StoreSelectorModal.tsx",
+    "line": 55,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/StoreSelectorModal.tsx",
+    "line": 79,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/TabErrorFallback.tsx",
+    "line": 25,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/manager/UndoSnackbar.tsx",
+    "line": 19,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/Dashboard.tsx",
+    "line": 127,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/Dashboard.tsx",
+    "line": 147,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/Dashboard.tsx",
+    "line": 148,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/Dashboard.tsx",
+    "line": 178,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/Dashboard.tsx",
+    "line": 180,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/Dashboard.tsx",
+    "line": 253,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/DashboardFilterPanel.tsx",
+    "line": 41,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/DashboardFilterPanel.tsx",
+    "line": 67,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/DashboardFilterPanel.tsx",
+    "line": 90,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/DashboardFilterPanel.tsx",
+    "line": 97,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/DashboardFilterPanel.tsx",
+    "line": 99,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/DashboardFilterPanel.tsx",
+    "line": 121,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/DashboardHeader.tsx",
+    "line": 28,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/GdprExportConfirm.tsx",
+    "line": 36,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/GdprExportConfirm.tsx",
+    "line": 37,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/GdprExportConfirm.tsx",
+    "line": 48,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 74,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 80,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 81,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 89,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 90,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 94,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 100,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 101,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 102,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 111,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 133,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 160,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaSetupModal.tsx",
+    "line": 163,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaVerifyForm.tsx",
+    "line": 37,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/MfaVerifyForm.tsx",
+    "line": 54,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/SessionsList.tsx",
+    "line": 108,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/SessionsList.tsx",
+    "line": 109,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/charts/FunnelChart.tsx",
+    "line": 68,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/charts/MatchHistogram.tsx",
+    "line": 21,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/charts/ProductLeaderboard.tsx",
+    "line": 31,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/charts/TimeCharts.tsx",
+    "line": 16,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/components/stats/charts/TimeCharts.tsx",
+    "line": 53,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-spreading",
+    "file": "src/components/ui/sonner.tsx",
+    "line": 22,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-spreading",
+    "file": "src/components/ui/toast.tsx",
+    "line": 20,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-spreading",
+    "file": "src/components/ui/toast.tsx",
+    "line": 44,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-spreading",
+    "file": "src/components/ui/toast.tsx",
+    "line": 58,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-spreading",
+    "file": "src/components/ui/toast.tsx",
+    "line": 74,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-spreading",
+    "file": "src/components/ui/toast.tsx",
+    "line": 85,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-spreading",
+    "file": "src/components/ui/toast.tsx",
+    "line": 93,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-spreading",
+    "file": "src/components/ui/toaster.tsx",
+    "line": 11,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-spreading",
+    "file": "src/components/ui/tooltip.tsx",
+    "line": 23,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.best-practice.react-props-in-state",
+    "file": "src/hooks/useDebounce.ts",
+    "line": 4,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/pages/Consulente.tsx",
+    "line": 25,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/pages/Consulente.tsx",
+    "line": 158,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/pages/Consulente.tsx",
+    "line": 159,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/pages/Consulente.tsx",
+    "line": 163,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/pages/Consulente.tsx",
+    "line": 179,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/pages/Consulente.tsx",
+    "line": 180,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/pages/Consulente.tsx",
+    "line": 183,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/pages/Manager.tsx",
+    "line": 14,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/pages/NotFound.tsx",
+    "line": 15,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/pages/NotFound.tsx",
+    "line": 16,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/pages/ResetPassword.tsx",
+    "line": 50,
+    "severity": "INFO"
+  },
+  {
+    "rule": "typescript.react.portability.i18next.jsx-not-internationalized",
+    "file": "src/pages/Stats.tsx",
+    "line": 19,
+    "severity": "INFO"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 111,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 113,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 140,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 332,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "javascript.lang.correctness.missing-template-string-indicator",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 333,
+    "severity": "INFO"
+  },
+  {
+    "rule": "javascript.lang.correctness.missing-template-string-indicator",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 345,
+    "severity": "INFO"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 380,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 402,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 408,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 420,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 523,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 528,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 551,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 553,
+    "severity": "WARNING"
+  },
+  {
+    "rule": "javascript.lang.security.html-in-template-string",
+    "file": "supabase/functions/on-session-created/index.ts",
+    "line": 620,
+    "severity": "WARNING"
+  }
+]
