@@ -26,6 +26,7 @@ test.describe("Quiz kiosk flow", () => {
     await page.addInitScript(() => localStorage.setItem("wb_store_id", "lisboa"));
     await page.route("https://placeholder.supabase.co/rest/v1/**", async (route) => {
       const table = new URL(route.request().url()).pathname.split("/").pop();
+      if (table === "kiosk_ready") { await route.fulfill({ json: true }); return; }
       const rows = table === "custom_products" ? [{ id: "demo", name: "Demo", description: "Demo product", price: "€10", rating: 4, tags: ["tech"], faq: [] }] : [];
       await route.fulfill({ json: rows });
     });

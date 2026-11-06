@@ -144,6 +144,7 @@ const QuizScreen = ({ onComplete, cards: cardsProp }: QuizScreenProps) => {
 
         {/* YES */}
         <motion.button
+          data-testid="quiz-yes"
           onClick={() => { haptic(45); handleSwipe("right"); }}
           className="flex h-16 flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-success/55 bg-success/10 text-success backdrop-blur-sm"
           style={{ boxShadow: "0 0 20px hsl(168 76% 42% / 0.18), inset 0 0 10px hsl(168 76% 42% / 0.06)" }}

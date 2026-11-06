@@ -1,0 +1,8 @@
+# Exact historical findings reviewed in docs/audits/2026-11-06/evidence.json.
+# Four CI/docs placeholders and two PUBLIC anon JWTs. No privileged key ignored.
+8acdb6156e3223d94dd5533fed587be71ab7febe:docs/security-hardening.md:generic-api-key:51
+18266611de4c31224bdaada09cf61f1caecfa464:playwright.config.ts:generic-api-key:31
+69095eb4e3870e8792d924e808ab2b74e6f41f0e:.github/workflows/ci.yml:generic-api-key:40
+a91a61fcc0ec2d1e5f751db06b93579643cc4a37:.github/workflows/ci.yml:generic-api-key:40
+91cda2fe4e30b90504834e6c1a69ceee0b1ab509:.env:jwt:1
+91cda2fe4e30b90504834e6c1a69ceee0b1ab509:.env:jwt:4

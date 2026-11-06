@@ -1,5 +1,7 @@
 # Security release: deployment and validation
 
+> Historical first-round notes. Current rules and deployment are in [AI-HANDOFF.md](AI-HANDOFF.md) and [DEPLOY-2.1.0.md](DEPLOY-2.1.0.md).
+
 This branch changes the database contract. Deploy the migration, Edge Functions and frontend together in a maintenance window. No hosted database changes or deployment were performed by the implementation task.
 
 ## Changes

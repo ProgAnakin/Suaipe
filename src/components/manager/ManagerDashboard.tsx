@@ -1,3 +1,4 @@
+import { PrivacyOperationsTab } from "./PrivacyOperationsTab";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -284,6 +285,7 @@ export const ManagerDashboard = ({ onLogout }: ManagerDashboardProps) => {
               {gestioneTab === "email"    && <EmailTemplateTab />}
               {gestioneTab === "ruoli"    && <RolesTab />}
               {gestioneTab === "guida"    && <GuideEditorTab />}
+              {gestioneTab === "privacy" && <PrivacyOperationsTab />}
             </ErrorBoundary>
           </div>
         )}

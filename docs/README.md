@@ -4,7 +4,10 @@ Reference material for the suaipe codebase.
 
 | Document | What it covers |
 |----------|----------------|
-| [`edge-functions.md`](./edge-functions.md) | The three Supabase Edge Functions — triggers, secrets, request/response shapes, local dev and deploy |
+| [`AI-HANDOFF.md`](./AI-HANDOFF.md) | Current contracts and decisions for the next maintainer/AI |
+| [`DEPLOY-2.1.0.md`](./DEPLOY-2.1.0.md) | Coordinated release and deployment verification |
+| [`releases/2.1.0/README.md`](./releases/2.1.0/README.md) | Current validation, audit findings and remaining hosted checks |
+| [`edge-functions.md`](./edge-functions.md) | The four Supabase Edge Functions — triggers, secrets, request/response shapes, local dev and deploy |
 | [`runbook.md`](./runbook.md) | Operational triage for the most common incidents (email not delivered, kiosk stuck, PIN lockout, etc.) |
 | [`adr/`](./adr/) | Architecture Decision Records — the *why* behind the key technical choices |
 | [`screenshots/`](./screenshots/) | UI screenshots referenced by the top-level `README.md` |

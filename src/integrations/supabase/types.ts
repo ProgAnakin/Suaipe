@@ -14,6 +14,13 @@ export type Database = {
   }
   public: {
     Tables: {
+      external_erasure_requests: {
+        Row: { id:string; email:string|null; email_hash:string; provider:string; status:string; created_at:string; completed_at:string|null; completed_by:string|null }
+        Insert: { email?:string|null; email_hash:string; provider:string }
+        Update: { status?:string; email?:string|null; completed_at?:string|null; completed_by?:string|null }
+        Relationships: []
+      }
+
       email_template: {
         Row: {
           language: string
@@ -212,6 +219,9 @@ export type Database = {
           answers: Json
           matched_product_id: string
           match_percent: number
+          email_status: string
+          email_provider_id: string | null
+          consent_notice_version: string
           email_sent: boolean
           store_id: string | null
           product_name: string | null
@@ -235,6 +245,10 @@ export type Database = {
           answers?: Json
           matched_product_id: string
           match_percent: number
+          email_status?: string
+          email_provider_id?: string | null
+          consent_notice_version?: string
+          expires_at?: string
           email_sent?: boolean
           store_id?: string | null
           product_name?: string | null
@@ -257,6 +271,10 @@ export type Database = {
           answers?: Json
           matched_product_id?: string
           match_percent?: number
+          email_status?: string
+          email_provider_id?: string | null
+          consent_notice_version?: string
+          expires_at?: string
           email_sent?: boolean
           store_id?: string | null
           product_name?: string | null
@@ -443,6 +461,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      erase_customer_data: { Args: {p_email:string}; Returns:number }
+      complete_external_erasure: { Args: {p_id:string; p_not_applicable?:boolean}; Returns:undefined }
+      privacy_operations_status: { Args: Record<PropertyKey,never>; Returns:Json }
+
+      kiosk_ready: { Args: { p_store: string }; Returns: boolean }
+      record_quiz_event: { Args: { p_key: string; p_event: string; p_store: string }; Returns: undefined }
+
       submit_quiz_session: { Args: { p_request_id: string; p_payload: Json }; Returns: string }
       check_email_cooldown: {
         Args: { p_email: string }

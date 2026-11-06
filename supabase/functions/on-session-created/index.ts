@@ -1,3 +1,5 @@
+import { spreadsheetText, safeTemplateHtml } from "../_shared/contentSafety.ts";
+import { readBoundedJson } from "../_shared/request.ts";
 // Supabase Edge Function — triggered by Database Webhook on quiz_sessions INSERT
 // Reserves delivery of the database's stable discount code, sends via Brevo,
 // then records provider acceptance on the session.
@@ -9,13 +11,13 @@
 //   SUPABASE_SERVICE_ROLE_KEY — auto-injected by Supabase runtime
 
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.108.2";
 
 const BREVO_KEY        = Deno.env.get("BREVO_API_KEY") ?? "";
 const SUPABASE_URL     = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY      = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const ALLOWED_ORIGIN   = Deno.env.get("ALLOWED_ORIGIN") ?? "";
-const SHEETS_WEBHOOK   = Deno.env.get("GOOGLE_SHEETS_WEBHOOK_URL") ?? "";
+const SHEETS_WEBHOOK = Deno.env.get("ENABLE_SHEETS_RELAY") === "true" ? (Deno.env.get("GOOGLE_SHEETS_WEBHOOK_URL") ?? "") : "";
 // Shared secret for the Supabase Database Webhook. When set, the function
 // rejects requests that don't carry a matching x-webhook-secret header.
 // Required in every environment that sends mail; absence fails closed.
@@ -309,8 +311,8 @@ function buildEmail(record: Record<string, unknown>, code: string, faq: Array<{ 
   // and intentionally contain inline HTML (<strong>, <em>, <span style>). They are
   // interpolated raw — do NOT wrap in escHtml. Authoring is gated by PIN auth and
   // email clients sandbox <script>/event handlers, so the XSS surface is minimal.
-  const headerTitle    = tpl?.header_title    ?? "Abbiamo trovato il tuo match!";
-  const headerSubtitle = tpl?.header_subtitle ?? "Il nostro algoritmo ha analizzato le tue risposte e ha selezionato il <strong style=\"color:#f0f4ff;\">gadget perfetto per il tuo stile di vita</strong>.";
+  const headerTitle = safeTemplateHtml(tpl?.header_title ?? "Abbiamo trovato il tuo match!");
+  const headerSubtitle = safeTemplateHtml(tpl?.header_subtitle ?? "Il nostro algoritmo ha selezionato il <strong>gadget perfetto per il tuo stile di vita</strong>.");
   const footerName     = tpl?.footer_store_name ?? "Costanzo Annichini";
   const nome         = escHtml(String(record.nome    ?? "").trim());
   const cognome      = escHtml(String(record.cognome ?? "").trim());
@@ -337,7 +339,6 @@ function buildEmail(record: Record<string, unknown>, code: string, faq: Array<{ 
   <meta name="color-scheme" content="dark"/>
   <title>Il tuo match Suaipe</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
     body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
     table,td{mso-table-lspace:0pt;mso-table-rspace:0pt}
     img{-ms-interpolation-mode:bicubic;border:0;outline:none;text-decoration:none;display:block}
@@ -685,11 +686,12 @@ serve(async (req) => {
 
   let payload: Record<string, unknown>;
   try {
-    payload = await req.json();
+    payload = await readBoundedJson(req) as Record<string, unknown>;
   } catch {
     return new Response("bad json", { status: 400 });
   }
 
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return new Response('Invalid payload', {status:400});
   if (payload.type !== "INSERT") {
     return new Response(JSON.stringify({ skipped: true }), { status: 200 });
   }
@@ -826,15 +828,16 @@ serve(async (req) => {
       return new Response(JSON.stringify({ ok: false }), { status: 500 });
     }
 
-    // Mark email as sent only after Brevo confirms delivery.
+    // Provider acceptance is not inbox delivery. Keep the provider ID for reconciliation.
+    const brevoData = await brevoRes.json().catch(() => ({}));
     const { error: completionError } = await supabase.from("quiz_sessions")
-      .update({ email_sent: true, email_status: "sent" }).eq("id", record.id);
+      .update({ email_sent: true, email_status: "sent", email_provider_id: typeof brevoData.messageId === "string" ? brevoData.messageId : null }).eq("id", record.id);
     if (completionError) {
       console.error("[on-session-created] provider accepted; DB completion failed", record.id);
       return new Response("Delivery status requires reconciliation", { status: 503 });
     }
 
-    const brevoData = await brevoRes.json();
+
     // Log messageId only — never raw email (Supabase Edge logs are operational, not for PII).
     console.log("[on-session-created] email sent:", brevoData.messageId, "session:", record.id);
 
@@ -852,7 +855,8 @@ serve(async (req) => {
       await fetch(SHEETS_WEBHOOK, {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(sheetsPayload),
+        body:    JSON.stringify(Object.fromEntries(Object.entries(sheetsPayload).map(([key,value]) => [key,spreadsheetText(value)]))),
+        signal: AbortSignal.timeout(15_000),
       }).then((response) => { if (!response.ok) console.error("[on-session-created] sheets relay status", response.status); })
         .catch(() => console.error("[on-session-created] sheets relay failed", record.id));
     }

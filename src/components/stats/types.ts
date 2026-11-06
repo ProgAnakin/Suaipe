@@ -1,3 +1,4 @@
+import { createCsv } from "@/lib/csv";
 import { products } from "@/data/products";
 import { getStoreById } from "@/data/stores";
 
@@ -9,6 +10,7 @@ export interface QuizSession {
   nome?: string | null;
   cognome?: string | null;
   matched_product_id: string;
+  product_name?: string | null;
   match_percent: number;
   created_at: string;
   store_id: string | null;
@@ -43,8 +45,8 @@ export type AuthStep = "login" | "mfa" | "enroll" | "dashboard";
 
 export const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export function productName(id: string): string {
-  return products.find((p) => p.id === id)?.name ?? id;
+export function productName(id: string, snapshot?: string | null): string {
+  return snapshot?.trim() || products.find((p) => p.id === id)?.name || id;
 }
 
 export function formatDate(iso: string): string {
@@ -68,14 +70,14 @@ export function todayStr(): string {
 /** The date `n` days ago as an ISO date string. */
 export function daysAgoStr(n: number): string {
   const d = new Date();
-  d.setDate(d.getDate() - n);
+  d.setUTCDate(d.getUTCDate() - n);
   return d.toISOString().slice(0, 10);
 }
 
 /** The first day of the current month as an ISO date string. */
 export function startOfMonthStr(): string {
   const d = new Date();
-  d.setDate(1);
+  d.setUTCDate(1);
   return d.toISOString().slice(0, 10);
 }
 
@@ -86,29 +88,15 @@ export function startOfMonthStr(): string {
  * - Prefixes formula-triggering characters (=, +, -, @, |, %) with a tab
  *   to neutralise spreadsheet formula injection (OWASP CSV injection)
  */
-function csvSafe(value: string): string {
-  const stripped = value.replace(/[\r\n]/g, " ");
-  const escaped = stripped.replace(/"/g, '""');
-  return /^[=+\-@|%]/.test(escaped) ? `\t${escaped}` : escaped;
-}
-
 export function exportCSV(
   sessions: QuizSession[],
   fromDate?: string,
   toDate?: string,
 ): void {
   const header = ["First name", "Last name", "Email", "Product", "Match %", "Store", "Date"];
-  const rows = sessions.map((s) => [
-    `"${csvSafe(s.nome ?? "")}"`,
-    `"${csvSafe(s.cognome ?? "")}"`,
-    `"${csvSafe(s.email)}"`,
-    `"${csvSafe(productName(s.matched_product_id))}"`,
-    s.match_percent,
-    `"${csvSafe(storeName(s.store_id))}"`,
-    `"${new Date(s.created_at).toLocaleString("en-GB")}"`,
-  ]);
-  const csv = [header, ...rows].map((r) => r.join(";")).join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const rows = sessions.map((s) => [s.nome, s.cognome, s.email, productName(s.matched_product_id, s.product_name), s.match_percent, storeName(s.store_id), new Date(s.created_at).toLocaleString("en-GB")]);
+  const csv = createCsv([header, ...rows], ';');
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

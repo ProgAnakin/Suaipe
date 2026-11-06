@@ -1,3 +1,5 @@
+import { spreadsheetText } from "../_shared/contentSafety.ts";
+import { readBoundedJson } from "../_shared/request.ts";
 // Supabase Edge Function — server-side relay to Google Sheets Apps Script webhook.
 // Keeps the webhook URL out of the client bundle (never exposed to the browser).
 //
@@ -11,7 +13,7 @@
 //   ALLOWED_ORIGIN — restrict CORS to a specific domain
 
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.108.2";
 
 const WEBHOOK_URL    = Deno.env.get("GOOGLE_SHEETS_WEBHOOK_URL") ?? "";
 const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") ?? "";
@@ -80,7 +82,7 @@ serve(async (req) => {
 
   let body: unknown;
   try {
-    body = await req.json();
+    body = await readBoundedJson(req,MAX_BODY_SIZE);
   } catch {
     return new Response("Bad Request", { status: 400, headers: CORS });
   }
@@ -90,18 +92,20 @@ serve(async (req) => {
   if (body && typeof body === "object") {
     for (const key of allowed) {
       const val = (body as Record<string, unknown>)[key];
-      if (typeof val === "string") safe[key] = val.slice(0, 500);
+      if (typeof val === "string") safe[key] = spreadsheetText(val.slice(0, 500));
     }
   }
 
   try {
-    await fetch(WEBHOOK_URL, {
+    const response = await fetch(WEBHOOK_URL, {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify(safe),
+      signal: AbortSignal.timeout(15_000),
     });
+    if (!response.ok) throw new Error("Relay failed");
   } catch {
-    // Non-critical — Supabase is the source of truth
+    return new Response(JSON.stringify({ok:false}),{status:502,headers:CORS});
   }
 
   return new Response(JSON.stringify({ ok: true }), {

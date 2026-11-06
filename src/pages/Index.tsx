@@ -1,3 +1,6 @@
+import { IS_DEMO } from "@/config/demo";
+import { clearLegacyVisitorMarkers, clearStaffSessionStorage } from "@/lib/kioskPrivacy";
+import { products as demoProducts } from "@/data/products";
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion, type TargetAndTransition, type Transition } from "framer-motion";
 import WelcomeScreen, { type UserInfo } from "@/components/WelcomeScreen";
@@ -7,7 +10,7 @@ import SuccessScreen from "@/components/SuccessScreen";
 import AttractScreen from "@/components/AttractScreen";
 import { KioskLockScreen } from "@/components/KioskLockScreen";
 import { getMatchedProduct, type Product } from "@/data/products";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, LEGACY_AUTH_STORAGE_KEY } from "@/integrations/supabase/client";
 import { useInactivityReset } from "@/hooks/useInactivityReset";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { useBgMusic } from "@/hooks/useBgMusic";
@@ -17,6 +20,7 @@ import { useLockBodyScroll } from "@/hooks/useLockBodyScroll";
 import { useLang } from "@/i18n/LanguageContext";
 import { getStoredStoreId } from "@/data/stores";
 import { RESULT_INACTIVITY_TIMEOUT_MS } from "@/config/timings";
+import { PRIVACY_NOTICE_VERSION } from "@/config/privacy";
 import { submitClaim } from "@/lib/submitClaim";
 import type { Json } from "@/integrations/supabase/types";
 import type { QuizCard } from "@/data/quiz-cards";
@@ -68,10 +72,10 @@ const screenAnim: Record<Screen, { initial: TargetAndTransition; animate: Target
 
 // Fire-and-forget funnel event — never blocks the user flow.
 function trackFunnel(funnelKey: string, eventType: "quiz_started" | "result_shown" | "claimed") {
-  supabase.from("quiz_funnel_events").insert({
-    funnel_key: funnelKey,
-    event_type: eventType,
-    store_id: getStoredStoreId(),
+  if (IS_DEMO) return;
+  const store = getStoredStoreId();
+  if (!store || eventType === "claimed") return; // claimed is committed by the claim RPC.
+  supabase.rpc("record_quiz_event", { p_key: funnelKey, p_event: eventType, p_store: store
   }).then(({ error }) => {
     if (error) console.error("[suaipe] funnel event failed:", eventType, error);
   }, (err) => {
@@ -81,6 +85,24 @@ function trackFunnel(funnelKey: string, eventType: "quiz_started" | "result_show
 }
 
 const Index = () => {
+  useEffect(() => {
+    clearLegacyVisitorMarkers();
+    if (IS_DEMO) return;
+    const clear = () => { clearStaffSessionStorage(LEGACY_AUTH_STORAGE_KEY); };
+    let pendingLogout: ReturnType<typeof setTimeout> | undefined;
+    void supabase.auth.stopAutoRefresh();
+    clear();
+    void supabase.auth.signOut({ scope: 'local' });
+    const { data: listener } = supabase.auth.onAuthStateChange(event => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        clear();
+        // Leave the auth callback before acquiring the auth lock again.
+        clearTimeout(pendingLogout);
+        pendingLogout = setTimeout(() => { void supabase.auth.signOut({ scope: 'local' }); }, 0);
+      }
+    });
+    return () => { clearTimeout(pendingLogout); listener.subscription.unsubscribe(); void supabase.auth.startAutoRefresh(); };
+  }, []);
   const { t, lang } = useLang();
   const { isKioskLocked, deactivateKiosk } = useKioskMode();
   const isOnline = useOnlineStatus();
@@ -92,6 +114,10 @@ const Index = () => {
   const [quizAnswers, setQuizAnswers] = useState<Record<number, boolean>>({});
   const [claiming, setClaiming] = useState(false);
   const claimInFlight = useRef(false);
+  const claimGeneration = useRef(0);
+  const claimAbort = useRef<AbortController | null>(null);
+  const [emailLocked, setEmailLocked] = useState(false);
+  useEffect(() => () => { ++claimGeneration.current; claimAbort.current?.abort(); }, []);
   const claimId = useRef(crypto.randomUUID());
   const claimPayload = useRef<Json | null>(null);
   const [storeId, setStoreId] = useState(getStoredStoreId);
@@ -109,12 +135,29 @@ const Index = () => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [settingsLoadFailed, setSettingsLoadFailed] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [kioskReady, setKioskReady] = useState(IS_DEMO);
   const [quizCards, setQuizCards] = useState<QuizCard[] | null>(null);
   const [tagMap, setTagMap] = useState<Record<number, string> | undefined>(undefined);
 
   useEffect(() => {
+    if (IS_DEMO) {
+      setAllProducts(demoProducts);
+      setActiveProductIds(new Set(demoProducts.map(p => p.id)));
+      setSettingsLoaded(true);
+      return;
+    }
     if (!storeId) return;
     let cancelled = false;
+    ++claimGeneration.current;
+    claimAbort.current?.abort();
+    claimInFlight.current = false;
+    claimPayload.current = null;
+    claimId.current = crypto.randomUUID();
+    setClaiming(false); setEmailLocked(false);
+    setUser({nome:'',cognome:'',email:'',consentGivenAt:''});
+    setMatchedProduct(null); setScreen('splash');
+    setQuizCards(null); setTagMap(undefined);
+    setKioskReady(false);
     setSettingsLoaded(false);
     setSettingsLoadFailed(false);
     setActiveProductIds(new Set());
@@ -216,8 +259,10 @@ const Index = () => {
         .eq("active", true)
         .order("sort_order", { ascending: true })
         .limit(MAX_ACTIVE_QUIZ_CARDS),
-    ]).then(([settingsRes, customRes, globalRes, cardsRes]) => {
+      supabase.rpc("kiosk_ready", { p_store: storeId }),
+    ]).then(([settingsRes, customRes, globalRes, cardsRes, readyRes]) => {
       if (cancelled) return;
+      setKioskReady(!readyRes.error && readyRes.data === true);
       if ([settingsRes, customRes, globalRes, cardsRes].some((r) => r.error)) {
         if (!cached) setSettingsLoadFailed(true);
         setSettingsLoaded(true);
@@ -268,7 +313,7 @@ const Index = () => {
   };
 
   const handleStart = (userInfo: UserInfo) => {
-    if (!storeId || !settingsLoaded || settingsLoadFailed || !allProducts.some((p) => activeProductIds?.has(p.id))) return;
+    if ((!storeId && !IS_DEMO) || !settingsLoaded || !kioskReady || settingsLoadFailed || !allProducts.some((p) => activeProductIds?.has(p.id))) return;
     setUser(userInfo);
     trackFunnel(funnelKey, "quiz_started");
     // If product settings haven't loaded yet, show a brief loading screen
@@ -298,6 +343,7 @@ const Index = () => {
   // handleClaim fires. We just persist the session and advance to success.
   const handleClaim = async () => {
     if (!matchedProduct || claimInFlight.current) return;
+    if (IS_DEMO) { setScreen("success"); return; }
 
     // Hard guard: a session without a configured store must NOT be silently
     // assigned to a default — that would attribute it to the wrong location
@@ -315,6 +361,8 @@ const Index = () => {
 
     const payload = {
       email: user.email,
+      consent_notice_version: PRIVACY_NOTICE_VERSION,
+      funnel_key: funnelKey,
       answers: quizAnswers,
       matched_product_id: matchedProduct.id,
       match_percent: matchPercent,
@@ -328,7 +376,11 @@ const Index = () => {
     };
 
     claimPayload.current ??= payload;
-    const saved = await submitClaim(claimId.current, claimPayload.current);
+    setEmailLocked(true);
+    const generation = ++claimGeneration.current;
+    claimAbort.current = new AbortController();
+    const saved = await submitClaim(claimId.current, claimPayload.current, claimAbort.current.signal);
+    if (generation !== claimGeneration.current) return;
     claimInFlight.current = false;
     setClaiming(false);
     if (!saved) { setClaimError(true); return; }
@@ -341,6 +393,9 @@ const Index = () => {
   };
 
   const handleRestart = () => {
+    ++claimGeneration.current;
+    claimAbort.current?.abort();
+    setEmailLocked(false);
     // Wipe the previous visitor's cooldown marker so the next person on
     // this shared kiosk starts completely fresh (no false cooldown carry-over).
     try {
@@ -369,7 +424,7 @@ const Index = () => {
   useBgMusic(screen === "welcome",                                         "welcome");
   useBgMusic(screen === "quiz" || screen === "result",                     "quiz");
   const { dismiss } = useInactivityReset({
-    enabled: screen !== "splash" && !claiming,
+    enabled: screen !== "splash",
     timeout: screen === "result" ? RESULT_INACTIVITY_TIMEOUT_MS : undefined,
     onWarn:    (seconds) => setInactivitySecondsLeft(seconds),
     onReset:   handleRestart,
@@ -385,6 +440,7 @@ const Index = () => {
 
   return (
     <div className="relative h-dvh overflow-hidden bg-background">
+      {IS_DEMO && <div role="status" className="fixed top-0 inset-x-0 z-[70] bg-blue-950 p-2 text-center text-xs text-white">DEMO · { { it: 'Dati fittizi. Nessun invio.', en: 'Synthetic data. No messages sent.', pt: 'Dados fictícios. Nenhum envio.', es: 'Datos ficticios. Sin envíos.', fr: 'Données fictives. Aucun envoi.' }[lang] }</div>}
       {/* Offline banner — shown whenever the device loses network */}
       <AnimatePresence>
         {!isOnline && (
@@ -460,7 +516,7 @@ const Index = () => {
           transition={anim.transition}
         >
           {screen === "splash" && <AttractScreen onComplete={handleSplashComplete} />}
-          {screen === "welcome" && <WelcomeScreen onStart={handleStart} settingsLoadFailed={settingsLoadFailed} unavailable={!storeId || !settingsLoaded || settingsLoadFailed || !allProducts.some((p) => activeProductIds?.has(p.id))} />}
+          {screen === "welcome" && <WelcomeScreen onStart={handleStart} settingsLoadFailed={settingsLoadFailed} demo={IS_DEMO} unavailable={(!storeId && !IS_DEMO) || !settingsLoaded || !kioskReady || settingsLoadFailed || !allProducts.some((p) => activeProductIds?.has(p.id))} />}
           {screen === "loading_quiz" && (
             <div className="fixed inset-0 flex flex-col items-center justify-center bg-background p-8 text-center">
               <div className="max-w-xs w-full space-y-8">
@@ -496,7 +552,9 @@ const Index = () => {
               userName={user.nome}
               userEmail={user.email}
               onClaim={handleClaim}
-              onChangeEmail={(email) => setUser((u) => ({ ...u, email }))}
+              onChangeEmail={(email) => { if (!claimPayload.current) setUser((u) => ({ ...u, email })); }}
+              emailLocked={emailLocked || IS_DEMO}
+              onRestart={handleRestart}
               claiming={claiming}
               claimError={claimError}
               isOnline={isOnline}

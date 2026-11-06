@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { History, Inbox } from "lucide-react";
 
 export type ActiveTab = "catalogo" | "sessioni" | "storico" | "gestione";
-export type GestioneTab = "catalogo" | "carte" | "email" | "ruoli" | "guida";
+export type GestioneTab = "catalogo" | "carte" | "email" | "ruoli" | "guida" | "privacy";
 
 interface TabButtonProps {
   active: boolean;
@@ -63,7 +63,7 @@ interface ManagementSubTabsProps {
 }
 
 export const ManagementSubTabs = ({ active, onChange }: ManagementSubTabsProps) => (
-  <div className="flex gap-1 rounded-2xl border border-border bg-muted/30 p-1">
+  <div className="flex flex-wrap gap-1 rounded-2xl border border-border bg-muted/30 p-1">
     <SubTabButton active={active === "catalogo"} onClick={() => onChange("catalogo")}>
       📦 Global catalog
     </SubTabButton>
@@ -78,6 +78,9 @@ export const ManagementSubTabs = ({ active, onChange }: ManagementSubTabsProps) 
     </SubTabButton>
     <SubTabButton active={active === "guida"} onClick={() => onChange("guida")}>
       🎓 Guide
+    </SubTabButton>
+    <SubTabButton active={active === "privacy"} onClick={() => onChange("privacy")}>
+      Privacy
     </SubTabButton>
   </div>
 );

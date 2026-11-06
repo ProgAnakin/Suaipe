@@ -94,18 +94,6 @@ function CardPreview({ form, totalCards }: { form: CardForm; totalCards: number 
 }
 
 // ── Audit helper ───────────────────────────────────────────────────────────────
-async function logAudit(action: string, cardId: number | null, cardTag: string, newActive?: boolean) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  await supabase.from("manager_audit_log").insert({
-    user_id: user.id,
-    user_email: user.email ?? null,
-    product_id: `quiz_card:${cardId ?? cardTag}`,
-    action,
-    new_active: newActive ?? null,
-  });
-}
-
 // ── Skeleton loader ─────────────────────────────────────────────────────────
 function CardSkeleton() {
   return (
@@ -364,7 +352,7 @@ export function QuizCardsTab() {
     if (editingId !== null) {
       const { error } = await supabase.from("quiz_cards").update(payload).eq("id", editingId);
       if (error) { setFormError(error.message); setSaving(false); return; }
-      logAudit("quiz_card_edit", editingId, slug);
+
       toast.success("Card updated.");
     } else {
       const maxOrder = cards.reduce((m, c) => Math.max(m, c.sort_order), 0);
@@ -377,7 +365,7 @@ export function QuizCardsTab() {
         .select("id")
         .single();
       if (error) { setFormError(error.message); setSaving(false); return; }
-      logAudit("quiz_card_add", inserted?.id ?? null, slug, !atCap);
+
       toast.success(atCap
         ? `Card created — hidden, since ${MAX_ACTIVE_QUIZ_CARDS} cards are already active.`
         : "Card added to quiz.");
@@ -396,7 +384,7 @@ export function QuizCardsTab() {
     }
     setTogglingId(card.id);
     await supabase.from("quiz_cards").update({ active: !card.active, updated_at: new Date().toISOString() }).eq("id", card.id);
-    logAudit("quiz_card_toggle", card.id, card.tag, !card.active);
+
     setCards((prev) => prev.map((c) => c.id === card.id ? { ...c, active: !c.active } : c));
     setTogglingId(null);
   };
@@ -420,7 +408,7 @@ export function QuizCardsTab() {
         supabase.from("quiz_cards").update({ sort_order: c.sort_order, updated_at: new Date().toISOString() }).eq("id", c.id)
       )
     );
-    logAudit("quiz_card_reorder", null, "batch");
+
   };
 
   // ── Bulk actions ─────────────────────────────────────────────────────────────
@@ -462,7 +450,7 @@ export function QuizCardsTab() {
     setDeletingId(card.id);
     const { error } = await supabase.from("quiz_cards").delete().eq("id", card.id);
     if (error) { toast.error("Delete failed: " + error.message); setDeletingId(null); return; }
-    logAudit("quiz_card_delete", card.id, card.tag, false);
+
     setCards((prev) => prev.filter((c) => c.id !== card.id));
     setSelected((prev) => { const next = new Set(prev); next.delete(card.id); return next; });
     toast.success("Card deleted.");

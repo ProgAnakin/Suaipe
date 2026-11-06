@@ -307,7 +307,7 @@ export const SessionsTab = ({ storeId, isGlobal }: SessionsTabProps) => {
                       )}
                       <p className="truncate text-xs text-foreground/80">{s.email}</p>
                       <p className="text-xs text-muted-foreground">
-                        {productName(s.matched_product_id)} · <span className="text-primary font-semibold">{s.match_percent}%</span>
+                        {productName(s.matched_product_id, s.product_name)} · <span className="text-primary font-semibold">{s.match_percent}%</span>
                         {isGlobal && s.store_id && (
                           <span className="ml-1.5 text-primary/60">· {storeName(s.store_id)}</span>
                         )}

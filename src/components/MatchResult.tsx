@@ -18,6 +18,8 @@ interface MatchResultProps {
   userEmail: string;
   onClaim: () => void;
   onChangeEmail: (email: string) => void;
+  emailLocked?: boolean;
+  onRestart?: () => void;
   claiming?: boolean;
   claimError?: boolean;
   isOnline?: boolean;
@@ -130,7 +132,7 @@ const FireworkBurst = ({ bx, by, startDelay, cycle, count, colors }: BurstCfg & 
 const MatchResult = ({
   product, matchPercent, userName, userEmail,
   onClaim, onChangeEmail, claiming = false, claimError = false,
-  isOnline = true,
+  isOnline = true, emailLocked = false, onRestart,
 }: MatchResultProps) => {
   const { t } = useLang();
   const [displayPercent, setDisplayPercent] = useState(0);
@@ -226,6 +228,7 @@ const MatchResult = ({
 
   // ── Email-tap handler ────────────────────────────────────────────────────────────────────────────
   const handleEmailTap = useCallback(() => {
+    if (emailLocked || claiming) return;
     emailTapCount.current += 1;
     clearTimeout(emailTapTimer.current);
     if (emailTapCount.current >= EMAIL_TAPS) {
@@ -239,7 +242,7 @@ const MatchResult = ({
     } else {
       emailTapTimer.current = setTimeout(() => { emailTapCount.current = 0; }, 2000);
     }
-  }, []);
+  }, [emailLocked, claiming]);
 
   // ── PIN keypad handler — server-side verification ──────────────────────────────────────────
   const handlePinKey = useCallback(async (key: number | "⌫") => {
@@ -267,14 +270,14 @@ const MatchResult = ({
   // ── Save new email ──────────────────────────────────────────────────────────────────────────────────
   const handleSaveEmail = useCallback(() => {
     setNewEmailTouched(true);
-    if (!EMAIL_REGEX.test(newEmail.trim())) return;
+    if (emailLocked || claiming || !EMAIL_REGEX.test(newEmail.trim())) return;
     onChangeEmail(newEmail.trim().toLowerCase());
     setShowChangeModal(false);
     setPinVerified(false);
     setPinValue("");
     setNewEmail("");
     setNewEmailTouched(false);
-  }, [newEmail, onChangeEmail]);
+  }, [newEmail, onChangeEmail, emailLocked, claiming]);
 
   const closeModal = useCallback(() => {
     setShowChangeModal(false);
@@ -376,7 +379,7 @@ const MatchResult = ({
 
       {/* ── Change-email modal ────────────────────────────────────────────────────────────────────────── */}
       <AnimatePresence>
-        {showChangeModal && (
+        {showChangeModal && !emailLocked && !claiming && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -702,8 +705,10 @@ const MatchResult = ({
           </p>
         </motion.div>
 
+        {emailLocked && onRestart && <button onClick={onRestart} className="rounded-xl border border-border px-5 py-3 text-sm">{t.success.restart}</button>}
         {/* CTA */}
         <motion.button
+          data-testid="claim-result"
           onClick={handleClaim}
           disabled={claiming || !isOnline}
           aria-busy={claiming}

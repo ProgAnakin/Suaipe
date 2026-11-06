@@ -129,18 +129,7 @@ export const useProductCatalog = (storeId: string) => {
       return false;
     }
 
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) return; // session expired — skip audit log rather than write a null-author entry
-      supabase.from("manager_audit_log").insert({
-        user_id: data.user.id,
-        user_email: data.user.email,
-        product_id: productId,
-        action: "product_toggle",
-        old_active: current,
-        new_active: targetActive,
-        store_id: storeId,
-      });
-    });
+    // The database trigger records the committed change atomically.
 
     setSavingId(null);
     return true;

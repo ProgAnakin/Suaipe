@@ -7,8 +7,8 @@
 **An iPad-first product discovery kiosk for physical retail**
 
 [![CI](https://github.com/ProgAnakin/Suaipe/actions/workflows/ci.yml/badge.svg)](https://github.com/ProgAnakin/Suaipe/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-2.0.1-3b82f6)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-155%20unit-22d3ee)](./src/__tests__)
+[![Version](https://img.shields.io/badge/version-2.1.0-3b82f6)](./CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-192%20unit-22d3ee)](./src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-5%20languages-22d3ee)](./src/i18n/translations.ts)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
@@ -17,7 +17,9 @@
 
 *Customers swipe through 8 personalised questions — Tinder-style — and receive an instant product recommendation with a tailored discount and a personalised video from a consultant.*
 
-### 🌐 [**Live Demo → suaipe.vercel.app**](https://suaipe.vercel.app)
+### 🌐 [**Project deployment → suaipe.vercel.app**](https://suaipe.vercel.app)
+
+*The version and demo isolation at this existing address have not been verified in this review. See [release validation](docs/releases/2.1.0/README.md); a preview URL must come from Vercel.*
 
 *Best experienced on iPad (1024×1366) in landscape · Works on any modern browser*
 
@@ -31,11 +33,11 @@
 
 **Built for:** physical retail with a curated catalog — tech, beauty, gifts, sporting goods, fragrance — where customers know roughly what they want but get overwhelmed by choice.
 
-**Status:** in production across 4 Suaipe stores on iPad.
+**Status:** 2.1.0 release candidate on `fix/security-and-release-hardening`. Local validation is recorded below; hosted rollout remains to be verified. The project supports four configured stores.
 
 ### What it delivers
 
-- 📥 **First-party lead capture** with explicit GDPR consent at the point of collection
+- 📥 **First-party lead capture** with a versioned privacy notice and recorded consent; legal suitability depends on the operator's purposes and configuration
 - 🎯 **Product matchmaking** — eight questions to one recommendation, reduces choice paralysis
 - 🎟️ **Personalised discount codes** generated server-side and emailed in the customer's chosen language (IT / EN / PT / ES / FR)
 - 🏪 **Multi-store, per-store catalogs** managed from a single dashboard, with one-click "send products to another store" between locations
@@ -46,7 +48,7 @@
 
 ## 📸 Demo
 
-> Live deployment running daily across 4 Suaipe stores on iPad.
+> Product screenshots; they do not establish the version currently deployed or validate operation in four stores.
 
 <table align="center">
   <tr>
@@ -79,7 +81,7 @@ flowchart LR
   end
 
   subgraph Manager["🖥️ Manager Dashboard"]
-    D[/manager · PIN-auth/]
+    D[/manager · Auth + MFA + role/]
     D --> Sessions[Sessions Tab]
     D --> Catalog[Catalog Tab]
     D --> Cards[Quiz Cards Tab]
@@ -170,17 +172,17 @@ flowchart LR
 
 ## 🎯 Use Cases
 
-Suaipe was designed and validated in tech retail, but the model transfers cleanly to any curated-catalog category.
+Suaipe is designed for tech retail and other curated catalogs; suitability for another category requires validation.
 
 | Use case | Where it fits |
 |---|---|
-| **In-store lead capture** | Storefronts that want first-party, GDPR-consented email leads instead of paper sign-ups or QR-code prompts that nobody scans. |
+| **In-store lead capture** | Storefronts that want a structured, disclosed contact flow with recorded consent and retention controls. |
 | **Choice-paralysis catalogs** | Tech, beauty, fragrance, sporting goods, wine, gifts — categories with 20–100 products where the customer needs guidance to one. |
 | **Gift-finding (seasonal)** | Christmas, birthdays, anniversaries, Valentine's. Customer answers about the recipient, gets a match — converts indecision into a sale. |
 | **Multi-store chains** | Each location curates its own active catalog with per-store pricing, imagery and discounts; one dashboard manages all of them; "send to store" copies a setup between locations. |
 | **Pop-ups, events, brand activations** | Installable PWA — boots on any iPad, no per-event setup. Useful for product launches, fairs, in-store campaigns. |
 | **Sales-staff training** | The `/consulente` module gives each product a sales guide (description, two insights, manager's advice, video link) — used to onboard new floor staff. |
-| **First-party marketing database** | Every consented capture feeds a GDPR-clean opt-in list, segmented by lifestyle/interest tags from the quiz answers. |
+| **First-party contact records** | Store recommendation results and contacts for the disclosed purposes. A result-email request does not automatically authorize later marketing. |
 | **Merchandising analytics** | Funnel + product-performance dashboards reveal which products customers gravitate to — informs assortment, procurement and per-store stocking. |
 
 ---
@@ -189,17 +191,17 @@ Suaipe was designed and validated in tech retail, but the model transfers cleanl
 
 | Category | Implementation |
 |---|---|
-| **Authentication** | Supabase Auth · PIN + bcrypt fallback · in-memory IP-based lockout · MFA (TOTP / `aal2`) enforced on every staff dashboard (`/stats`, `/manager`, `/consulente`) |
+| **Authentication** | Supabase Auth + role/MFA guards · server-only PIN verification with persistent origin lockout and a server-side hash fallback · validate hosted gateway/Auth configuration before release |
 | **Authorisation** | Row-Level Security on every table · role-based access (`manager` / `consulente_responsabile` / `consulente`) · per-store data isolation |
 | **PII Protection** | Customer `nome`/`cognome`/`email` readable only by authenticated managers (all stores) and consulenti (own store) — no anon access · platform (disk-level) at-rest encryption, **not** column-level — protected by role-scoped RLS, see [ADR 003](./docs/adr/003-pii-encryption-at-rest.md) · retention purge of old sessions |
-| **Rate Limiting** | Server-side enforced 1-email-per-hour per address · cannot be bypassed from client |
-| **Injection Defence** | All search inputs escape `%` `_` `\` before PostgREST `.or()` interpolation · `escHtml()` in every email template field |
+| **Rate Limiting** | Server-enforced claim/address and per-store quotas, atomic email reservation and persistent PIN lockout; public quotas alone do not prove a human visitor |
+| **Injection Defence** | Search escaping, contextual email escaping, server-side template tag allowlist, name validation and formula-safe CSV/Sheets output |
 | **CORS** | Strict origin allowlist · no wildcard fallback · silent rejection of unexpected origins |
 | **Webhooks** | DB webhooks gated by valid `store_id` allowlist · unknown stores silently dropped |
 | **Accessibility** | Kiosk-targeted tap targets (≥ 64 px on the PIN keypad and quiz buttons) · `focus-visible:ring-2` rings on interactive elements · `prefers-reduced-motion` respected via Framer Motion `MotionConfig` · informational copy bumped above the `/65` opacity threshold for in-store lighting |
 | **Internationalisation** | 5 fully translated languages, including the transactional emails sent to customers |
-| **Testing** | 155 unit tests (Vitest) · 16 E2E tests (Playwright, incl. visual-regression pixel diffs) · typecheck + lint + build on every push via GitHub Actions |
-| **Observability** | Sentry error tracking + session replay (live) · sourcemaps uploaded on build for readable production stack traces · tagged error logging in Edge Functions |
+| **Testing** | 192 unit tests (Vitest) · 18 browser scenarios defined (WebKit, including isolated demo; see release validation) · typecheck + lint + build on every push via GitHub Actions |
+| **Observability** | Optional minimized Sentry errors without replay/tracing; optional private sourcemap upload/removal · authenticated hourly health check and daily retention workflow, requiring operator configuration |
 | **Performance** | Manual chunk splitting · lazy-loaded admin routes · image auto-resize ≤ 1024px JPEG q=80 · PWA precaching · debounced search |
 | **iPad / Kiosk** | `interactive-widget=resizes-content` prevents URL bar on keyboard · `visualViewport` API for keyboard-aware layouts · iOS splash screens · wake lock · `100dvh` everywhere |
 
@@ -288,7 +290,8 @@ supabase/
 ├── functions/
 │   ├── on-session-created/   # Email dispatch · CRM relay · multilingual templates
 │   ├── verify-pin/           # Staff PIN auth with IP-based lockout
-│   └── relay-to-sheets/      # Google Sheets relay (JWT-authenticated)
+│   ├── relay-to-sheets/      # Google Sheets relay (JWT + manager/MFA)
+│   └── privacy-maintenance/  # Secret-authenticated health/retention
 └── migrations/               # Versioned SQL migrations (RLS, rate limits, RPC functions)
 ```
 
@@ -307,9 +310,10 @@ supabase/
 ```bash
 git clone https://github.com/ProgAnakin/Suaipe.git
 cd Suaipe
-npm install
+npm ci
 cp .env.example .env
-# Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY
+# Use VITE_DEMO_MODE=true for an isolated local demonstration;
+# configure the public backend variables only for real backend development.
 npm run dev
 ```
 
@@ -318,8 +322,12 @@ npm run dev
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
-VITE_SENTRY_DSN=https://your-sentry-dsn (optional)
-VITE_SITE_URL=https://suaipe.vercel.app (optional — absolute base for product images in the match email; defaults to the production domain)
+VITE_DEMO_MODE=true
+# For real operation: VITE_DEMO_MODE=false and the actual controller/contact.
+# VITE_PRIVACY_CONTROLLER=...
+# VITE_PRIVACY_CONTACT=...
+# Optional error monitoring requires VITE_ENABLE_ERROR_MONITORING=true
+# plus VITE_SENTRY_DSN. Full configuration: .env.example and deploy guide.
 ```
 
 ### Available Scripts
@@ -338,7 +346,7 @@ VITE_SITE_URL=https://suaipe.vercel.app (optional — absolute base for product 
 
 ## 📦 Deployment
 
-Auto-deploys on every push to the production branch via Vercel. Security headers, CSP, HSTS and SPA routing are declared in `vercel.json`.
+With the Vercel Git integration configured, a push can request a frontend deployment. Preview builds default to synthetic demo mode. A push does not deploy SQL or Edge Functions and does not prove provider success. Follow [DEPLOY-2.1.0.md](docs/DEPLOY-2.1.0.md) for the coordinated rollout and `/release.json` verification. Security headers, CSP, HSTS and SPA routing are declared in `vercel.json`; verify their hosted responses.
 
 The CI workflow runs typecheck, lint, test and build on every push to `main`, every PR, and every `claude/*` / `feat/*` / `fix/*` branch.
 
@@ -384,12 +392,12 @@ Place core product images in `public/products/` and reference them in `src/data/
 
 ## 🗺️ Roadmap
 
-The current release is intentionally **zero-cost**: every component runs on free tiers (Vercel Hobby, Supabase Free, Sentry Developer, Brevo free transactional). The items below are deferred to a future release — most require either a paid tier, a coordinated multi-system deploy, or both.
+The design can use entry-level service plans, but actual eligibility, quotas, runner minutes and costs depend on the operator and providers. Confirm current terms and budgets before corporate use. The items below remain follow-up work.
 
 ### Security & data integrity
 
 - **App-layer PII encryption (optional, deferred by choice).** Customer `email`/`nome`/`cognome` are currently protected by access control (role-scoped RLS) + platform at-rest encryption rather than application-layer AES, because encrypting them would break the dashboard's partial-match search. A future release could encrypt them at rest with a server-side decrypt RPC (key in Supabase Vault) and switch email/name lookups to exact-match HMAC — accepted trade-off: no more partial search on those fields.
-- **RLS-level MFA enforcement.** Every staff dashboard now requires a TOTP-verified (`aal2`) session at the app layer. A future hardening step is to also gate the most sensitive RLS policies on `aal2`, so the requirement holds at the database layer and not only in the UI.
+- **Hosted authorization verification.** The current migrations enforce MFA on sensitive SQL/Storage operations. Exercise these policies with real roles, tokens and uploads in staging; local SQL stand-ins do not certify the hosted service.
 
 ### Observability (free tier today, paid tier later)
 
@@ -433,4 +441,6 @@ Proprietary — © Costanzo Annichini. All rights reserved.
 
 ## Security release deployment
 
-These changes require a coordinated database, Edge Function and frontend rollout. See [deployment and validation notes](docs/security-hardening.md) before deploying this branch.
+These changes require a coordinated database, Edge Function and frontend rollout. See [the 2.1.0 deployment guide](docs/DEPLOY-2.1.0.md) and [AI/maintainer handoff](docs/AI-HANDOFF.md) before deploying this branch.
+
+For the release's current contracts and verification limits, read [AI-HANDOFF.md](docs/AI-HANDOFF.md). Vercel previews default to a synthetic demo; real deployment also requires SQL/Edge updates and scheduled privacy maintenance. Third-party components retain their own licenses; acknowledgements are in [public/third-party-notices.txt](public/third-party-notices.txt).

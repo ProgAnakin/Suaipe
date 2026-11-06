@@ -1,3 +1,5 @@
+import { createCsv } from "@/lib/csv";
+import { fetchAllPages } from "@/lib/pagination";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,58 +54,54 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // ── Fetchers ────────────────────────────────────────────────────────────
+  const buildQuery = useCallback((includeStatus = true) => {
+    let query = supabase.from("quiz_sessions").select(SESSION_SELECT, { count: "exact" })
+      .order("created_at", { ascending: false }).order("id");
+    if (!isGlobal) query = query.eq("store_id", storeId);
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.trim().replace(/[^\p{L}\p{N}@. -]/gu, "");
+      if (q) query = query.or(`email.ilike.%${q}%,discount_code.ilike.%${q}%,nome.ilike.%${q}%,cognome.ilike.%${q}%`);
+    }
+    if (filterDateFrom) query = query.gte("created_at", new Date(filterDateFrom).toISOString());
+    if (filterDateTo) query = query.lt("created_at", new Date(new Date(filterDateTo).getTime() + 86_400_000).toISOString());
+    if (filterProductId) query = query.eq("matched_product_id", filterProductId);
+    if (filterMatchMin) query = query.gte("match_percent", Number(filterMatchMin));
+    if (filterMatchMax) query = query.lte("match_percent", Number(filterMatchMax));
+    if (includeStatus && statusFilter === "sent") query = query.eq("email_sent", true);
+    if (includeStatus && statusFilter === "processing") query = query.in("email_status", ["pending", "sending"]);
+    if (includeStatus && statusFilter === "no_email") query = query.in("email_status", ["uncertain", "suppressed"]);
+    if (includeStatus && statusFilter === "failed") query = query.eq("email_status", "failed");
+    return query;
+  }, [isGlobal, storeId, debouncedSearch, filterDateFrom, filterDateTo, filterProductId, filterMatchMin, filterMatchMax, statusFilter]);
+
   const fetchKpiData = useCallback(async () => {
-    let q = supabase
-      .from("quiz_sessions")
-      .select("id, email_sent, discount_code, created_at, code_redeemed");
-    if (!isGlobal) q = q.eq("store_id", storeId);
-    const { data } = await q;
-    setKpiData((data ?? []) as SessionKpi[]);
-  }, [storeId, isGlobal]);
+    try {
+      const snapshot = new Date().toISOString();
+      const rows = await fetchAllPages((from,to) => buildQuery(false).lte("created_at", snapshot).range(from,to));
+      setKpiData(rows as SessionKpi[]);
+    } catch { setKpiData([]); toast.error("Session totals could not be loaded."); }
+  }, [buildQuery]);
 
   const fetchSessions = useCallback(async () => {
     setLoading(true);
-    const from = (currentPage - 1) * PAGE_SIZE;
-
-    let query = supabase
-      .from("quiz_sessions")
-      .select(SESSION_SELECT, { count: "exact" })
-      .order("created_at", { ascending: false })
-      .range(from, from + PAGE_SIZE - 1);
-
-    if (!isGlobal) query = query.eq("store_id", storeId);
-    if (debouncedSearch.trim()) {
-      const q = debouncedSearch.trim()
-        .replace(/\\/g, "\\\\")
-        .replace(/%/g, "\\%")
-        .replace(/_/g, "\\_")
-        .replace(/,/g, "");
-      query = query.or(`email.ilike.%${q}%,discount_code.ilike.%${q}%,nome.ilike.%${q}%,cognome.ilike.%${q}%`);
-    }
-    if (filterDateFrom) query = query.gte("created_at", new Date(filterDateFrom).toISOString());
-    if (filterDateTo) {
-      const to = new Date(filterDateTo);
-      to.setHours(23, 59, 59, 999);
-      query = query.lte("created_at", to.toISOString());
-    }
-    if (filterProductId) query = query.eq("matched_product_id", filterProductId);
-    if (filterMatchMin) query = query.gte("match_percent", parseInt(filterMatchMin, 10));
-    if (filterMatchMax) query = query.lte("match_percent", parseInt(filterMatchMax, 10));
-
-    const { data, count } = await query;
-    setSessions((data ?? []) as Session[]);
-    setTotalCount(count ?? 0);
-    setLoading(false);
-  }, [storeId, isGlobal, currentPage, debouncedSearch, filterDateFrom, filterDateTo, filterProductId, filterMatchMin, filterMatchMax]);
+    try {
+      const from = (currentPage - 1) * PAGE_SIZE;
+      const { data, count, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
+      if (error) throw error;
+      setSessions((data ?? []) as Session[]);
+      setTotalCount(count ?? 0);
+    } catch { setSessions([]); setTotalCount(0); toast.error("Sessions could not be loaded."); }
+    finally { setLoading(false); }
+  }, [buildQuery, currentPage]);
 
   const fetchNegado = useCallback(async () => {
     const [shownRes, claimedRes] = await Promise.all([
-      supabase.from("quiz_funnel_events").select("*", { count: "exact", head: true }).eq("event_type", "result_shown"),
-      supabase.from("quiz_funnel_events").select("*", { count: "exact", head: true }).eq("event_type", "claimed"),
+      supabase.from("quiz_funnel_events").select("*", { count: "exact", head: true }).eq("event_type", "result_shown").in("store_id", isGlobal ? ["lisboa", "milano", "dublino", "rio-de-janeiro"] : [storeId]),
+      supabase.from("quiz_funnel_events").select("*", { count: "exact", head: true }).eq("event_type", "claimed").in("store_id", isGlobal ? ["lisboa", "milano", "dublino", "rio-de-janeiro"] : [storeId]),
     ]);
     const negado = (shownRes.count ?? 0) - (claimedRes.count ?? 0);
     setNegadoCount(Math.max(0, negado));
-  }, []);
+  }, [storeId, isGlobal]);
 
   // ── Realtime subscription — refetch on any session change ──────────────
   useEffect(() => {
@@ -163,40 +161,23 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
 
   const exportToCSV = useCallback(async () => {
     setExporting(true);
-    let query = supabase
-      .from("quiz_sessions")
-      .select(SESSION_SELECT)
-      .order("created_at", { ascending: false });
-    if (!isGlobal) query = query.eq("store_id", storeId);
-    const { data } = await query;
-    const rows = (data ?? []) as Session[];
-
-    const headers = ["First Name", "Last Name", "Email", "Product", "Match %", "Store", "Date", "Discount Code", "Code Status", "Used At"];
-    const csvRows = rows.map((s) => [
-      s.nome ?? "", s.cognome ?? "", s.email,
-      productName(s.matched_product_id), s.match_percent,
-      storeName(s.store_id), formatDate(s.created_at),
-      s.discount_code ?? "",
-      s.code_redeemed ? "used" : isCodeExpired(s) ? "expired" : s.discount_code ? "valid" : "no code",
-      s.code_redeemed_at ? formatDate(s.code_redeemed_at) : "",
-    ]);
-
-    const csvContent = [headers, ...csvRows]
-      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-
-    const blob = new Blob(["﻿" + csvContent], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `suaipe-sessions-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success(`${rows.length} sessions exported to CSV.`);
-    setExporting(false);
-  }, [storeId, isGlobal]);
+    try {
+      const snapshot = new Date().toISOString();
+      const rows = await fetchAllPages((from,to) => buildQuery().lte("created_at", snapshot).range(from,to)) as Session[];
+      const headers = ["First Name", "Last Name", "Email", "Product", "Match %", "Store", "Date", "Discount Code", "Code Status", "Used At"];
+      const csvRows = rows.map((s) => [s.nome, s.cognome, s.email, productName(s.matched_product_id, s.product_name), s.match_percent,
+        storeName(s.store_id), formatDate(s.created_at), s.discount_code,
+        s.code_redeemed ? "used" : !s.discount_code ? "no code" : isCodeExpired(s) ? "expired" : !s.email_sent ? "not issued" : "valid",
+        s.code_redeemed_at ? formatDate(s.code_redeemed_at) : ""]);
+      const blob = new Blob([createCsv([headers, ...csvRows])], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `suaipe-sessions-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      toast.success(`${rows.length} sessions exported to CSV.`);
+    } catch { toast.error("Export failed. No complete file was generated. Try a smaller date range."); }
+    finally { setExporting(false); }
+  }, [buildQuery]);
 
   const openPurgeModal = useCallback(async () => {
     if (!isGlobal) { toast.error("Only managers may delete sessions."); return; }
@@ -231,20 +212,13 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
   const counts = {
     all:         kpiData.length,
     sent:        kpiData.filter((s) => s.email_sent).length,
-    processing:  kpiData.filter((s) => {
-      if (s.email_sent) return false;
-      return (Date.now() - new Date(s.created_at).getTime()) / 60_000 < 5;
-    }).length,
-    no_email:    kpiData.filter((s) => {
-      if (s.email_sent) return false;
-      if (!s.discount_code) return false;
-      return (Date.now() - new Date(s.created_at).getTime()) / 60_000 >= 5;
-    }).length,
-    failed:      kpiData.filter((s) => !s.email_sent && !s.discount_code).length,
+    processing: kpiData.filter(s => !s.email_sent && ['pending','sending'].includes(s.email_status ?? 'pending')).length,
+    no_email: kpiData.filter(s => !s.email_sent && ['uncertain','suppressed'].includes(s.email_status ?? '')).length,
+    failed: kpiData.filter(s => !s.email_sent && s.email_status === 'failed').length,
   };
 
   const expiredReusable = kpiData.filter(
-    (s) => (Date.now() - new Date(s.created_at).getTime()) > (24 * 3_600_000)
+    (s) => Date.now() >= Date.parse(s.expires_at)
       && s.discount_code && !s.code_redeemed,
   ).length;
 

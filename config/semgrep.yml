@@ -1,0 +1,41 @@
+rules:
+  - id: production-eval
+    languages: [javascript, typescript]
+    message: Dynamic code execution is not allowed in production modules.
+    severity: ERROR
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+    paths:
+      include: [/src, /supabase/functions]
+      exclude: ["**/__tests__/**", "**/test/**"]
+  - id: direct-innerhtml
+    languages: [javascript, typescript]
+    message: Render untrusted text through React, not raw DOM HTML.
+    severity: ERROR
+    pattern: $ELEMENT.innerHTML = $VALUE
+    paths:
+      include: [/src]
+      exclude: ["**/__tests__/**"]
+  - id: wildcard-cors
+    languages: [javascript, typescript]
+    message: Configure an explicit origin; wildcard CORS is not an authorization boundary.
+    severity: ERROR
+    pattern: '{"Access-Control-Allow-Origin": "*", ...}'
+    paths:
+      include: [/supabase/functions]
+  - id: public-pin-fallback
+    languages: [javascript, typescript]
+    message: PIN verification must use the Edge service and persistent server limiter.
+    severity: ERROR
+    pattern: $CLIENT.rpc("verify_staff_pin", ...)
+    paths:
+      include: [/src]
+      exclude: ["**/__tests__/**"]
+  - id: browser-private-env
+    languages: [javascript, typescript]
+    message: Never expose a service-role credential to browser code.
+    severity: ERROR
+    pattern: import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
+    paths:
+      include: [/src]

@@ -9,10 +9,10 @@ import { useSound } from "@/hooks/useSound";
 import { useLang } from "@/i18n/LanguageContext";
 import { LANGUAGES } from "@/i18n/translations";
 import { getStoredStoreId, getStoreById } from "@/data/stores";
-import { supabase } from "@/integrations/supabase/client";
+
 import { useViewportKeyboard } from "@/hooks/useViewportKeyboard";
 import { isValidEmail, isValidName, sanitizeName } from "@/lib/validators";
-import { COOLDOWN_BYPASS_EMAILS } from "@/config/staffEmails";
+
 
 export interface UserInfo {
   nome: string;
@@ -28,6 +28,7 @@ interface WelcomeScreenProps {
   onStart: (user: UserInfo) => void;
   settingsLoadFailed?: boolean;
   unavailable?: boolean;
+  demo?: boolean;
 }
 
 // Email/name validation + sanitize live in src/lib/validators.ts (shared with the
@@ -67,7 +68,7 @@ const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
   const [email, setEmail] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [checking, setChecking] = useState(false);
+  const [checking] = useState(false);
   const [cooldownHours, setCooldownHours] = useState<number | null>(null);
   // GDPR consent: must be explicitly granted before the customer's email is
   // captured. The modal shows the same notice rendered at /privacy.
@@ -109,33 +110,7 @@ const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    if (!COOLDOWN_BYPASS_EMAILS.has(normalizedEmail)) {
-      setChecking(true);
-      try {
-        const { data } = await supabase.rpc("check_email_cooldown", {
-          p_email: normalizedEmail,
-        });
-        if (data?.[0]?.in_cooldown && (data[0].hours_remaining as number) > 0) {
-          setCooldownHours(Math.max(1, Math.ceil(data[0].hours_remaining as number)));
-          setChecking(false);
-          return;
-        }
-      } catch {
-        const ssKey = `wb_cooldown_${normalizedEmail}`;
-        const lastAttempt = sessionStorage.getItem(ssKey);
-        if (lastAttempt) {
-          const diffMs = Date.now() - parseInt(lastAttempt, 10);
-          const cooldownMs = 60 * 60 * 1000;
-          if (diffMs < cooldownMs) {
-            setCooldownHours(Math.ceil((cooldownMs - diffMs) / 3600000));
-            setChecking(false);
-            return;
-          }
-        }
-        sessionStorage.setItem(ssKey, String(Date.now()));
-      }
-      setChecking(false);
-    }
+    // Participation limits are server-side. Never expose address activity here.
     if (!mounted.current) return;
     play("start");
     onStart({
@@ -323,7 +298,7 @@ const StoreBadge = ({ onTap, refreshKey }: { onTap: () => void; refreshKey: numb
 // ─── Welcome Screen ────────────────────────────────────────────────────────────────────────────
 const LOGO_TAPS_REQUIRED = 6;
 
-const WelcomeScreen = ({ onStart, settingsLoadFailed = false, unavailable = false }: WelcomeScreenProps) => {
+const WelcomeScreen = ({ onStart, settingsLoadFailed = false, unavailable = false, demo = false }: WelcomeScreenProps) => {
   const { t, lang } = useLang();
   const [showPin, setShowPin] = useState(false);
   const [storeBadgeKey, setStoreBadgeKey] = useState(0);
@@ -335,6 +310,7 @@ const WelcomeScreen = ({ onStart, settingsLoadFailed = false, unavailable = fals
   const tapTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const handleLogoTap = useCallback(() => {
+    if (demo) return;
     tapCount.current += 1;
     clearTimeout(tapTimer.current);
     setTapsVisible(tapCount.current >= 3 ? tapCount.current : 0);
@@ -348,7 +324,7 @@ const WelcomeScreen = ({ onStart, settingsLoadFailed = false, unavailable = fals
         setTapsVisible(0);
       }, 2000);
     }
-  }, []);
+  }, [demo]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6 py-8">
@@ -365,7 +341,7 @@ const WelcomeScreen = ({ onStart, settingsLoadFailed = false, unavailable = fals
       </div>
 
       <div className="absolute bottom-4 left-4 z-10 flex flex-col items-start gap-1.5">
-        <StoreBadge onTap={() => setShowPin(true)} refreshKey={storeBadgeKey} />
+        <StoreBadge onTap={() => { if (!demo) setShowPin(true); }} refreshKey={storeBadgeKey} />
         {settingsLoadFailed && (
           <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-[10px] font-semibold text-amber-400">
             {t.welcome.catalogOffline}
@@ -459,7 +435,7 @@ const WelcomeScreen = ({ onStart, settingsLoadFailed = false, unavailable = fals
           {t.welcome.subtitle}
         </motion.p>
 
-        {unavailable ? <p role="status" className="rounded-xl border border-border bg-card p-5 text-center text-sm">{ {
+        {demo ? <button data-testid="start-demo" className="w-full rounded-xl bg-primary p-4 font-semibold text-primary-foreground" onClick={() => onStart({nome:'Demo',cognome:'Visitor',email:'demo@example.invalid',consentGivenAt:''})}>{ {it:'Prova la demo',en:'Try the demo',pt:'Experimentar demonstração',es:'Probar demostración',fr:'Essayer la démo'}[lang] }</button> : unavailable ? <p role="status" className="rounded-xl border border-border bg-card p-5 text-center text-sm">{ {
           it: "Il chiosco non è disponibile. Chiedi assistenza al personale.",
           en: "The kiosk is unavailable. Please ask a member of staff for help.",
           pt: "O quiosque está indisponível. Peça ajuda a um funcionário.",

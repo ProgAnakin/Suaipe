@@ -1,0 +1,7 @@
+# Branch protection must require owner review in GitHub settings.
+/supabase/ @ProgAnakin
+/src/integrations/ @ProgAnakin
+/src/lib/submitClaim.ts @ProgAnakin
+/.github/ @ProgAnakin
+/config/semgrep.yml @ProgAnakin
+/.gitleaksignore @ProgAnakin

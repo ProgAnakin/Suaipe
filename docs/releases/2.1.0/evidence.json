@@ -1,0 +1,306 @@
+{
+  "date": "2026-11-06",
+  "version": "2.1.0",
+  "status": "candidate-local-validation-not-hosted-release",
+  "branch": "fix/security-and-release-hardening",
+  "historical_audit_commit": "6651114",
+  "commit_reference": "The commit containing this report; use git log -- docs/releases/2.1.0/README.md",
+  "inputs_sha256": {
+    "package-lock.json": "7a9edc9b1d284bcfcf90a6a18d8bb64abae0a0fd4f9b875489e93c2cbba10433",
+    "supabase/migrations/20261106000001_prelaunch_audit_fixes.sql": "40938513c87ca8f7fb7c262545758e28629758ac6f0c2e4bfb7c448a3352e104",
+    "supabase/migrations/20261106000002_privacy_operations.sql": "c6f6ffccbf2195656516220929b466dec5aff125dc08449ec651d98d2d97c478"
+  },
+  "types": {
+    "app_and_config": "passed",
+    "edge_contract": "passed",
+    "hosted_deno": "not-run"
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 4,
+    "warning_rule": "react-refresh/only-export-components"
+  },
+  "unit": {
+    "passed": 192,
+    "files": 29,
+    "coverage_percent": {
+      "lines": 20.96,
+      "statements": 20.83,
+      "branches": 13.38,
+      "functions": 18.1
+    },
+    "previous_line_coverage_percent": 9.44
+  },
+  "sql": {
+    "engine": "PostgreSQL 17 disposable Docker / minimal Auth and Storage",
+    "passed_assertions": 60,
+    "assertions": [
+      "anon cannot purge",
+      "anon cannot reserve email",
+      "direct INSERT denied",
+      "changed retry rejected",
+      "unknown store rejected",
+      "retry creates one row",
+      "server derives commercial data and normalizes email",
+      "inactive product rejected",
+      "first email reserved",
+      "duplicate email reservation refused",
+      "aal1 cannot read PII",
+      "aal1 cannot purge",
+      "aal1 cannot list staff",
+      "aal1 cannot redeem",
+      "junior cannot purge",
+      "junior cannot redeem",
+      "store lead cannot purge globally",
+      "store lead redeems own valid code",
+      "redemption is idempotent",
+      "direct redemption UPDATE denied",
+      "store lead cannot redeem another store",
+      "expired code cannot be redeemed",
+      "manager purge preserves recent sessions",
+      "manager can purge old sessions",
+      "recent maintenance enables kiosk",
+      "stale maintenance disables kiosk",
+      "no collection without recent maintenance",
+      "health reports maintenance overdue",
+      "read-only health never refreshes collection permission",
+      "private claim core cannot bypass validation",
+      "formula name rejected by server",
+      "outdated privacy contract rejected",
+      "client cannot fabricate login attempts",
+      "operational metrics are not public",
+      "no public address activity oracle",
+      "client cannot assert a verified PIN",
+      "no fabricated client conversion",
+      "event API cannot invent conversions",
+      "valid public claim still works",
+      "legacy public PIN overload removed",
+      "conversion is created by committed claim",
+      "privacy version persisted",
+      "aal1 cannot read analytics",
+      "lead cannot read another store analytics",
+      "lead can read own analytics",
+      "non-staff cannot read training",
+      "audit identity cannot be forged",
+      "consultants retain legitimate guide access",
+      "media upload requires MFA",
+      "manager with MFA can upload",
+      "media update and deletion blocked without MFA",
+      "committed mutation creates trusted audit record",
+      "persistent origin PIN limiter survives client rotation without SQL error",
+      "correct PIN from another origin still works",
+      "expired coupon cannot reserve an email",
+      "manager can honor customer erasure",
+      "external copies are queued for reconciliation",
+      "completed external request removes its email",
+      "maintenance enforces 30-day session retention",
+      "retained session is really deleted"
+    ],
+    "concurrency": [
+      {
+        "concurrent_claims": 12,
+        "persisted_sessions": 1,
+        "concurrent_email_attempts": 12,
+        "email_reservations": 1
+      },
+      {
+        "same_address_second_session_suppressed": true
+      }
+    ],
+    "query": {
+      "synthetic_rows": 20000,
+      "email_lookup_plan": [
+        {
+          "Plan": {
+            "Node Type": "Aggregate",
+            "Strategy": "Plain",
+            "Partial Mode": "Simple",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 8.44,
+            "Total Cost": 8.45,
+            "Plan Rows": 1,
+            "Plan Width": 8,
+            "Actual Startup Time": 0.053,
+            "Actual Total Time": 0.053,
+            "Actual Rows": 1,
+            "Actual Loops": 1,
+            "Shared Hit Blocks": 4,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "Plans": [
+              {
+                "Node Type": "Index Scan",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Scan Direction": "Forward",
+                "Index Name": "sessions_normalized_email_created_idx",
+                "Relation Name": "quiz_sessions",
+                "Alias": "quiz_sessions",
+                "Startup Cost": 0.42,
+                "Total Cost": 8.44,
+                "Plan Rows": 1,
+                "Plan Width": 0,
+                "Actual Startup Time": 0.047,
+                "Actual Total Time": 0.049,
+                "Actual Rows": 1,
+                "Actual Loops": 1,
+                "Index Cond": "((lower(TRIM(BOTH FROM email)) = 'audit-load-10000@example.com'::text) AND (created_at > (now() - '01:00:00'::interval)))",
+                "Rows Removed by Index Recheck": 0,
+                "Shared Hit Blocks": 4,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0
+              }
+            ]
+          },
+          "Planning": {
+            "Shared Hit Blocks": 255,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          },
+          "Planning Time": 12.705,
+          "Triggers": [],
+          "Execution Time": 0.103
+        }
+      ]
+    },
+    "synthetic_restore": "passed; data, functions, RLS and denied anonymous PII"
+  },
+  "builds": {
+    "real": "passed with synthetic backend/controller config",
+    "demo": "passed",
+    "no_public_sourcemaps": true,
+    "self_hosted_font": true,
+    "demo_real_backend_sentinel_absent": true,
+    "negative_guards": [
+      {
+        "case": "private-key",
+        "rejected_as_required": true
+      },
+      {
+        "case": "missing-privacy",
+        "rejected_as_required": true
+      }
+    ]
+  },
+  "local_http": [
+    {
+      "mode": "real",
+      "metadata": {
+        "version": "2.1.0",
+        "commit": "local",
+        "demo": false
+      },
+      "routes": 6,
+      "entry": true,
+      "font": true,
+      "worker": true,
+      "notices": true
+    },
+    {
+      "mode": "demo",
+      "metadata": {
+        "version": "2.1.0",
+        "commit": "local",
+        "demo": true
+      },
+      "routes": 6,
+      "entry": true,
+      "font": true,
+      "worker": true,
+      "notices": true
+    }
+  ],
+  "npm_audit": {
+    "production": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "full": {
+      "info": 0,
+      "low": 2,
+      "moderate": 12,
+      "high": 0,
+      "critical": 0,
+      "total": 14
+    },
+    "residual": "development toolchain only"
+  },
+  "gitleaks": {
+    "version": "8.24.3",
+    "history_alerts_after_reviewed_exact_ignores": 0,
+    "staged_patch_alerts": 0,
+    "reviewed_historical_fingerprints": 6,
+    "scope": "available local git --all history; no provider secrets or unreachable objects"
+  },
+  "semgrep": {
+    "version": "1.184.0",
+    "ci": {
+      "rules": 5,
+      "files": 154,
+      "findings": 0,
+      "parser_errors": 0
+    },
+    "broad": {
+      "rules": 441,
+      "files": 263,
+      "occurrences": 278,
+      "parser_errors": 0,
+      "triage": "See README. Raw occurrences are not confirmed vulnerabilities."
+    }
+  },
+  "inventory": {
+    "npm_sbom_components": 739,
+    "license_notice_installed_lock_entries": 761,
+    "legal_or_asset_rights_certification": false
+  },
+  "browser": {
+    "defined_real_shell": 16,
+    "defined_demo": 2,
+    "executed": false,
+    "reason": "WebKit unavailable; required download hosts denied by applied environment policy; draft is not activation"
+  },
+  "deployment": {
+    "vercel_confirmed": false,
+    "supabase_migrations_applied_to_hosted": false,
+    "hosted_edge_published": false,
+    "new_preview_url": null,
+    "configuration_draft": "saved; requires settings review/save and environment publish; no values supplied"
+  },
+  "remaining": [
+    "WebKit/iPad and visual baseline review",
+    "Hosted roles/MFA/Storage/Auth/gateway validation",
+    "Real backup and file restore; RTO/RPO",
+    "Inbox/bounce and alert receipt",
+    "External-provider erasure and contracts/purposes",
+    "Media/trademark/corporate disclosure rights",
+    "Target load and p95/soak",
+    "Development advisories: 12 moderate, 2 low"
+  ]
+}

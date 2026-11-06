@@ -1,5 +1,7 @@
 # Segunda revisão de pré-lançamento — Suaipe
 
+> Histórico do código anterior às correções. Consulte [a passagem atual](../../AI-HANDOFF.md) e [o deploy 2.1.0](../../DEPLOY-2.1.0.md). Os testes web foram promovidos a `src/__tests__/prelaunchRegression.test.tsx`; o runner SQL desta pasta reproduz apenas migrações até 03/11, não o estado corrigido atual.
+
 Data: **06/11/2026**, Europe/Rome. Código avaliado: **8acdb6156e3223d94dd5533fed587be71ab7febe**. Branch de trabalho: `audit/prelaunch-2026-11-06`.
 
 ## Decisão recomendada

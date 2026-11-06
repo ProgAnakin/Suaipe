@@ -1,8 +1,13 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
+import { readFileSync } from "node:fs";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
+import { assertPublicSupabaseKey } from "./src/lib/publicKey";
+
+// Reject private credentials before emitting artifacts, not after shipping them.
+assertPublicSupabaseKey(process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? '');
 
 // Sourcemap upload only runs when all three env vars are set (Vercel build).
 // Local builds skip the upload step silently — no token needed for `npm run build`.
@@ -13,7 +18,26 @@ const sentryEnabled = !!(
 );
 
 // https://vitejs.dev/config/
-export default defineConfig(() => ({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  assertPublicSupabaseKey(env.VITE_SUPABASE_PUBLISHABLE_KEY ?? '');
+  const demo = env.VITE_DEMO_MODE ?? (process.env.VERCEL_ENV === 'preview' ? 'true' : 'false');
+  if (process.env.VERCEL_ENV === 'production' && demo !== 'true' &&
+      (!env.VITE_PRIVACY_CONTROLLER?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.VITE_PRIVACY_CONTACT ?? ''))) {
+    throw new Error('Configure the real privacy controller and contact before production deployment.');
+  }
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA ?? '';
+  const releaseMetadata: Plugin = {
+    name: 'public-release-metadata',
+    generateBundle() {
+      const version = JSON.parse(readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')).version;
+      this.emitFile({ type: 'asset', fileName: 'release.json', source: JSON.stringify({version,commit:/^[a-f0-9]{40}$/i.test(sha)?sha:'local',demo:demo==='true'}) });
+    },
+  };
+  return ({
+  define: {
+    'import.meta.env.VITE_DEMO_MODE': JSON.stringify(demo),
+  },
   server: {
     host: "::",
     port: 8080,
@@ -22,6 +46,7 @@ export default defineConfig(() => ({
     },
   },
   plugins: [
+    releaseMetadata,
     react(),
     VitePWA({
       registerType: "autoUpdate",
@@ -88,4 +113,5 @@ export default defineConfig(() => ({
     // the warning isn't useful here.
     chunkSizeWarningLimit: 800,
   },
-}));
+});
+});

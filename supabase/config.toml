@@ -1,1 +1,10 @@
 project_id = "gwtlefflymdvtsmfrhqg"
+
+# Shared-secret webhook/scheduler and PIN verification authenticate inside the handler.
+# verify-pin requires the trusted gateway to replace client-IP headers.
+[functions.on-session-created]
+verify_jwt = false
+[functions.verify-pin]
+verify_jwt = false
+[functions.privacy-maintenance]
+verify_jwt = false

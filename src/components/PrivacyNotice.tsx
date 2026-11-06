@@ -1,3 +1,5 @@
+import { IS_DEMO } from "@/config/demo";
+import { PRIVACY_NOTICE_VERSION } from "@/config/privacy";
 import { useLang } from "@/i18n/LanguageContext";
 import type { Lang } from "@/i18n/translations";
 
@@ -12,7 +14,8 @@ import type { Lang } from "@/i18n/translations";
 // GDPR Art. 12(1) requires the notice to be in "clear and plain language"
 // the data subject understands — so every kiosk language has its own copy.
 
-const CONTACT_EMAIL = "privacy@suaipe.app";
+const CONTACT_EMAIL = import.meta.env.VITE_PRIVACY_CONTACT || "privacy@example.invalid";
+const CONTROLLER = import.meta.env.VITE_PRIVACY_CONTROLLER || "Suaipe (demo)";
 
 interface Section { h: string; p: string; }
 interface NoticeContent { title: string; intro: string; sections: Section[]; }
@@ -21,7 +24,7 @@ const CONTENT: Record<Lang, NoticeContent> = {
   it: {
     title: "Informativa sulla privacy",
     intro:
-      "Suaipe tratta i tuoi dati personali nel rispetto del Regolamento (UE) 2016/679 (GDPR). Questa informativa spiega quali dati raccogliamo tramite il quiz in negozio e come li usiamo.",
+      "Questa informativa spiega quali dati raccogliamo tramite il quiz in negozio e come li usiamo.",
     sections: [
       { h: "Titolare del trattamento", p: "Suaipe è il titolare del trattamento dei dati raccolti tramite questo chiosco." },
       { h: "Dati raccolti", p: "Nome, cognome e indirizzo email. Vengono inoltre registrate le tue risposte al quiz, usate solo per calcolare il prodotto consigliato." },
@@ -35,7 +38,7 @@ const CONTENT: Record<Lang, NoticeContent> = {
   en: {
     title: "Privacy Notice",
     intro:
-      "Suaipe processes your personal data in compliance with Regulation (EU) 2016/679 (GDPR). This notice explains what data we collect through the in-store quiz and how we use it.",
+      "This notice explains what data we collect through the in-store quiz and how we use it.",
     sections: [
       { h: "Data controller", p: "Suaipe is the controller of the data collected through this kiosk." },
       { h: "Data we collect", p: "First name, last name and email address. Your quiz answers are also recorded and used solely to compute the recommended product." },
@@ -49,7 +52,7 @@ const CONTENT: Record<Lang, NoticeContent> = {
   pt: {
     title: "Política de Privacidade",
     intro:
-      "A Suaipe trata os seus dados pessoais em conformidade com o Regulamento (UE) 2016/679 (RGPD). Esta política explica quais os dados que recolhemos através do quiz na loja e como os utilizamos.",
+      "Esta política explica quais os dados que recolhemos através do quiz na loja e como os utilizamos.",
     sections: [
       { h: "Responsável pelo tratamento", p: "A Suaipe é a responsável pelo tratamento dos dados recolhidos através deste quiosque." },
       { h: "Dados recolhidos", p: "Nome, apelido e endereço de email. As suas respostas ao quiz também são registadas e usadas apenas para calcular o produto recomendado." },
@@ -63,7 +66,7 @@ const CONTENT: Record<Lang, NoticeContent> = {
   es: {
     title: "Política de Privacidad",
     intro:
-      "Suaipe trata sus datos personales de conformidad con el Reglamento (UE) 2016/679 (RGPD). Este aviso explica qué datos recopilamos a través del cuestionario en tienda y cómo los usamos.",
+      "Este aviso explica qué datos recopilamos a través del cuestionario en tienda y cómo los usamos.",
     sections: [
       { h: "Responsable del tratamiento", p: "Suaipe es el responsable del tratamiento de los datos recopilados a través de este quiosco." },
       { h: "Datos recopilados", p: "Nombre, apellido y dirección de correo electrónico. También se registran sus respuestas al cuestionario, utilizadas únicamente para calcular el producto recomendado." },
@@ -77,7 +80,7 @@ const CONTENT: Record<Lang, NoticeContent> = {
   fr: {
     title: "Politique de confidentialité",
     intro:
-      "Suaipe traite vos données personnelles conformément au Règlement (UE) 2016/679 (RGPD). Cette notice explique quelles données nous collectons via le quiz en magasin et comment nous les utilisons.",
+      "Cette notice explique quelles données nous collectons via le quiz en magasin et comment nous les utilisons.",
     sections: [
       { h: "Responsable du traitement", p: "Suaipe est le responsable du traitement des données collectées via ce kiosque." },
       { h: "Données collectées", p: "Prénom, nom et adresse email. Vos réponses au quiz sont également enregistrées et utilisées uniquement pour calculer le produit recommandé." },
@@ -90,19 +93,25 @@ const CONTENT: Record<Lang, NoticeContent> = {
   },
 };
 
+// Version recorded with each accepted claim. Keep translations and server contract aligned.
+for (const [language, sections] of Object.entries({"it": [["Copie esterne e diagnostica", "Se attivato dal gestore, Google Sheets conserva una copia di nome, cognome, email, prodotto, risultato e negozio. Sentry può ricevere errori tecnici con minimizzazione dei dati; registrazione della sessione e tracciamento prestazioni sono disabilitati."], ["Tempi e cancellazione", "Le sessioni hanno un limite di conservazione di 30 giorni, applicato dalla manutenzione giornaliera. Le richieste di cancellazione includono la verifica delle copie presso Brevo e Google Sheets; il gestore verifica i tempi dei backup e gli eventuali trasferimenti internazionali."]], "en": [["External copies and diagnostics", "If enabled by the operator, Google Sheets holds a copy of name, surname, email, product, result and store. Sentry may receive minimized technical errors; session replay and performance tracing are disabled."], ["Retention and deletion", "Sessions have a 30-day retention limit enforced by daily maintenance. Deletion requests include reconciliation of copies held by Brevo and Google Sheets; the operator verifies backup retention and any international transfers."]], "pt": [["Cópias externas e diagnóstico", "Se ativado pelo responsável, o Google Sheets recebe uma cópia de nome, sobrenome, e-mail, produto, resultado e loja. O Sentry pode receber erros técnicos com minimização de dados; gravação de sessões e rastreamento de desempenho estão desativados."], ["Prazos e exclusão", "As sessões têm limite de conservação de 30 dias, aplicado pela manutenção diária. Os pedidos de exclusão incluem a conferência das cópias na Brevo e no Google Sheets; o responsável verifica os prazos dos backups e eventuais transferências internacionais."]], "es": [["Copias externas y diagnóstico", "Si el responsable lo activa, Google Sheets recibe una copia de nombre, apellidos, email, producto, resultado y tienda. Sentry puede recibir errores técnicos minimizados; la grabación de sesiones y el seguimiento de rendimiento están desactivados."], ["Plazos y eliminación", "Las sesiones tienen un límite de conservación de 30 días, aplicado por mantenimiento diario. Las solicitudes de eliminación incluyen la revisión de copias en Brevo y Google Sheets; el responsable verifica los plazos de las copias de seguridad y las transferencias internacionales."]], "fr": [["Copies externes et diagnostic", "Si activé par le responsable, Google Sheets reçoit une copie du prénom, nom, email, produit, résultat et magasin. Sentry peut recevoir des erreurs techniques minimisées ; la relecture des sessions et le suivi des performances sont désactivés."], ["Délais et suppression", "Les sessions ont une limite de conservation de 30 jours appliquée par maintenance quotidienne. Les demandes de suppression incluent les copies chez Brevo et Google Sheets ; le responsable vérifie la conservation des sauvegardes et les transferts internationaux éventuels."]]})) {
+  CONTENT[language as Lang].sections.push(...sections.map(([h,p]) => ({h,p})));
+}
+
 export const PrivacyNotice = () => {
   const { lang } = useLang();
   const c = CONTENT[lang] ?? CONTENT.en;
 
   return (
-    <div className="space-y-4 text-left">
+    <div className="space-y-4 text-left" data-notice-version={PRIVACY_NOTICE_VERSION}>
+      {IS_DEMO && <p className="rounded border border-border p-3">DEMO · { {it:'Dati fittizi',en:'Synthetic data',pt:'Dados fictícios',es:'Datos ficticios',fr:'Données fictives'}[lang] }</p>}
       <h1 className="text-lg font-bold text-foreground">{c.title}</h1>
       <p className="text-sm leading-relaxed text-muted-foreground">{c.intro}</p>
       <div className="space-y-3">
-        {c.sections.map((s) => (
+        {c.sections.map((s,index) => (
           <div key={s.h}>
             <h2 className="text-sm font-semibold text-foreground">{s.h}</h2>
-            <p className="text-sm leading-relaxed text-muted-foreground">{s.p}</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">{index === 0 ? CONTROLLER : s.p}</p>
           </div>
         ))}
       </div>

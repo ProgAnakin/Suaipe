@@ -9,6 +9,8 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { IS_DEMO } from '@/config/demo';
+import { DemoStaffNotice } from '@/components/DemoStaffNotice';
 
 // Admin/analytics/training pages are lazy-loaded — never included in the kiosk
 // bundle. They're only accessed by staff via the /stats, /manager and
@@ -45,16 +47,16 @@ const App = () => (
 
             {/* ── Admin pages (lazy) ──────────────────────────── */}
             <Route path="/stats" element={
-              <Suspense fallback={<AdminFallback />}><Stats /></Suspense>
+              IS_DEMO ? <DemoStaffNotice/> : <Suspense fallback={<AdminFallback />}><Stats /></Suspense>
             } />
             <Route path="/manager" element={
-              <Suspense fallback={<AdminFallback />}><Manager /></Suspense>
+              IS_DEMO ? <DemoStaffNotice/> : <Suspense fallback={<AdminFallback />}><Manager /></Suspense>
             } />
             <Route path="/consulente" element={
-              <Suspense fallback={<AdminFallback />}><Consulente /></Suspense>
+              IS_DEMO ? <DemoStaffNotice/> : <Suspense fallback={<AdminFallback />}><Consulente /></Suspense>
             } />
             <Route path="/reset-password" element={
-              <Suspense fallback={<AdminFallback />}><ResetPassword /></Suspense>
+              IS_DEMO ? <DemoStaffNotice/> : <Suspense fallback={<AdminFallback />}><ResetPassword /></Suspense>
             } />
             <Route path="/privacy" element={
               <Suspense fallback={<AdminFallback />}><Privacy /></Suspense>

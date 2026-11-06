@@ -10,13 +10,14 @@ vi.mock('@/integrations/supabase/client', () => ({ supabase: {
 import { LoginForm } from '@/components/stats/LoginForm';
 beforeEach(() => { mocks.consumed.mockClear(); mocks.signIn.mockReset(); });
 describe('login failures', () => {
-  it('executes the audit builder after an invalid password', async () => {
+  it('uses Auth without a client-writable audit RPC', async () => {
     mocks.signIn.mockResolvedValue({ error: { message: 'invalid' } });
     render(<LoginForm onLoginSuccess={vi.fn()} onMfaRequired={vi.fn()} />);
     fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'test@example.com' } });
     fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'incorrect' } });
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
-    await waitFor(() => expect(mocks.consumed).toHaveBeenCalledOnce());
+    await waitFor(() => expect(mocks.signIn).toHaveBeenCalledOnce());
+    expect(mocks.consumed).not.toHaveBeenCalled();
     await waitFor(() => expect(screen.getByText('Invalid credentials.')).toBeVisible());
   });
 });

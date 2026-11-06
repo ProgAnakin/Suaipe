@@ -43,6 +43,7 @@ describe("verifyStaffPin", () => {
     invokeMock.mockResolvedValue({ data: { valid: true, locked_seconds: 0 }, error: null });
     await verifyStaffPin("4321");
     expect(invokeMock).toHaveBeenCalledWith("verify-pin", {
+      signal: expect.any(AbortSignal),
       body: {
         pin_input: "4321",
         client_id: "test-client-id",
@@ -51,39 +52,39 @@ describe("verifyStaffPin", () => {
     });
   });
 
-  it("falls back to RPC when the Edge Function returns an error", async () => {
+  it("fails closed without SQL fallback when the Edge Function returns an error", async () => {
     invokeMock.mockResolvedValue({ data: null, error: { message: "boom" } });
     rpcMock.mockResolvedValue({ data: { valid: true, locked_seconds: 0 }, error: null });
     const result = await verifyStaffPin("1234");
-    expect(result).toEqual({ valid: true, locked_seconds: 0 });
-    expect(rpcMock).toHaveBeenCalledOnce();
+    expect(result).toBeNull();
+    expect(rpcMock).not.toHaveBeenCalled();
   });
 
-  it("falls back to RPC when the Edge Function throws (network down)", async () => {
+  it("fails closed without SQL fallback when the Edge Function throws (network down)", async () => {
     invokeMock.mockRejectedValue(new Error("network unreachable"));
     rpcMock.mockResolvedValue({ data: { valid: false, locked_seconds: 10 }, error: null });
     const result = await verifyStaffPin("1234");
-    expect(result).toEqual({ valid: false, locked_seconds: 10 });
-    expect(rpcMock).toHaveBeenCalledOnce();
+    expect(result).toBeNull();
+    expect(rpcMock).not.toHaveBeenCalled();
   });
 
-  it("falls back to RPC when the Edge Function returns a malformed payload", async () => {
+  it("fails closed without SQL fallback when the Edge Function returns a malformed payload", async () => {
     // Missing the boolean `valid` field → must not be trusted.
     invokeMock.mockResolvedValue({ data: { something: "else" }, error: null });
     rpcMock.mockResolvedValue({ data: { valid: true, locked_seconds: 0 }, error: null });
     const result = await verifyStaffPin("1234");
-    expect(result).toEqual({ valid: true, locked_seconds: 0 });
-    expect(rpcMock).toHaveBeenCalledOnce();
+    expect(result).toBeNull();
+    expect(rpcMock).not.toHaveBeenCalled();
   });
 
-  it("returns null when both paths fail at network level", async () => {
+  it("returns null when the Edge path fails at network level", async () => {
     invokeMock.mockRejectedValue(new Error("edge down"));
     rpcMock.mockRejectedValue(new Error("rpc down"));
     const result = await verifyStaffPin("1234");
     expect(result).toBeNull();
   });
 
-  it("returns null (treated as invalid) when RPC yields null data", async () => {
+  it("returns null (treated as invalid) when Edge yields no valid result", async () => {
     invokeMock.mockResolvedValue({ data: null, error: { message: "boom" } });
     rpcMock.mockResolvedValue({ data: null });
     const result = await verifyStaffPin("1234");

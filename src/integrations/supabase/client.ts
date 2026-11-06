@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { IS_DEMO } from '@/config/demo';
+import { assertPublicSupabaseKey } from '@/lib/publicKey';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_URL = IS_DEMO ? 'https://placeholder.supabase.co' : import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = IS_DEMO ? 'demo-public-key' : import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // ── Safety checks ────────────────────────────────────────────────────────────
 // Fail fast if required env vars are missing — prevents silent runtime errors.
@@ -15,22 +17,17 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 
 // Block accidental use of the service-role key in client code.
 // Service-role keys bypass RLS and must NEVER reach the browser.
-if (
-  SUPABASE_PUBLISHABLE_KEY.startsWith('sbp_') ||
-  SUPABASE_PUBLISHABLE_KEY.length > 300
-) {
-  throw new Error(
-    '[suaipe] CRITICAL — a service-role key was detected in VITE_SUPABASE_PUBLISHABLE_KEY. '
-    + 'Only the anon/publishable key (eyJ…) is safe for the browser.',
-  );
-}
+assertPublicSupabaseKey(SUPABASE_PUBLISHABLE_KEY);
+export const LEGACY_AUTH_STORAGE_KEY = `sb-${new URL(SUPABASE_URL).hostname.split('.')[0]}-auth-token`;
 
 // ── Client ───────────────────────────────────────────────────────────────────
 // sessionStorage clears when the tab closes — limits exposure on shared kiosks.
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  global: { fetch: (input, init) => fetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(15_000) }) },
   auth: {
     storage: sessionStorage,
-    persistSession: true,
-    autoRefreshToken: true,
+    storageKey: IS_DEMO ? 'suaipe-demo-auth' : 'suaipe-staff-auth',
+    persistSession: !IS_DEMO,
+    autoRefreshToken: !IS_DEMO,
   },
 });

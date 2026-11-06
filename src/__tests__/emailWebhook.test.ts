@@ -1,5 +1,7 @@
 /// <reference types="node" />
 // @vitest-environment node
+import { safeTemplateHtml, spreadsheetText } from '../../supabase/functions/_shared/contentSafety';
+import { readBoundedJson } from '../../supabase/functions/_shared/request';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 import { describe, expect, it, vi } from 'vitest';
@@ -29,9 +31,9 @@ function fixture(options: { reserved?: boolean; networkFailure?: boolean; comple
   });
   const source = readFileSync('supabase/functions/on-session-created/index.ts', 'utf8').replace(/^import .*;\n/gm, '');
   const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } }).outputText;
-  new Function('serve', 'createClient', 'Deno', 'fetch', js)(
+  new Function('serve', 'createClient', 'Deno', 'fetch', 'safeTemplateHtml', 'spreadsheetText', 'readBoundedJson', js)(
     (fn: typeof handler) => { handler = fn; }, () => ({ rpc, from }),
-    { env: { get: (key: string) => key === 'WEBHOOK_SECRET' ? 'test-secret' : undefined } }, fetch,
+    { env: { get: (key: string) => key === 'WEBHOOK_SECRET' ? 'test-secret' : undefined } }, fetch, safeTemplateHtml, spreadsheetText, readBoundedJson,
   );
   const request = (secret = 'test-secret') => new Request('https://example.com', { method: 'POST',
     headers: { 'x-webhook-secret': secret, 'Content-Type': 'application/json' },
@@ -52,7 +54,7 @@ describe('email webhook', () => {
     const f = fixture(); expect((await f.handler(f.request())).status).toBe(200);
     const call = f.fetch.mock.calls[0] as unknown as [string, RequestInit];
     expect(JSON.parse(String(call[1].body)).to[0].email).toBe('real@example.com');
-    expect(f.updates).toContainEqual({ email_sent: true, email_status: 'sent' });
+    expect(f.updates).toContainEqual({ email_sent: true, email_status: 'sent', email_provider_id: 'accepted-id' });
   });
   it('marks ambiguous transport failures for reconciliation', async () => {
     const f = fixture({ networkFailure: true });

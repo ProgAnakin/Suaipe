@@ -64,7 +64,7 @@ export const Dashboard = ({ onLogout }: DashboardProps) => {
       const name = `${s.nome ?? ""} ${s.cognome ?? ""}`.toLowerCase();
       return (
         s.email.toLowerCase().includes(q) ||
-        productName(s.matched_product_id).toLowerCase().includes(q) ||
+        productName(s.matched_product_id, s.product_name).toLowerCase().includes(q) ||
         name.includes(q)
       );
     });
@@ -96,7 +96,7 @@ export const Dashboard = ({ onLogout }: DashboardProps) => {
         <DashboardHeader
           isFiltered={isFiltered}
           showFilters={showFilters}
-          exportDisabled={filteredSessions.length === 0}
+          exportDisabled={loading || hasError || dateRangeInvalid || filteredSessions.length === 0}
           hasMfa={hasMfa}
           onRefresh={() => data.refetch(true)}
           onToggleFilters={() => setShowFilters((v) => !v)}
@@ -167,7 +167,7 @@ export const Dashboard = ({ onLogout }: DashboardProps) => {
               <StatCard label="Emails collected" value={metrics.uniqueEmails} trend={null} sub={isFiltered ? "in this period" : undefined} />
               <StatCard label="Average match" value={`${metrics.avgMatch}%`} trend={null} />
               <StatCard label="Today" value={metrics.todaySessions} sub="sessions" />
-              <StatCard label="Emails delivered" value={`${metrics.emailDeliveryRate}%`} sub={`${metrics.emailSentCount} / ${metrics.total}`} />
+              <StatCard label="Emails accepted" value={`${metrics.emailDeliveryRate}%`} sub={`${metrics.emailSentCount} / ${metrics.total}`} />
               <StatCard label="Returning visitors" value={metrics.returningCount} sub="duplicate emails" />
 
               {tassoClaimPct !== null && (

@@ -13,11 +13,12 @@ vi.mock('sonner', () => ({ toast: { success: mocks.success, error: mocks.error }
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {
   rpc: mocks.rpc,
   from() {
+    let offset = 0;
     const query = {
-      select: () => query, order: () => query, eq: () => query, range: () => query,
+      select: () => query, order: () => query, eq: () => query, range: (from: number) => { offset = from; return query; }, in: () => query, lt: () => query,
       gte: () => query, lte: () => query, or: () => query,
       then(resolve: (value: unknown) => unknown) {
-        return Promise.resolve({ data: mocks.queryError ? null : [{
+        return Promise.resolve({ data: mocks.queryError ? null : offset > 0 ? [] : [{
           id: 'synthetic', nome: '=1+1', cognome: 'Synthetic', email: 'synthetic@example.com',
           matched_product_id: 'synthetic-product', match_percent: 80, store_id: 'lisboa',
           created_at: '2026-11-06T12:00:00Z', email_sent: false, discount_code: null,
@@ -44,10 +45,11 @@ beforeEach(() => {
 });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 
-describe('Prelaunch probes: desired protections, currently failing', () => {
+describe('Prelaunch regressions', () => {
   it('neutralizes spreadsheet formulas in the manager CSV export', async () => {
     const { result } = renderHook(() => useSessionsData({ storeId: 'lisboa', isGlobal: true }));
     await act(async () => { await result.current.exportToCSV(); });
+    expect(exported).toContain('Synthetic');
     expect(exported).not.toContain('"=1+1"');
   });
   it('does not report a successful export after a denied database query', async () => {

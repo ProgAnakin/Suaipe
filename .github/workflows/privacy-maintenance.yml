@@ -1,0 +1,42 @@
+name: Privacy maintenance
+on:
+  schedule:
+    - cron: '15 3 * * *'
+    - cron: '30 * * * *'
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'health is read-only; maintenance deletes expired data'
+        type: choice
+        options: [health, maintenance]
+        default: health
+permissions:
+  contents: read
+jobs:
+  maintenance:
+    if: vars.PRIVACY_MAINTENANCE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Enforce retention and check pending reconciliations
+        env:
+          PROJECT_URL: ${{ vars.SUPABASE_PROJECT_URL }}
+          MAINTENANCE_SECRET: ${{ secrets.MAINTENANCE_SECRET }}
+          OPERATION: ${{ github.event_name == 'workflow_dispatch' && inputs.operation || github.event.schedule == '15 3 * * *' && 'maintenance' || 'health' }}
+        run: |
+          set -euo pipefail
+          [[ "$PROJECT_URL" =~ ^https://[a-z0-9-]+\.supabase\.co$ ]] || exit 1
+          test -n "$MAINTENANCE_SECRET"
+          method=GET
+          if [[ "$OPERATION" == maintenance ]]; then method=POST; fi
+          curl --fail --silent --show-error --max-time 60 --request "$method" \
+            --header "x-maintenance-secret: $MAINTENANCE_SECRET" \
+            "$PROJECT_URL/functions/v1/privacy-maintenance" > "$RUNNER_TEMP/maintenance.json"
+          python - "$RUNNER_TEMP/maintenance.json" <<'PY'
+          import json, sys
+          with open(sys.argv[1]) as source:
+              result = json.load(source)
+          print(json.dumps(result))  # Aggregates only, never customer records.
+          if result.get('maintenance_overdue') or result.get('external_erasure_pending', 0) or result.get('email_reconciliation_pending', 0):
+              raise SystemExit('Operator reconciliation required; inspect the protected queue.')
+          PY

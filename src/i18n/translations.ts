@@ -235,7 +235,7 @@ export const translations: Record<Lang, T> = {
     success: {
       title: (n) => `Perfetto, ${n}!`,
       titleNoName: "Complimenti!",
-      productOnWay: "Il tuo pacchetto esclusivo è in arrivo a:",
+      productOnWay: "Richiesta ricevuta. Controlla la casella email:",
       recipient: "Destinatario",
       spamNote: "Non vedi l'email? Controlla anche la cartella spam.",
       restart: "🔄 Gioca di Nuovo",
@@ -388,7 +388,7 @@ export const translations: Record<Lang, T> = {
     success: {
       title: (n) => `Perfect, ${n}!`,
       titleNoName: "Congratulations!",
-      productOnWay: "Your exclusive package is on its way to:",
+      productOnWay: "Request received. Check your email:",
       recipient: "Recipient",
       spamNote: "Can't find the email? Check your spam folder too.",
       restart: "🔄 Play Again",
@@ -541,7 +541,7 @@ export const translations: Record<Lang, T> = {
     success: {
       title: (n) => `Perfeito, ${n}!`,
       titleNoName: "Parabéns!",
-      productOnWay: "O seu pacote exclusivo está a caminho de:",
+      productOnWay: "Pedido recebido. Confira seu e-mail:",
       recipient: "Destinatário",
       spamNote: "Não encontrou o email? Verifique também a pasta de spam.",
       restart: "🔄 Jogar Novamente",
@@ -694,7 +694,7 @@ export const translations: Record<Lang, T> = {
     success: {
       title: (n) => `¡Perfecto, ${n}!`,
       titleNoName: "¡Felicidades!",
-      productOnWay: "Tu paquete exclusivo está en camino a:",
+      productOnWay: "Solicitud recibida. Revisa tu email:",
       recipient: "Destinatario",
       spamNote: "¿No ves el email? Revisa también la carpeta de spam.",
       restart: "🔄 Jugar de Nuevo",
@@ -847,7 +847,7 @@ export const translations: Record<Lang, T> = {
     success: {
       title: (n) => `Parfait, ${n} !`,
       titleNoName: "Félicitations !",
-      productOnWay: "Votre colis exclusif est en route vers :",
+      productOnWay: "Demande reçue. Vérifiez votre email :",
       recipient: "Destinataire",
       spamNote: "Vous ne trouvez pas l'email ? Vérifiez aussi le dossier spam.",
       restart: "🔄 Rejouer",

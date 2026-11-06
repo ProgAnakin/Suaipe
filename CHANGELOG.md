@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.1.0 — release candidate (2026-11-06)
+
+- Harden Storage/guide/funnel authorization, server audit identity and persistent service-only PIN verification.
+- Validate claims/consent and enforce immutable retries, request deadlines, safe CSVs and complete pagination.
+- Add privacy maintenance, external-erasure operations, kiosk readiness and session cleanup on shared devices.
+- Isolate public previews as synthetic demos; add release metadata, self-hosted font and third-party notices.
+- Add regression/restore/concurrency checks, security CI and current deployment/AI handoff documentation.
+- Hosted deployment, browser/iPad checks, real recovery, provider contracts/rights and alert reception require independent evidence.
+
+
 All notable changes to Suaipe are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 versioning follows [SemVer](https://semver.org/spec/v2.0.0.html).

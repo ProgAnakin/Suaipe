@@ -38,7 +38,7 @@ export const useDashboardMetrics = (filteredSessions: QuizSession[]) => {
     return Object.entries(counts)
       .map(([id, count]) => ({
         id,
-        name: productName(id),
+        name: productName(id, filteredSessions.find(s => s.matched_product_id === id)?.product_name),
         count,
         percent: total ? Math.round((count / total) * 100) : 0,
         avgMatch: Math.round((matchSums[id] ?? 0) / count),

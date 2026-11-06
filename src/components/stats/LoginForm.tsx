@@ -35,30 +35,15 @@ export const LoginForm = ({
     setLoading(true); setError("");
 
     try {
-      const { data: limitData } = await supabase.rpc("check_login_rate_limit", {
-        p_email: email.trim().toLowerCase(),
-      });
-      const limit = limitData as { locked: boolean; locked_seconds: number } | null;
-      if (limit?.locked) {
-        setLockedSeconds(limit.locked_seconds);
-        setLoading(false);
-        setError("Too many attempts. Try again in a few minutes.");
-        return;
-      }
-
       const { error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(), password,
       });
 
-      const { error: recordError } = await supabase.rpc("record_login_attempt", {
-        p_email: email.trim().toLowerCase(),
-        p_success: !authError,
-      });
-      if (recordError) console.error("[suaipe] login audit failed", recordError.code);
-
+      // Auth's native limits/audit are authoritative; clients cannot record attempts.
       setLoading(false);
       if (authError) {
-        setError("Invalid credentials.");
+        if (authError.status === 429) setLockedSeconds(60);
+        setError(authError.status === 429 ? "Too many attempts. Please wait." : "Invalid credentials.");
       } else {
         const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
         if (aal?.currentLevel === "aal2") {
@@ -69,7 +54,7 @@ export const LoginForm = ({
           // No TOTP factor enrolled — enforce enrolment before granting access.
           onEnrollRequired();
         } else {
-          onLoginSuccess();
+          setError("MFA enrollment is required. Contact the administrator.");
         }
       }
     } catch {

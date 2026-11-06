@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import '@fontsource-variable/space-grotesk';
 
 @tailwind base;
 @tailwind components;
@@ -52,7 +52,7 @@
     --gradient-success: linear-gradient(135deg, hsl(168, 76%, 52%), hsl(188, 86%, 53%));
     --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.35);
     --shadow-card: 0 20px 60px hsl(0 0% 0% / 0.4);
-    --font-display: 'Space Grotesk', sans-serif;
+    --font-display: 'Space Grotesk Variable', sans-serif;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;

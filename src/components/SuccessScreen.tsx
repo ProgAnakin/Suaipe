@@ -179,7 +179,7 @@ const SuccessScreen = ({ email, userName, productName, onRestart }: SuccessScree
   ];
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-10">
+    <div data-testid="claim-success" className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-10">
 
       <SuccessBackground skip={!!reduceMotion} />
 
@@ -293,6 +293,7 @@ const SuccessScreen = ({ email, userName, productName, onRestart }: SuccessScree
 
         {/* ── Restart button ── */}
         <motion.button
+          data-testid="restart-quiz"
           onClick={onRestart}
           className="gradient-primary shadow-glow w-full rounded-2xl px-8 py-4 text-lg font-bold text-primary-foreground active:scale-95"
           whileHover={{ scale: 1.03 }}
