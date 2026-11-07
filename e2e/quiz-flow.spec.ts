@@ -38,6 +38,7 @@ test.describe("Quiz kiosk flow", () => {
   });
 
   test("unconfigured kiosk does not collect personal data", async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('wb_lang', 'it'));
     await page.goto("/");
     await page.getByTestId("start-quiz").click();
     await expect(page.getByRole("status")).toContainText("Il chiosco non è disponibile");

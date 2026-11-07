@@ -1,10 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const chromiumFallback = process.env.PLAYWRIGHT_BROWSER === "chromium";
+
 // Standalone Playwright config — starts the Vite preview server and runs the
 // kiosk flow specs in /e2e against an iPad-sized WebKit viewport (the engine
 // real kiosks use).
 export default defineConfig({
   testDir: "./e2e",
+  // Existing screenshots belong to WebKit; never compare them to another engine.
+  testIgnore: chromiumFallback ? "**/visual-regression.spec.ts" : undefined,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -28,21 +32,25 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:4173",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    video: chromiumFallback ? "off" : "retain-on-failure",
   },
 
   projects: [
     {
-      name: "ipad-landscape",
-      use: { ...devices["iPad Pro 11 landscape"] },
+      name: chromiumFallback ? "chromium-ipad-viewport" : "ipad-landscape",
+      use: {
+        ...devices["iPad Pro 11 landscape"],
+        browserName: chromiumFallback ? "chromium" : "webkit",
+        ...(chromiumFallback ? { launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || "/usr/bin/chromium" } } : {}),
+      },
     },
   ],
 
   webServer: {
     // Build once with stub env vars, then preview — mirrors CI build behaviour.
     command:
-      "VITE_SUPABASE_URL=https://placeholder.supabase.co " +
-      "VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder " +
+      "VITE_ENABLE_MARKETING=true VITE_DEMO_MODE=false VITE_ALLOW_REAL_CUSTOMER_DATA=true VITE_SUPABASE_URL=https://placeholder.supabase.co " +
+      "VITE_SUPABASE_PUBLISHABLE_KEY=fixture-public-key " +
       "npm run build && npx vite preview --host 127.0.0.1 --port 4173 --strictPort",
     url: "http://127.0.0.1:4173",
     reuseExistingServer: !process.env.CI,

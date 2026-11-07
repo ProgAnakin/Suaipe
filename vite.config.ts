@@ -21,9 +21,13 @@ const sentryEnabled = !!(
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   assertPublicSupabaseKey(env.VITE_SUPABASE_PUBLISHABLE_KEY ?? '');
-  const demo = env.VITE_DEMO_MODE ?? (process.env.VERCEL_ENV === 'preview' ? 'true' : 'false');
+  // Portfolio builds use synthetic data unless real collection is explicitly enabled.
+  const demo = env.VITE_DEMO_MODE ?? 'true';
+  if (demo !== 'true' && env.VITE_ALLOW_REAL_CUSTOMER_DATA !== 'true') {
+    throw new Error('Real customer data is disabled. Enable VITE_ALLOW_REAL_CUSTOMER_DATA only after the release checklist is complete.');
+  }
   if (process.env.VERCEL_ENV === 'production' && demo !== 'true' &&
-      (!env.VITE_PRIVACY_CONTROLLER?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.VITE_PRIVACY_CONTACT ?? ''))) {
+      (!env.VITE_PRIVACY_CONTROLLER?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(env.VITE_PRIVACY_CONTACT ?? '') || /@(example\.(com|org|net|invalid)|[^@]+\.invalid)$/i.test(env.VITE_PRIVACY_CONTACT ?? ''))) {
     throw new Error('Configure the real privacy controller and contact before production deployment.');
   }
   const sha = process.env.VERCEL_GIT_COMMIT_SHA ?? '';

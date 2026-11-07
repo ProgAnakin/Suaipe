@@ -5,3 +5,7 @@
 /.github/ @ProgAnakin
 /config/semgrep.yml @ProgAnakin
 /.gitleaksignore @ProgAnakin
+/src/__tests__/ @ProgAnakin
+/e2e/ @ProgAnakin
+/e2e-demo/ @ProgAnakin
+/docs/readiness/ @ProgAnakin

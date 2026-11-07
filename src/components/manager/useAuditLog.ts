@@ -18,7 +18,7 @@ export const useAuditLog = (enabled: boolean) => {
     try {
       const { data, error: queryError } = await supabase
         .from("manager_audit_log")
-        .select("id, created_at, action, product_id, old_active, new_active, store_id, user_id, user_email")
+        .select("id, created_at, action, product_id, old_active, new_active, store_id, user_id, user_email, source")
         .order("created_at", { ascending: false })
         .limit(200);
       if (queryError) {

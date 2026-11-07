@@ -16,6 +16,9 @@ const SwipeTutorial = ({ onDismiss }: { onDismiss: () => void }) => {
 
   return (
     <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-label={t.tutorial.ready}
       className="absolute inset-0 z-50 flex flex-col items-center justify-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -132,6 +135,7 @@ const SwipeTutorial = ({ onDismiss }: { onDismiss: () => void }) => {
 
             {/* CTA button */}
             <motion.button
+              data-testid="dismiss-swipe-tutorial"
               onClick={onDismiss}
               className="gradient-primary shadow-glow rounded-2xl px-10 py-3.5 text-base font-bold text-primary-foreground active:scale-95"
               initial={{ opacity: 0, y: 10 }}

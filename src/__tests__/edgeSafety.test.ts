@@ -24,4 +24,9 @@ describe('Streaming request limit', () => {
   it('rejects a body without trusting Content-Length', async () => {
     await expect(readBoundedJson(new Request('https://example.com',{method:'POST',body:JSON.stringify({data:'a'.repeat(1000)})}),100)).rejects.toThrow('Body too large');
   });
+  it('does not wait for a hostile stream cancellation to finish', async () => {
+    const stream=new ReadableStream<Uint8Array>({start(controller){controller.enqueue(new Uint8Array(200));},cancel(){return new Promise(()=>{});}});
+    const request=new Request('https://example.invalid',{method:'POST',body:stream,duplex:'half'} as RequestInit);
+    await expect(readBoundedJson(request,100)).rejects.toThrow('Body too large');
+  },1000);
 });

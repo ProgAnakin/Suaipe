@@ -14,8 +14,8 @@ import type { Lang } from "@/i18n/translations";
 // GDPR Art. 12(1) requires the notice to be in "clear and plain language"
 // the data subject understands — so every kiosk language has its own copy.
 
-const CONTACT_EMAIL = import.meta.env.VITE_PRIVACY_CONTACT || "privacy@example.invalid";
-const CONTROLLER = import.meta.env.VITE_PRIVACY_CONTROLLER || "Suaipe (demo)";
+const CONTACT_EMAIL = import.meta.env.VITE_PRIVACY_CONTACT || "suaipe@example.invalid";
+const CONTROLLER = import.meta.env.VITE_PRIVACY_CONTROLLER || "Costanzo Annichini";
 
 interface Section { h: string; p: string; }
 interface NoticeContent { title: string; intro: string; sections: Section[]; }
@@ -101,6 +101,19 @@ for (const [language, sections] of Object.entries({"it": [["Copie esterne e diag
 export const PrivacyNotice = () => {
   const { lang } = useLang();
   const c = CONTENT[lang] ?? CONTENT.en;
+
+  if (IS_DEMO) return <div className="space-y-4 text-left" data-notice-version={PRIVACY_NOTICE_VERSION}>
+    <h1 className="text-lg font-bold">{c.title} · DEMO</h1>
+    <p>{CONTROLLER}</p>
+    <p>{ {
+      it:'Portfolio dimostrativo: usa un visitatore e un catalogo fittizi. Non richiede dati di clienti o credenziali e non invia email né registra autorizzazioni marketing. Le preferenze di lingua restano nel browser; la navigazione e i contenuti possono generare log tecnici presso i servizi di hosting.',
+      en:'Portfolio demonstration using a synthetic visitor and catalog. It does not request customer details or credentials, send email, or register marketing permission. Language preferences stay in the browser; page and content requests may generate technical logs at hosting services.',
+      pt:'Demonstração de portfólio com visitante e catálogo fictícios. Não solicita dados de clientes ou credenciais, não envia e-mails nem registra autorização de marketing. Preferências de idioma ficam no navegador; acessos às páginas e conteúdos podem gerar logs técnicos nos serviços de hospedagem.',
+      es:'Demostración de portafolio con visitante y catálogo ficticios. No solicita datos de clientes ni credenciales, no envía correos ni registra permiso de marketing. El idioma se guarda en el navegador; las páginas y contenidos pueden generar registros técnicos en el alojamiento.',
+      fr:'Démonstration de portfolio avec visiteur et catalogue fictifs. Elle ne demande ni données clients ni identifiants, n’envoie aucun email et n’enregistre aucun consentement marketing. La langue reste dans le navigateur ; les pages et contenus peuvent générer des journaux techniques chez les hébergeurs.',
+    }[lang]}</p>
+    <p>{CONTACT_EMAIL} · { {it:'esempio fittizio, non monitorato',en:'fictitious example, not monitored',pt:'exemplo fictício, não monitorado',es:'ejemplo ficticio, sin supervisión',fr:'exemple fictif, non surveillé'}[lang] }</p>
+  </div>;
 
   return (
     <div className="space-y-4 text-left" data-notice-version={PRIVACY_NOTICE_VERSION}>

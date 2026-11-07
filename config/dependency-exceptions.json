@@ -1,0 +1,11 @@
+{
+  "review_date": "2026-11-07",
+  "expires": "2026-12-07",
+  "owner": "Costanzo Annichini",
+  "human_review": "pending",
+  "advisory": "https://github.com/advisories/GHSA-gcqx-w48m-w2h4",
+  "packages": ["deepmerge", "@rollup/plugin-node-resolve", "workbox-build", "vite-plugin-pwa"],
+  "maximum_severity": "low",
+  "reason": "One unpatched deepmerge build-time advisory propagated through PWA tooling. No runtime production dependency is affected. No forced downgrade or broad suppression.",
+  "mitigation": "Build configuration is source-controlled, security files require owner review, PR workflows receive no deployment secrets and use read-only permissions. A hostile contributor who controls Vite config already controls build code; this is not a customer-input merge path. Review the advisory after upstream updates and before real-data launch."
+}

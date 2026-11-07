@@ -12,10 +12,10 @@ export const SevenDayChart = ({ dayCounts, maxDay, isFiltered }: SevenDayChartPr
     className="rounded-2xl border border-border bg-card p-6 shadow-card"
     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
   >
-    <h2 className="mb-1 font-bold text-foreground">📅 Last 7 days</h2>
+    <h2 className="mb-1 font-bold text-foreground">📅 Last 7 days (UTC)</h2>
     {isFiltered && (
       <p className="mb-4 text-[10px] text-muted-foreground">
-        The chart always shows the last 7 real days, independent of the date filter.
+        Counts use the current filters; dates and hours are shown in UTC.
       </p>
     )}
     <div className="flex h-28 items-end justify-between gap-2 mt-4">

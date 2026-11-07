@@ -3,6 +3,7 @@ import concurrent.futures
 import json
 import subprocess
 import sys
+import uuid
 
 container = sys.argv[1]
 
@@ -41,6 +42,26 @@ sql(f"INSERT INTO quiz_sessions(id,email,matched_product_id,match_percent,store_
 second = sql(f"SET ROLE service_role; SELECT begin_session_email('{second_id}') IS NULL;")
 assert second == 't'
 print(json.dumps({'same_address_second_session_suppressed': True}))
+
+# Distinct requests must not oversubscribe the store quota under concurrency.
+def quota_claim(n, store='dublino'):
+    payload = json.dumps({'consent_notice_version':'2026-11-06','email':f'quota-{n}@example.invalid',
+                          'nome':'Synthetic','cognome':'Visitor','language':'en','consent_given_at':timestamp,
+                          'store_id':store,'answers':{},'matched_product_id':'concurrency-probe','match_percent':80})
+    try:
+        sql(f"SET ROLE anon; SELECT submit_quiz_session('{uuid.uuid4()}', '{payload}'::jsonb);")
+        return 'accepted'
+    except subprocess.CalledProcessError as error:
+        if 'Store quota reached' in error.stderr:
+            return 'limited'
+        raise
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+    results = list(pool.map(quota_claim, range(35)))
+assert results.count('accepted') == 30 and results.count('limited') == 5
+assert int(sql("SELECT count(*) FROM quiz_sessions WHERE store_id='dublino';")) == 30
+assert quota_claim(999, 'milano') == 'accepted'
+print(json.dumps({'store_quota_attempts':35,'accepted':30,'limited':5,'other_store_available':True}))
 
 # Bulk synthetic seed bypasses application triggers solely in this disposable DB.
 sql("""SET session_replication_role=replica;

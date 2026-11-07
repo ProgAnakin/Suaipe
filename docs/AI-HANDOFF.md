@@ -1,6 +1,8 @@
 # Passagem técnica para outra IA — Suaipe 2.1.0
 
-Preparado em 06/11/2026, Europe/Rome. Branch `fix/security-and-release-hardening`; versão **2.1.0 candidata**. Este documento explica o código, não certifica o ambiente hospedado.
+Preparado em 06/11/2026, atualizado em 07/11/2026, Europe/Rome. Branch `fix/security-and-release-hardening`; versão **2.1.0 candidata**. Este documento explica o código, não certifica o ambiente hospedado.
+
+Escopo confirmado pelo autor em 07/11: portfólio pessoal de Costanzo Annichini, público europeu (IT/PT/ES/FR); marketing é possibilidade futura condicionada à autorização. Sem contato real fornecido. Usar `suaipe@example.invalid` como exemplo reservado e explicitamente fictício. Ler a [rodada atual](releases/2026-11-07/README.md) e a [matriz individual dos 317 controles](readiness/README.md); a rodada de 06/11 é histórica.
 
 ## Contexto e leitura
 
@@ -9,7 +11,7 @@ Preparado em 06/11/2026, Europe/Rome. Branch `fix/security-and-release-hardening
 ## Demonstração e produção
 
 - `VITE_DEMO_MODE=true` usa catálogo local e `Demo Visitor / demo@example.invalid`. Sem formulário de dados pessoais, eventos de funil, escrita, PIN, monitoramento ou e-mail reais. Rotas administrativas/recuperação não exibem campos de credenciais. O SDK da demo usa configuração fictícia e outro namespace de sessão.
-- `VERCEL_ENV=preview` ativa demo por padrão. Uma variável explícita `VITE_DEMO_MODE` tem precedência. Não conectar uma demonstração pública aos clientes reais.
+- **Qualquer build**, inclusive Production da Vercel, usa demo por padrão. Operação real exige explicitamente `VITE_DEMO_MODE=false` e `VITE_ALLOW_REAL_CUSTOMER_DATA=true`. A segunda variável evita ativação acidental por configuração antiga. Não conectar portfólio público aos clientes reais.
 - Produção real usa Supabase e exige identidade/contato reais de privacidade na build. O modo real depende de manutenção diária; não é liberado por uma prévia visual.
 - `/release.json` informa versão, commit fornecido pela Vercel e modo demo. Comparar com o commit esperado. `commit="local"` não prova deploy.
 
@@ -43,7 +45,7 @@ RPC pública: `submit_quiz_session(p_request_id uuid,p_payload jsonb)`. Corpo: n
 - `record_quiz_event` permite início/resultado com data do servidor, sequência e quotas (120/minuto, 2.400/hora por loja). `claimed` vem do commit da sessão.
 - Leitura de funil exige cargo, MFA e loja. Filtro de interface não é isolamento.
 - Paginação usa quantidade recebida, ordem estável, limite de 100 mil e conferência de duplicatas/contagem. Erro não gera “sucesso” parcial. Diminuir datas quando necessário. A paginação HTTP não equivale a uma transação de snapshot para exportações formais sob qualquer mutação concorrente.
-- CSVs e Sheets neutralizam fórmulas/caracteres de controle. Respeitar os filtros. Usar o helper compartilhado.
+- CSVs e Sheets neutralizam fórmulas/caracteres de controle. Respeitar os filtros. Usar o helper compartilhado, inclusive no histórico/modelo de preços. O importador aceita template protegido/aspas/vírgulas, valida IDs/duplicatas, preserva a loja e deixa falhas pendentes; não é um lote atômico. Conferir a linha ambígua antes de repetir. Histórico exporta os 200 eventos carregados/filtrados e identifica legacy como não verificado.
 - Nomes de produtos preferem o snapshot da sessão, não apenas fixtures.
 
 ## E-mail e fornecedores
@@ -62,15 +64,30 @@ Sheets é opt-in por `ENABLE_SHEETS_RELAY=true`, com cópia minimizada e fórmul
 - `run_privacy_maintenance` (somente serviço): sessões/funil 30 dias, acessos/login 14 dias, cooldown legado um dia, auditoria 730 dias; tarefas concluídas são minimizadas e depois removidas. Atualiza disponibilidade do quiosque.
 - Exclusão local enfileira Brevo/Sheets em `external_erasure_requests`, inclusive por cautela quando uma integração não foi utilizada. Gerente confirma conclusão ou não aplicabilidade após verificar; email é removido da tarefa concluída e a ação é auditada.
 - Management → Privacy permite solicitações verificadas de exclusão local e conferência de tarefas externas. Exclusão local não significa exclusão do provedor/logs/backups/CSV.
+- A mesma aba exporta somente as sessões do endereço exato verificado (`get_customer_records`, com paginação), aplica correção validada de nomes (`correct_customer_names`) e registra retirada de marketing. Todos exigem gerente+MFA; mudanças de nomes/retirada são auditadas. Não existe consulta pública por e-mail. Verificação de identidade, entrega segura e fornecedores continuam tarefas do operador.
 - Workflow diário `privacy-maintenance.yml` depende de flag, URL e secret configurados. Pendências fazem o job falhar para chamar atenção. Confirmar recebimento de alertas, não presumir.
 
 ## Migrações, validação e limites
 
-Ordem: `20261103000001_release_security.sql` (anterior), `20261106000001_prelaunch_audit_fixes.sql`, `20261106000002_privacy_operations.sql`. Depois quatro funções, scheduler/manutenção e frontend real. Pausar quiosques; clientes antigos são incompatíveis. Roteiro: [DEPLOY-2.1.0.md](DEPLOY-2.1.0.md).
+Ordem: migrações anteriores, duas de 06/11 e `20261107000001_portfolio_and_marketing.sql`, `20261107000002_storage_limits.sql`, `20261107000003_subject_rights.sql`. Depois quatro funções, scheduler/manutenção e frontend **real**. Pausar quiosques; clientes antigos são incompatíveis. Para o portfólio sintético, publicar apenas o frontend em demo não exige ativar serviços de clientes. Roteiro: [DEPLOY-2.1.0.md](DEPLOY-2.1.0.md).
 
 Checks: `npm run typecheck`, `npm run typecheck:edge`, `npm run lint`, `npm run test:coverage -- --maxWorkers=2`, `npm run test:db`, `npm run test:restore`, `npm run test:e2e`, `npm run test:e2e:demo`.
 
 Edge typecheck usa declarações mínimas de Deno/tipos do SDK local; não substitui runtime hospedado. SQL usa Auth/Storage mínimos locais. Restore é sintético, sem dados/arquivos reais. CI inclui Gitleaks, cinco regras SAST, auditoria npm, tipos, SQL, restore, unidade/build e duas suítes WebKit. Regressões novas da auditoria estão na suíte normal. Não esconder falhas nem atualizar screenshots sem revisão.
+
+Agora há `npm run test:edge:runtime`: três testes de fronteira executados no Deno oficial 2.9.6, sem SDK/gateway/provedores reais. Chromium local executa jornadas por `PLAYWRIGHT_BROWSER=chromium npm run test:e2e` e `test:e2e:demo`; ignora somente os três snapshots visuais exclusivos de WebKit e desativa vídeo por falta do FFmpeg do Playwright. Isso não é aprovação de WebKit/iPad físico. Capturas de documentação são geradas pelo navegador com fixtures locais; não são baselines de teste nem prova de autorização hospedada.
+
+## Marketing, dependências e operação futura
+
+`VITE_ENABLE_MARKETING=false` e `app_config.marketing_enabled=false` por padrão. A escolha opcional é separada do resultado, sem pré-seleção, com booleano/versão própria e timestamp do servidor. Cadastros antigos permanecem sem opt-in. `marketing_withdrawn_at` impede elegibilidade no relay; preservar evidência inicial. Campanhas, double opt-in e supressão externa não estão implementados. Antes de qualquer campanha, rever titularidade do endereço, finalidade, prazo, contratos e cancelamento real. Um CSV geral não é uma lista autorizada para marketing.
+
+Relay automático exige opt-in não retirado. Relay manual recebe somente `{session_id}` e consulta registro canônico com autorização; não aceita nome/e-mail fabricados no corpo. Destino e redirects limitam-se a `script.google.com` / `script.googleusercontent.com`; requests têm prazo e método de redirect corretos. Respostas recusadas não reportam sucesso.
+
+Imagens: assinatura/MIME, até 5 MB, dimensões/pixels limitados e re-encode obrigatório; erro não retorna o original. Bucket limita tamanho/MIME e continua público só para catálogo. Isso não substitui inspeção antimalware servidor contra upload direto de gerente.
+
+`npm run audit:dependencies` confere a árvore completa com exceção exata e temporária para o advisory baixo de deepmerge na ferramenta PWA; não há exceção de produção. Vence em 07/12/2026 e requer revisão humana. O cron semanal foi adicionado e a configuração existente do Dependabot foi preservada; confirmar execução/notificações na branch padrão. `npm run readiness` valida a integridade do registro; `-- --real-data` deve falhar enquanto a liberação real estiver bloqueada.
+
+Ler [escopo/riscos](readiness/scope-and-risks.md), [registro de tratamento/direitos](readiness/privacy-operations.md) e [incidentes/recuperação](readiness/incident-and-recovery.md). Não tratar a elaboração desses documentos como assinatura de contrato, revisão humana independente ou prova de alertas/restore reais.
 
 Não declarar concluídos sem evidência: deploy/ACLs/gateway/Auth reais; WebKit/iPad; backup/arquivos reais e RTO/RPO; alertas/DNS/entrega; contratos, direitos de imagens/marcas/vídeos e material corporativo; aplicabilidade jurídica; capacidade/p95/soak. As medições sintéticas não são SLA e os 317 itens do protocolo não estão automaticamente aprovados. Configurar credenciais por canal seguro, nunca em chat.
 

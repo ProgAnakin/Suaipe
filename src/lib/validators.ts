@@ -12,6 +12,12 @@ export function isValidStoreId(id: unknown): boolean {
   return typeof id === "string" && STORE_ID_RE.test(id);
 }
 
+/** Manager-only Euro price entry; empty clears a store override. */
+export function isValidPrice(value: string): boolean {
+  const trimmed=value.trim();
+  return trimmed === '' || /^€?\d+([.,]\d{1,2})?$/.test(trimmed);
+}
+
 /**
  * Extract the 11-char YouTube video ID from common URL formats:
  * - youtube.com/watch?v=ID

@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-07T00:35:42.767Z",
+  "engine": "Chromium 154.0.8037.57",
+  "dimensions": "1366x1024",
+  "source": "Actual application builds from this working tree; versioned by the containing commit",
+  "portfolio": [
+    "attract",
+    "welcome",
+    "quiz",
+    "result"
+  ],
+  "manager": "Authenticated synthetic fixture, all backend requests intercepted locally; not a hosted authorization test",
+  "external_requests": "blocked",
+  "customer_data": "none used"
+}

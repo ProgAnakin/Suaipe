@@ -1,47 +1,9 @@
-# Screenshots & Demo Assets
+# Capturas atuais de portfólio
 
-This directory holds the visual assets referenced in the top-level `README.md`. Capture these on an iPad (or a 1024×1366 viewport in DevTools' device emulation) so the proportions match the production deployment.
+07/11/2026. As cinco imagens desta pasta foram capturadas no Chromium real a partir dos builds locais atuais; não são imagens geradas para simular uma interface inexistente. A [proveniência](provenance.json) registra engine, dimensões e escopo.
 
-## Required assets
+Attract/welcome/quiz/result usam o modo demo, visitante sintético e catálogo fictício. A captura Manager usa o frontend real com sessão, MFA/cargo e catálogo **totalmente simulados**, com requisições interceptadas localmente. Não comprova autorização no Supabase nem significa que a rota administrativa esteja aberta na demo pública.
 
-| File | Source view | Suggested resolution | Notes |
-|---|---|---|---|
-| `attract.png`    | Idle attract screen at `/`                                | 1024 × 1366 portrait | Wait ~30s on `/` so the attract loop is fully visible. |
-| `welcome.png`    | Welcome + name/email form (after tapping the attract)      | 1024 × 1366 portrait | Show the language switcher in the top-right. |
-| `quiz.png`       | A mid-quiz card mid-swipe                                  | 1024 × 1366 portrait | Capture the swipe motion frame if possible. |
-| `result.png`     | The match-result screen with discount code                 | 1024 × 1366 portrait | Use a demo name like `Hi Demo!` for the screenshot — never a real customer. |
-| `manager.png`    | `/manager` → Sessions tab with a realistic session list    | 1366 × 1024 landscape | Use a seeded demo store, **no real customer PII**. |
-| `demo.gif`       | 20-30 second screen recording of the full flow            | 1024 × 1366 portrait | Compress with `gifski` or `ffmpeg` → < 5 MB. |
+Foram substituídas as imagens antigas que ainda mostravam identidade corporativa anterior, endereço de e-mail e métricas sem contexto de demonstração. As quatro cópias em `public/screenshots` também foram substituídas; o manifesto informa as dimensões reais 1366×1024. O histórico do Git não foi reescrito e ainda pode conter as imagens antigas. Confirmar direitos de mídia e de divulgação continua sendo responsabilidade do autor.
 
-## How to capture cleanly
-
-### From an iPad
-1. Open the deployed site in standalone (Add to Home Screen).
-2. `Side button + Volume Up` to screenshot.
-3. AirDrop the PNGs to your Mac.
-
-### From a desktop
-1. `npm run dev` and open `http://localhost:8080`.
-2. Open DevTools → Toolbar → Toggle device toolbar (`Ctrl/Cmd+Shift+M`).
-3. Pick "iPad Pro 11" (1024 × 1366).
-4. Use the DevTools "Capture screenshot" command (`Ctrl/Cmd+Shift+P` → "Capture screenshot").
-
-### For the GIF
-```bash
-# Record with QuickTime (Mac) → demo.mov
-# Then convert:
-ffmpeg -i demo.mov -vf "fps=15,scale=720:-1:flags=lanczos" -c:v gif demo.gif
-# Or, smaller and crisper:
-gifski --fps 15 --width 720 --output demo.gif demo.mov
-```
-
-## ⚠️ Privacy
-
-**Never commit screenshots containing real customer PII.** Use seed data or anonymise:
-- Names → `Demo`, `Test`, `Esempio`
-- Emails → `demo@example.com`
-- Discount codes → can be left, they are short-lived and per-session
-
-## Branding
-
-When framing screenshots for LinkedIn / portfolio posts, the device frame matters more than people expect. Use [mockphone.com](https://mockphone.com) or Figma's iPad mockup to wrap the PNGs in an iPad chrome — it makes a screenshot feel like a product shot.
+Reprodução: servir os builds demo e real de teste em `127.0.0.1:4182` e `:4181` e executar `node scripts/capture-portfolio.mjs`. O script só aceita servidores locais e bloqueia requisições externas; não recebe credenciais de produção. Essas capturas são documentação e não alteram os snapshots de referência dos testes WebKit.

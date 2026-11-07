@@ -1,9 +1,11 @@
 import { IS_DEMO } from "@/config/demo";
+import { createPortal } from 'react-dom';
 import { clearLegacyVisitorMarkers, clearStaffSessionStorage } from "@/lib/kioskPrivacy";
 import { products as demoProducts } from "@/data/products";
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion, type TargetAndTransition, type Transition } from "framer-motion";
 import WelcomeScreen, { type UserInfo } from "@/components/WelcomeScreen";
+import { MARKETING_NOTICE_VERSION } from '@/config/marketing';
 import QuizScreen from "@/components/QuizScreen";
 import MatchResult from "@/components/MatchResult";
 import SuccessScreen from "@/components/SuccessScreen";
@@ -362,6 +364,8 @@ const Index = () => {
     const payload = {
       email: user.email,
       consent_notice_version: PRIVACY_NOTICE_VERSION,
+      marketing_opt_in: user.marketingOptIn === true,
+      ...(user.marketingOptIn ? { marketing_notice_version: MARKETING_NOTICE_VERSION } : {}),
       funnel_key: funnelKey,
       answers: quizAnswers,
       matched_product_id: matchedProduct.id,
@@ -440,7 +444,7 @@ const Index = () => {
 
   return (
     <div className="relative h-dvh overflow-hidden bg-background">
-      {IS_DEMO && <div role="status" className="fixed top-0 inset-x-0 z-[70] bg-blue-950 p-2 text-center text-xs text-white">DEMO · { { it: 'Dati fittizi. Nessun invio.', en: 'Synthetic data. No messages sent.', pt: 'Dados fictícios. Nenhum envio.', es: 'Datos ficticios. Sin envíos.', fr: 'Données fictives. Aucun envoi.' }[lang] }</div>}
+      {IS_DEMO && createPortal(<div role="status" className="pointer-events-none fixed bottom-2 right-2 z-[70] rounded-xl bg-blue-950 px-3 py-2 text-center text-xs text-white">DEMO · { { it: 'Dati fittizi. Nessun invio.', en: 'Synthetic data. No messages sent.', pt: 'Dados fictícios. Nenhum envio.', es: 'Datos ficticios. Sin envíos.', fr: 'Données fictives. Aucun envoi.' }[lang] }</div>,document.body)}
       {/* Offline banner — shown whenever the device loses network */}
       <AnimatePresence>
         {!isOnline && (

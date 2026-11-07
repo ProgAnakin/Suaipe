@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
-import { Ban, Check, Download, RotateCcw, Search, User, X } from "lucide-react";
+import { createCsv } from '@/lib/csv';
+import { Ban, Check, Download, History, RotateCcw, Search, User, X } from "lucide-react";
 import type { Product } from "@/data/products";
 import { auditStoreName, type AuditLogEntry } from "./managerDashboardUtils";
 
@@ -75,7 +76,7 @@ export const AuditLogTab = ({
     return entries.filter((e) => {
       const isAct = e.new_active === true;
       if (filter === "activated" && !isAct) return false;
-      if (filter === "deactivated" && isAct) return false;
+      if (filter === "deactivated" && e.new_active !== false) return false;
       if (!q) return true;
       const hay = `${entityLabel(e.product_id)} ${e.user_email ?? ""} ${auditStoreName(e.store_id)}`.toLowerCase();
       return hay.includes(q);
@@ -95,19 +96,18 @@ export const AuditLogTab = ({
   }, [filtered]);
 
   const exportCsv = () => {
-    const headers = ["Date", "Time", "Product", "Action", "By", "Store"];
+    const headers = ["Date", "Time", "Product", "Action", "By", "Store", "Source"];
     const rows = filtered.map((e) => [
       dayLabel(e.created_at),
       timeOnly(e.created_at),
       entityLabel(e.product_id),
-      e.new_active === true ? "Activated" : "Deactivated",
+      e.new_active === true ? "Activated" : e.new_active === false ? "Deactivated" : e.action ?? "Changed",
       e.user_email ?? "—",
       auditStoreName(e.store_id),
+      e.source === 'database' ? 'Committed database change' : 'Legacy (unverified)',
     ]);
-    const csv = [headers, ...rows]
-      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+    const csv = createCsv([headers,...rows]);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -130,8 +130,8 @@ export const AuditLogTab = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-foreground">Catalog change history</h2>
-          <p className="text-xs text-muted-foreground">Who activated or paused which product, and when.</p>
+          <h2 className="text-sm font-semibold text-foreground">Recent change history</h2>
+          <p className="text-xs text-muted-foreground">Latest 200 loaded events. Export uses displayed filters. Legacy entries are not verified server history.</p>
         </div>
         <div className="flex gap-2">
           {hasEntries && (
@@ -139,7 +139,7 @@ export const AuditLogTab = ({
               onClick={exportCsv}
               className="flex items-center gap-1 rounded-xl border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground active:scale-95"
             >
-              <Download className="h-3 w-3" /> Export CSV
+              <Download className="h-3 w-3" /> Export displayed rows
             </button>
           )}
           <button
@@ -156,7 +156,7 @@ export const AuditLogTab = ({
         <div className="grid grid-cols-4 gap-2">
           <div className="rounded-xl border border-border bg-card px-3 py-2.5 text-center">
             <p className="text-lg font-bold text-foreground">{summary.total}</p>
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Changes</p>
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Loaded changes</p>
           </div>
           <div className="rounded-xl border border-green-500/20 bg-green-500/5 px-3 py-2.5 text-center">
             <p className="text-lg font-bold text-green-400">{summary.activated}</p>
@@ -238,6 +238,7 @@ export const AuditLogTab = ({
               </p>
               {items.map((entry) => {
                 const isActivated = entry.new_active === true;
+                const isToggle = typeof entry.new_active === 'boolean';
                 return (
                   <div
                     key={entry.id}
@@ -245,21 +246,22 @@ export const AuditLogTab = ({
                   >
                     <span
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
-                        isActivated ? "bg-green-500/10 text-green-400" : "bg-destructive/10 text-destructive"
+                        !isToggle ? "bg-muted text-muted-foreground" : isActivated ? "bg-green-500/10 text-green-400" : "bg-destructive/10 text-destructive"
                       }`}
                     >
-                      {isActivated ? <Check className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
+                      {!isToggle ? <History className="h-4 w-4" /> : isActivated ? <Check className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-foreground">{entityLabel(entry.product_id)}</p>
                       <p className="text-xs text-muted-foreground">
-                        {isActivated ? "Activated" : "Paused"}
+                        {!isToggle ? entry.action ?? 'Changed' : isActivated ? "Activated" : "Paused"}
                         {entry.store_id && <span className="ml-1.5">· {auditStoreName(entry.store_id)}</span>}
                       </p>
                       <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground/70">
                         <User className="h-3 w-3 shrink-0" />
                         <span className="truncate">{entry.user_email ?? "System"}</span>
                       </p>
+                      <p className="text-[10px] text-muted-foreground">{entry.source === 'database' ? 'Committed database change' : 'Legacy (unverified)'}</p>
                     </div>
                     <p className="shrink-0 text-[10px] text-muted-foreground/60">{timeOnly(entry.created_at)}</p>
                   </div>

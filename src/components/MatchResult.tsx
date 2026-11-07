@@ -1,6 +1,7 @@
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import type { Product } from "@/data/products";
+import { IS_DEMO, DEMO_COPY } from '@/config/demo';
 import { useSound } from "@/hooks/useSound";
 import { useDevicePerformance } from "@/hooks/useDevicePerformance";
 import { useLang } from "@/i18n/LanguageContext";
@@ -134,7 +135,7 @@ const MatchResult = ({
   onClaim, onChangeEmail, claiming = false, claimError = false,
   isOnline = true, emailLocked = false, onRestart,
 }: MatchResultProps) => {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [displayPercent, setDisplayPercent] = useState(0);
   const [imgError, setImgError] = useState(false);
   const [isScanning, setIsScanning] = useState(true);
@@ -684,7 +685,7 @@ const MatchResult = ({
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-medium uppercase tracking-widest mb-0.5"
                   style={{ color: "hsl(var(--primary)/0.7)" }}>
-                  {t.result.sendTo}
+                  {IS_DEMO ? DEMO_COPY[lang].address : t.result.sendTo}
                 </p>
                 <p className="text-sm font-bold text-foreground truncate">{userEmail}</p>
               </div>
@@ -701,7 +702,7 @@ const MatchResult = ({
           </div>
 
           <p className="mt-1.5 text-center text-[10px] text-muted-foreground/65 leading-relaxed">
-            {t.changeEmail.emailHint}
+            {IS_DEMO ? DEMO_COPY[lang].notice : t.changeEmail.emailHint}
           </p>
         </motion.div>
 
@@ -712,7 +713,7 @@ const MatchResult = ({
           onClick={handleClaim}
           disabled={claiming || !isOnline}
           aria-busy={claiming}
-          aria-label={t.result.cta}
+          aria-label={IS_DEMO ? DEMO_COPY[lang].finish : t.result.cta}
           className="gradient-primary shadow-glow flex w-full items-center justify-center rounded-2xl px-8 py-5 text-xl font-bold text-primary-foreground active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           whileTap={{ scale: claiming ? 1 : 0.97 }}
           initial={{ opacity: 0, y: 16 }}
@@ -725,7 +726,7 @@ const MatchResult = ({
               aria-hidden="true"
             />
           ) : (
-            t.result.cta
+            IS_DEMO ? DEMO_COPY[lang].finish : t.result.cta
           )}
         </motion.button>
 
@@ -749,7 +750,7 @@ const MatchResult = ({
           animate={{ opacity: 0.6 }}
           transition={{ delay: 0.9 }}
         >
-          {t.result.emailSubtitle}
+          {IS_DEMO ? DEMO_COPY[lang].notice : t.result.emailSubtitle}
         </motion.p>
       </motion.div>
     </div>

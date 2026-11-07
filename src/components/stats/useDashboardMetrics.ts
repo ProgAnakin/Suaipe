@@ -23,22 +23,24 @@ export const useDashboardMetrics = (filteredSessions: QuizSession[]) => {
       ? Math.round(filteredSessions.reduce((sum, s) => sum + s.match_percent, 0) / total)
       : 0;
     const todaySessions = filteredSessions.filter(
-      (s) => new Date(s.created_at).toDateString() === new Date().toDateString(),
+      (s) => new Date(s.created_at).toISOString().slice(0,10) === new Date().toISOString().slice(0,10),
     ).length;
     return { uniqueEmails, avgMatch, todaySessions };
   }, [filteredSessions, total]);
 
   const productStats = useMemo<ProductStat[]>(() => {
-    const counts: Record<string, number> = {};
-    const matchSums: Record<string, number> = {};
+    const counts: Record<string, number> = Object.create(null);
+    const matchSums: Record<string, number> = Object.create(null);
+    const names: Record<string, string> = Object.create(null);
     filteredSessions.forEach((s) => {
+      names[s.matched_product_id] ??= productName(s.matched_product_id,s.product_name);
       counts[s.matched_product_id] = (counts[s.matched_product_id] ?? 0) + 1;
       matchSums[s.matched_product_id] = (matchSums[s.matched_product_id] ?? 0) + s.match_percent;
     });
     return Object.entries(counts)
       .map(([id, count]) => ({
         id,
-        name: productName(id, filteredSessions.find(s => s.matched_product_id === id)?.product_name),
+        name: names[id],
         count,
         percent: total ? Math.round((count / total) * 100) : 0,
         avgMatch: Math.round((matchSums[id] ?? 0) / count),
@@ -53,7 +55,7 @@ export const useDashboardMetrics = (filteredSessions: QuizSession[]) => {
     const codesUsed = filteredSessions.filter((s) => s.code_redeemed === true).length;
 
     const hourlyCounts: number[] = Array.from({ length: 24 }, (_, h) =>
-      filteredSessions.filter((s) => new Date(s.created_at).getHours() === h).length,
+      filteredSessions.filter((s) => new Date(s.created_at).getUTCHours() === h).length,
     );
     const maxHourly = Math.max(...hourlyCounts, 1);
     const peakHour = hourlyCounts.indexOf(Math.max(...hourlyCounts));
@@ -79,10 +81,10 @@ export const useDashboardMetrics = (filteredSessions: QuizSession[]) => {
     // filter — the comment in the UI tells the user why.
     const dayCounts: DayCount[] = Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
-      d.setDate(d.getDate() - (6 - i));
+      d.setUTCDate(d.getUTCDate() - (6 - i));
       const date = d.toISOString().slice(0, 10);
       return {
-        day: DAY_LABELS[d.getDay()],
+        day: DAY_LABELS[d.getUTCDay()],
         date,
         count: filteredSessions.filter((s) => s.created_at.slice(0, 10) === date).length,
       };

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { lockStaffSession } from "@/lib/staffLogout";
 import { LoginForm } from "@/components/stats/LoginForm";
 import { MfaVerifyForm } from "@/components/stats/MfaVerifyForm";
 import { MfaSetupModal } from "@/components/stats/MfaSetupModal";
@@ -25,43 +26,45 @@ const Stats = () => {
   const navigate = useNavigate();
   const [authStep, setAuthStep] = useState<AuthStep>("login");
   const [checking, setChecking] = useState(true);
+  const [authRevision,setAuthRevision] = useState(0);
   // Set when 2FA enrolment succeeds, so the modal's onClose (which also fires on
   // success) doesn't sign the user back out.
   const enrolledRef = useRef(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data, error }) => {
-      if (error) {
-        console.error("[suaipe] getSession failed:", error);
-        setAuthStep("login");
-        setChecking(false);
-        return;
-      }
-      if (data.session) {
-        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-        if (aal?.currentLevel === "aal2") {
-          setAuthStep("dashboard");
-        } else if (aal?.nextLevel === "aal2") {
-          setAuthStep("mfa");
-        } else {
-          // Enforce 2FA: an account with no TOTP factor must enrol before access.
-          setAuthStep("enroll");
-        }
-      } else {
-        setAuthStep("login");
-      }
-      setChecking(false);
-    }).catch((err) => {
-      console.error("[suaipe] auth check threw:", err);
-      setAuthStep("login");
-      setChecking(false);
+    let generation=0,disposed=false;
+    let pending:ReturnType<typeof setTimeout>;
+    const check=async () => {
+      const current=++generation;
+      setChecking(true);
+      try {
+        const {data,error}=await supabase.auth.getSession();
+        if (disposed || current!==generation) return;
+        if (error || !data.session) {setAuthStep('login');return;}
+        const {data:aal,error:mfaError}=await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (disposed || current!==generation) return;
+        if (mfaError) throw mfaError;
+        if (aal?.currentLevel==='aal2') {
+          const {data:roles,error:roleError}=await supabase.rpc('get_my_store_role');
+          if (disposed || current!==generation) return;
+          if (roleError || !roles?.some(r=>['manager','consulente_responsabile','consulente'].includes(r.role))) {
+            lockStaffSession(()=>setAuthStep('login'));return;
+          }
+          setAuthStep('dashboard');
+        } else setAuthStep(aal?.nextLevel==='aal2'?'mfa':'enroll');
+      } catch {if (!disposed && current===generation) setAuthStep('login');}
+      finally {if (!disposed && current===generation) setChecking(false);}
+    };
+    void check();
+    const {data:listener}=supabase.auth.onAuthStateChange(event=>{
+      ++generation;clearTimeout(pending);
+      if (event==='SIGNED_OUT') {setAuthStep('login');setChecking(false);return;}
+      setChecking(true);
+      // Supabase holds its internal auth lock while notifying listeners.
+      pending=setTimeout(()=>{void check();},0);
     });
-
-    const { data: listener } = supabase.auth.onAuthStateChange(async (event) => {
-      if (event === "SIGNED_OUT") setAuthStep("login");
-    });
-    return () => listener.subscription.unsubscribe();
-  }, []);
+    return ()=>{disposed=true;++generation;clearTimeout(pending);listener.subscription.unsubscribe();};
+  }, [authRevision]);
 
   if (checking) return <AdminSpinner />;
 
@@ -78,7 +81,7 @@ const Stats = () => {
       {authStep === "login" && (
         <motion.div key="login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <LoginForm
-            onLoginSuccess={() => setAuthStep("dashboard")}
+            onLoginSuccess={() => {setChecking(true);setAuthRevision(v=>v+1);}}
             onMfaRequired={() => setAuthStep("mfa")}
             onEnrollRequired={() => setAuthStep("enroll")}
           />
@@ -87,10 +90,9 @@ const Stats = () => {
       {authStep === "mfa" && (
         <motion.div key="mfa" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <MfaVerifyForm
-            onVerified={() => setAuthStep("dashboard")}
+            onVerified={() => {setChecking(true);setAuthRevision(v=>v+1);}}
             onCancel={async () => {
-              await supabase.auth.signOut();
-              setAuthStep("login");
+              lockStaffSession(() => setAuthStep("login"));
             }}
           />
         </motion.div>
@@ -99,12 +101,11 @@ const Stats = () => {
         <motion.div key="enroll" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <div className="min-h-screen bg-background" />
           <MfaSetupModal
-            onEnabled={() => { enrolledRef.current = true; setAuthStep("dashboard"); }}
+            onEnabled={() => { enrolledRef.current = true; setChecking(true);setAuthRevision(v=>v+1); }}
             onClose={async () => {
               // The modal fires onClose on success too — don't sign out then.
               if (enrolledRef.current) { enrolledRef.current = false; return; }
-              await supabase.auth.signOut();
-              setAuthStep("login");
+              lockStaffSession(() => setAuthStep("login"));
             }}
           />
         </motion.div>

@@ -1,6 +1,16 @@
 # Changelog
 
-## 2.1.0 — release candidate (2026-11-06)
+## 2.1.0 — release candidate (updated 2026-11-07)
+
+- Make the portfolio synthetic by default in every environment; require separate real-data enablement and a real monitored contact for production collection.
+- Add separate optional marketing evidence, withdrawal, exact subject export and audited name correction; campaigns remain unimplemented.
+- Reject malformed uploads, unsafe relay destinations/redirects and unauthenticated or fabricated CRM payloads; lock staff UI immediately offline.
+- Add Stats/recovery lifecycle regressions, UTC reporting, native Deno tests and completed Chromium journeys.
+- Replace legacy corporate screenshots with current synthetic captures; fix static-question translations and explicit demo wording.
+- Add the complete 317-control register and supporting privacy/incident/risk documents.
+- Reduce development advisories to one low underlying issue with a narrow expiring build exception; add weekly monitoring.
+
+### Earlier candidate work (2026-11-06)
 
 - Harden Storage/guide/funnel authorization, server audit identity and persistent service-only PIN verification.
 - Validate claims/consent and enforce immutable retries, request deadlines, safe CSVs and complete pagination.

@@ -1,10 +1,13 @@
 import { PrivacyOperationsTab } from "./PrivacyOperationsTab";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createCsv } from '@/lib/csv';
+import { parsePriceCsv, applyPriceUpdates } from '@/lib/priceCsv';
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { RotateCcw, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { lockStaffSession } from "@/lib/staffLogout";
 import { getStoredStoreId, setStoredStoreId, getStoreById } from "@/data/stores";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
 import { StoreSelectorModal } from "./StoreSelectorModal";
@@ -55,6 +58,9 @@ export const ManagerDashboard = ({ onLogout }: ManagerDashboardProps) => {
   const [sending, setSending] = useState(false);
   const [showCsvModal, setShowCsvModal] = useState(false);
   const [csvPreview, setCsvPreview] = useState<CsvPriceUpdate[]>([]);
+  const [applyingCsv,setApplyingCsv]=useState(false);
+  const csvBusy=useRef(false);
+  const csvTargetStore=useRef<string|null>(null);
   const [userRole, setUserRole] = useState<{ role: string; store_id: string | null } | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>("catalogo");
   const [gestioneTab, setGestioneTab] = useState<GestioneTab>("catalogo");
@@ -140,29 +146,30 @@ export const ManagerDashboard = ({ onLogout }: ManagerDashboardProps) => {
   };
 
   const handleCsvUpload = async (file: File) => {
-    const text = await file.text();
-    const parsed: CsvPriceUpdate[] = [];
-    for (const line of text.trim().split("\n")) {
-      const [productId, price] = line.split(",").map((s) => s.trim());
-      if (productId && price) parsed.push({ productId, newPrice: price });
-    }
-    setCsvPreview(parsed);
-    setShowCsvModal(true);
+    if(csvBusy.current) return;
+    try {
+      if(file.size>1024*1024) throw new Error('CSV must be at most 1 MB.');
+      const targetStore=storeId;
+      const parsed=parsePriceCsv(await file.text(),new Set(catalogProducts.map(p=>p.id)));
+      csvTargetStore.current=targetStore;
+      setCsvPreview(parsed);setShowCsvModal(true);
+    } catch {toast.error('Invalid price CSV. Check the header, known product IDs, unique rows and Euro prices; maximum 1 MB.');}
   };
 
   const applyPriceUpload = async () => {
-    for (const { productId, newPrice } of csvPreview) {
-      await catalog.savePriceOverride(productId, newPrice);
-    }
-    toast.success(`${csvPreview.length} prices updated from CSV.`);
-    setCsvPreview([]);
-    setShowCsvModal(false);
+    if(csvBusy.current) return;
+    if(csvTargetStore.current!==storeId) {toast.error('Store changed. Upload the price file again for the intended store.');setShowCsvModal(false);return;}
+    csvBusy.current=true;setApplyingCsv(true);
+    try {
+      const {saved,remaining}=await applyPriceUpdates(csvPreview,catalog.savePriceOverride);
+      setCsvPreview(remaining);
+      if(remaining.length) toast.error(`${saved} prices saved; ${remaining.length} remain pending. Verify the failed row before retrying.`);
+      else {toast.success(`${saved} prices updated from CSV.`);setShowCsvModal(false);}
+    } finally {csvBusy.current=false;setApplyingCsv(false);}
   };
 
   const downloadCsvTemplate = () => {
-    const header = "product_id,price\n";
-    const rows = catalogProducts.map((p) => `${p.id},${p.price}`).join("\n");
-    const csv = header + rows;
+    const csv = createCsv([["product_id","price"],...catalogProducts.map(p=>[p.id,priceOverrides[p.id]??p.price])]);
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -174,17 +181,14 @@ export const ManagerDashboard = ({ onLogout }: ManagerDashboardProps) => {
     URL.revokeObjectURL(url);
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    onLogout();
-  };
+  const handleLogout = () => lockStaffSession(onLogout);
 
   useManagerKeybindings({
     onRefresh: () => { catalog.refetch(); toast.info("Catalog refreshed."); },
     onEscape: () => {
       if (bulkSelection.size > 0) setBulkSelection(new Set());
       if (bulkConfirm) setBulkConfirm(null);
-      if (showCsvModal) setShowCsvModal(false);
+      if (showCsvModal && !csvBusy.current) setShowCsvModal(false);
       if (showStoreModal) setShowStoreModal(false);
       if (editingFaqId) setEditingFaqId(null);
     },
@@ -246,7 +250,7 @@ export const ManagerDashboard = ({ onLogout }: ManagerDashboardProps) => {
           onOpenAnalytics={() => navigate("/stats")}
           onOpenConsulente={() => navigate("/consulente")}
           onLogout={handleLogout}
-          onBackToQuiz={() => { supabase.auth.signOut(); navigate("/"); }}
+          onBackToQuiz={() => lockStaffSession(() => navigate("/"))}
         />
 
         {/* Error banner */}
@@ -525,11 +529,12 @@ export const ManagerDashboard = ({ onLogout }: ManagerDashboardProps) => {
       />
 
       <CsvPreviewModal
+        busy={applyingCsv}
         open={showCsvModal}
         preview={csvPreview}
         catalogProducts={catalogProducts}
         onApply={applyPriceUpload}
-        onClose={() => setShowCsvModal(false)}
+        onClose={() => {if(!csvBusy.current) setShowCsvModal(false);}}
       />
 
       <UndoSnackbar

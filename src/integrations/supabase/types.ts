@@ -53,6 +53,7 @@ export type Database = {
       }
       manager_audit_log: {
         Row: {
+          source: string
           id: string
           user_id: string | null
           user_email: string | null
@@ -64,6 +65,7 @@ export type Database = {
           created_at: string
         }
         Insert: {
+          source?: string
           id?: string
           user_id?: string | null
           user_email?: string | null
@@ -75,6 +77,7 @@ export type Database = {
           created_at?: string
         }
         Update: {
+          source?: string
           id?: string
           user_id?: string | null
           user_email?: string | null
@@ -222,6 +225,10 @@ export type Database = {
           email_status: string
           email_provider_id: string | null
           consent_notice_version: string
+          marketing_opt_in: boolean
+          marketing_consent_at: string | null
+          marketing_notice_version: string | null
+          marketing_withdrawn_at: string | null
           email_sent: boolean
           store_id: string | null
           product_name: string | null
@@ -462,6 +469,9 @@ export type Database = {
     }
     Functions: {
       erase_customer_data: { Args: {p_email:string}; Returns:number }
+      withdraw_marketing_consent: { Args: {p_email:string}; Returns:number }
+      get_customer_records: { Args: {p_email:string}; Returns:{id:string;details:Json}[] }
+      correct_customer_names: { Args: {p_email:string;p_nome:string;p_cognome:string}; Returns:number }
       complete_external_erasure: { Args: {p_id:string; p_not_applicable?:boolean}; Returns:undefined }
       privacy_operations_status: { Args: Record<PropertyKey,never>; Returns:Json }
 

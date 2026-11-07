@@ -7,7 +7,7 @@ export default defineConfig({
   testDir: './e2e-demo',
   webServer: {
     ...server,
-    command: 'VITE_DEMO_MODE=true ' + server.command,
+    command: server.command.replace('VITE_DEMO_MODE=false', 'VITE_DEMO_MODE=true'),
     reuseExistingServer: false,
   },
 });

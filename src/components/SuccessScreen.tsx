@@ -2,6 +2,7 @@ import { motion, useMotionValue, useTransform, animate, useReducedMotion } from 
 import { useEffect } from "react";
 import { useSound } from "@/hooks/useSound";
 import { useLang } from "@/i18n/LanguageContext";
+import { IS_DEMO, DEMO_COPY } from '@/config/demo';
 
 interface SuccessScreenProps {
   email: string;
@@ -158,7 +159,7 @@ const SuccessScreen = ({ email, userName, productName, onRestart }: SuccessScree
   const checkScale = useMotionValue(0);
   const checkOpacity = useTransform(checkScale, [0, 1], [0, 1]);
   const { play } = useSound();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -225,7 +226,7 @@ const SuccessScreen = ({ email, userName, productName, onRestart }: SuccessScree
           transition={{ type: "spring", stiffness: 200, damping: 18, delay: 0.55 }}
         >
           <h2 className="text-3xl font-bold text-foreground leading-tight">
-            {userName ? t.success.title(userName) : t.success.titleNoName}
+            {IS_DEMO ? DEMO_COPY[lang].complete : userName ? t.success.title(userName) : t.success.titleNoName}
           </h2>
           <motion.p
             className="mt-1 text-lg font-semibold text-gradient"
@@ -241,7 +242,7 @@ const SuccessScreen = ({ email, userName, productName, onRestart }: SuccessScree
             animate={{ opacity: 1 }}
             transition={{ delay: 0.85 }}
           >
-            {t.success.productOnWay}
+            {IS_DEMO ? DEMO_COPY[lang].notice : t.success.productOnWay}
           </motion.p>
         </motion.div>
 
@@ -255,7 +256,7 @@ const SuccessScreen = ({ email, userName, productName, onRestart }: SuccessScree
         >
           <div className="gradient-primary px-4 py-2">
             <p className="text-center text-xs font-bold uppercase tracking-widest text-primary-foreground">
-              {t.success.recipient}
+              {IS_DEMO ? DEMO_COPY[lang].address : t.success.recipient}
             </p>
           </div>
           <div className="px-4 py-3">
@@ -288,7 +289,7 @@ const SuccessScreen = ({ email, userName, productName, onRestart }: SuccessScree
         {/* ── Spam note ── */}
         <motion.p className="text-center text-xs text-muted-foreground"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.35 }}>
-          {t.success.spamNote}
+          {IS_DEMO ? DEMO_COPY[lang].notice : t.success.spamNote}
         </motion.p>
 
         {/* ── Restart button ── */}

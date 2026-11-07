@@ -218,6 +218,7 @@ export function ProductCatalogTab() {
     }
     setUploadingImage(true);
     // #8 — auto-resize before upload
+    try {
     const file = await resizeImage(rawFile);
     const targetId = form.id || `new-${Date.now()}`;
     const path = `custom/${targetId}.jpg`;
@@ -231,7 +232,8 @@ export function ProductCatalogTab() {
     }
     const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
     setForm((f) => ({ ...f, image_url: urlData.publicUrl }));
-    setUploadingImage(false);
+    } catch { setFormError("Image could not be processed or uploaded. Use a valid raster image up to 5 MB."); }
+    finally { setUploadingImage(false); }
   };
 
   const saveProduct = async () => {

@@ -33,6 +33,7 @@ export interface UndoEntry {
 
 /** A single row of the manager audit log. */
 export interface AuditLogEntry {
+  source?: string;
   id: string;
   created_at: string;
   action: string | null;
@@ -58,11 +59,7 @@ export function formatUpdatedAt(iso: string): string {
 }
 
 /** Validate price formats: "€49,00", "49.00", "49,00", "€49". Empty = allowed (clearing). */
-export function isValidPrice(value: string): boolean {
-  const trimmed = value.trim();
-  if (trimmed === "") return true;
-  return /^€?\d+([.,]\d{1,2})?$/.test(trimmed);
-}
+export { isValidPrice } from '@/lib/validators';
 
 /** Validate a video URL — must be a YouTube or Vimeo link. Empty = allowed (clearing). */
 export function isValidVideoUrl(url: string): boolean {

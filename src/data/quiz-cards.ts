@@ -1,4 +1,5 @@
 import type { Question } from "@/data/questions";
+import { translations } from '@/i18n/translations';
 
 // The quiz is a fixed 8-swipe experience: 8 questions → the 8 matching tags in
 // products.ts. Managers may author MORE cards (e.g. seasonal variants) but only
@@ -38,10 +39,10 @@ export function questionsToCards(questions: Question[]): QuizCard[] {
     sort_order: q.id,
     active: true,
     text_it: q.text,
-    text_en: null,
-    text_pt: null,
-    text_es: null,
-    text_fr: null,
+    text_en: translations.en.questions[q.id as keyof typeof translations.en.questions] ?? null,
+    text_pt: translations.pt.questions[q.id as keyof typeof translations.pt.questions] ?? null,
+    text_es: translations.es.questions[q.id as keyof typeof translations.es.questions] ?? null,
+    text_fr: translations.fr.questions[q.id as keyof typeof translations.fr.questions] ?? null,
   }));
 }
 

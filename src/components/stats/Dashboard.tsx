@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lockStaffSession } from "@/lib/staffLogout";
 import { getStoreById } from "@/data/stores";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
 import { StatCard } from "./StatCard";
@@ -80,10 +81,7 @@ export const Dashboard = ({ onLogout }: DashboardProps) => {
     : tassoClaimPct >= 15 ? "amber"
     : "red";
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    onLogout();
-  };
+  const handleLogout = () => lockStaffSession(onLogout);
   const handleExportConfirm = () => {
     setConfirmExport(false);
     exportCSV(filteredSessions, dateFrom || undefined, dateTo || undefined);

@@ -12,6 +12,7 @@ import { getStoredStoreId, getStoreById } from "@/data/stores";
 
 import { useViewportKeyboard } from "@/hooks/useViewportKeyboard";
 import { isValidEmail, isValidName, sanitizeName } from "@/lib/validators";
+import { MARKETING_ENABLED, MARKETING_LABELS } from '@/config/marketing';
 
 
 export interface UserInfo {
@@ -22,6 +23,7 @@ export interface UserInfo {
    *  checkbox and started the flow — written to quiz_sessions for GDPR
    *  Art. 7(1) "demonstrate consent" compliance. */
   consentGivenAt: string;
+  marketingOptIn?: boolean;
 }
 
 interface WelcomeScreenProps {
@@ -59,7 +61,7 @@ const LanguageSelector = () => {
 
 // ─── Welcome Form ───────────────────────────────────────────────────────────────────────────
 const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useViewportKeyboard();
@@ -73,6 +75,7 @@ const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
   // GDPR consent: must be explicitly granted before the customer's email is
   // captured. The modal shows the same notice rendered at /privacy.
   const [consent, setConsent] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const { play } = useSound();
 
@@ -118,8 +121,9 @@ const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
       cognome: cognome.trim(),
       email: normalizedEmail,
       consentGivenAt: new Date().toISOString(),
+      marketingOptIn: MARKETING_ENABLED && marketingOptIn,
     });
-  }, [isFormValid, checking, consent, nome, cognome, email, play, onStart]);
+  }, [isFormValid, checking, consent, marketingOptIn, nome, cognome, email, play, onStart]);
 
   const showConsentError = submitted && isFormValid && !consent;
 
@@ -149,14 +153,14 @@ const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
     <div className="w-full space-y-3" style={{ paddingBottom: "var(--keyboard-height, 0px)" }}>
       <div className="flex gap-3">
         <div className="flex-1">
-          <input type="text" placeholder={t.welcome.firstName} value={nome}
+          <input type="text" aria-label={t.welcome.firstName} placeholder={t.welcome.firstName} value={nome}
             onChange={handleNome} onKeyDown={onKeyDown} onFocus={scrollOnFocus} autoComplete="given-name" className={nomeClass} />
           {showNomeError && (
             <p className="mt-1 text-center text-xs text-destructive">{t.welcome.firstNameError}</p>
           )}
         </div>
         <div className="flex-1">
-          <input type="text" placeholder={t.welcome.lastName} value={cognome}
+          <input type="text" aria-label={t.welcome.lastName} placeholder={t.welcome.lastName} value={cognome}
             onChange={handleCognome} onKeyDown={onKeyDown} onFocus={scrollOnFocus} autoComplete="family-name" className={cognomeClass} />
           {showCognomeError && (
             <p className="mt-1 text-center text-xs text-destructive">{t.welcome.lastNameError}</p>
@@ -165,7 +169,7 @@ const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
       </div>
 
       <div className="relative">
-        <input type="email" placeholder={t.welcome.emailPlaceholder}
+        <input type="email" aria-label={t.welcome.emailPlaceholder} placeholder={t.welcome.emailPlaceholder}
           value={email} onChange={handleEmail}
           onBlur={() => setEmailTouched(true)}
           onFocus={scrollOnFocus}
@@ -223,9 +227,14 @@ const WelcomeForm = ({ onStart }: { onStart: (user: UserInfo) => void }) => {
         {showConsentError && (
           <p className="text-xs text-destructive pl-6">{t.welcome.consentRequired}</p>
         )}
+        {MARKETING_ENABLED && <label className="mt-2 flex cursor-pointer items-start gap-2 text-sm text-muted-foreground">
+          <input type="checkbox" checked={marketingOptIn} onChange={e=>setMarketingOptIn(e.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-primary"/>
+          <span>{MARKETING_LABELS[lang]}</span>
+        </label>}
       </div>
 
       <motion.button
+        data-testid="start-real-quiz"
         onClick={handleStart}
         disabled={checking}
         className="gradient-primary shadow-glow w-full rounded-2xl px-8 py-5 text-xl font-bold text-primary-foreground active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"

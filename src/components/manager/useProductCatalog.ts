@@ -211,6 +211,7 @@ export const useProductCatalog = (storeId: string) => {
       return;
     }
     setUploadingImageId(productId);
+    try {
     const file = await resizeImage(rawFile);
     const path = `${storeId}/${productId}.jpg`;
 
@@ -229,16 +230,18 @@ export const useProductCatalog = (storeId: string) => {
       .getPublicUrl(path);
     const imageUrl = urlData.publicUrl;
 
-    await supabase.from("product_settings").upsert({
+    const { error: saveError } = await supabase.from("product_settings").upsert({
       product_id: productId,
       store_id: storeId,
       image_url: imageUrl,
       updated_at: new Date().toISOString(),
     });
+    if (saveError) throw new Error('Image settings could not be saved.');
 
     setImageOverrides((prev) => ({ ...prev, [productId]: imageUrl }));
     toast.success("Image uploaded.");
-    setUploadingImageId(null);
+    } catch { toast.error("Image could not be processed or saved. Use a valid raster image up to 5 MB."); }
+    finally { setUploadingImageId(null); }
   }, [storeId]);
 
   const removeProductImage = useCallback(async (productId: string) => {

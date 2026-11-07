@@ -32,6 +32,12 @@ jobs:
       - name: Edge contracts
         run: npm run typecheck:edge
 
+      - name: Native Deno boundary tests
+        run: npm run test:edge:runtime
+
+      - name: Readiness register integrity
+        run: npm run readiness
+
       - name: Lint
         run: npm run lint
 
@@ -39,6 +45,9 @@ jobs:
         # Fails only on a high/critical advisory in runtime deps. Dev-only
         # advisories don't ship to users, so they don't block the build.
         run: npm audit --omit=dev --audit-level=high
+
+      - name: Audit full dependency tree with expiring reviewed scope
+        run: npm run audit:dependencies
 
       - name: Database security regression
         run: bash supabase/tests/run-local.sh
@@ -54,7 +63,7 @@ jobs:
           # Provide stub env vars so Vite doesn't throw at build time.
           # Real secrets are only set in Vercel / Supabase — never here.
           VITE_SUPABASE_URL: https://placeholder.supabase.co
-          VITE_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder
+          VITE_SUPABASE_PUBLISHABLE_KEY: fixture-public-key
         run: npm run build
 
   e2e:

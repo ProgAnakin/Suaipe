@@ -1,6 +1,7 @@
 # Working on Suaipe
 
 - Read `docs/AI-HANDOFF.md` and `docs/DEPLOY-2.1.0.md`. The earlier audit in `docs/audits/2026-11-06/` is historical evidence, not current validation.
+- Current scope is a synthetic personal portfolio. Read `docs/releases/2026-11-07/README.md` and the 317-control register in `docs/readiness/`. All builds default to demo; real customer collection requires the separate safeguard. A fictitious contact does not authorize real collection or campaigns.
 - Use this checkout and Node 24. Preserve user changes; no worktree unless requested.
 - Claims use `submit_quiz_session` and immutable UUID/body retries. Never restore direct INSERT, public PIN fallback or client-written login/audit/cooldown authority.
 - Vercel previews default to synthetic demo. They must not collect credentials, write contacts, send messages or connect to the real backend.

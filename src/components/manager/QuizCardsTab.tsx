@@ -314,6 +314,7 @@ export function QuizCardsTab() {
     }
     setUploadingImage(true);
     setFormError(null);
+    try {
     const file = await resizeImagePng(rawFile, CARD_IMAGE_PX);
     const targetId = editingId ?? "new";
     const path = `quiz-cards/${targetId}-${Date.now()}.png`;
@@ -323,7 +324,8 @@ export function QuizCardsTab() {
     if (error) { setFormError("Image upload error: " + error.message); setUploadingImage(false); return; }
     const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
     setForm((f) => ({ ...f, image_url: urlData.publicUrl }));
-    setUploadingImage(false);
+    } catch { setFormError("Image could not be processed or uploaded. Use a valid raster image up to 5 MB."); }
+    finally { setUploadingImage(false); }
   };
 
   const saveCard = async () => {

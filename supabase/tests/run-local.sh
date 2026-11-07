@@ -13,6 +13,8 @@ done
   for migration in supabase/migrations/*.sql; do cat "$migration"; done
   cat supabase/tests/release-security.sql
   cat supabase/tests/prelaunch-regressions.sql
+  cat supabase/tests/marketing-regressions.sql
+  cat supabase/tests/subject-rights.sql
 } | docker exec -i "$name" psql -U postgres -v ON_ERROR_STOP=1
 
 python supabase/tests/concurrency.py "$name"

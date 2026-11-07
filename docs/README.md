@@ -4,6 +4,8 @@ Reference material for the suaipe codebase.
 
 | Document | What it covers |
 |----------|----------------|
+| [`releases/2026-11-07/README.md`](./releases/2026-11-07/README.md) | Current portfolio follow-up and verification results |
+| [`readiness/README.md`](./readiness/README.md) | All 317 controls, scope, evidence and concrete remaining actions |
 | [`AI-HANDOFF.md`](./AI-HANDOFF.md) | Current contracts and decisions for the next maintainer/AI |
 | [`DEPLOY-2.1.0.md`](./DEPLOY-2.1.0.md) | Coordinated release and deployment verification |
 | [`releases/2.1.0/README.md`](./releases/2.1.0/README.md) | Current validation, audit findings and remaining hosted checks |

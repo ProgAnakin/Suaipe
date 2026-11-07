@@ -74,7 +74,7 @@ const QuizScreen = ({ onComplete, cards: cardsProp }: QuizScreenProps) => {
         <div className="mx-auto flex max-w-sm flex-col gap-2">
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-foreground">
-              {t.quiz.questionOf(currentIndex + 1, cards.length)}
+              <span data-testid="quiz-progress">{t.quiz.questionOf(currentIndex + 1, cards.length)}</span>
             </span>
             <span className="text-sm font-bold text-primary">
               {Math.round((currentIndex / cards.length) * 100)}%
@@ -124,6 +124,7 @@ const QuizScreen = ({ onComplete, cards: cardsProp }: QuizScreenProps) => {
       >
         {/* NO */}
         <motion.button
+          disabled={transitioning || showTutorial}
           onClick={() => { haptic(30); handleSwipe("left"); }}
           className="flex h-16 flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-destructive/55 bg-destructive/10 text-destructive backdrop-blur-sm"
           style={{ boxShadow: "0 0 20px hsl(0 84% 60% / 0.18), inset 0 0 10px hsl(0 84% 60% / 0.06)" }}
@@ -145,6 +146,7 @@ const QuizScreen = ({ onComplete, cards: cardsProp }: QuizScreenProps) => {
         {/* YES */}
         <motion.button
           data-testid="quiz-yes"
+          disabled={transitioning || showTutorial}
           onClick={() => { haptic(45); handleSwipe("right"); }}
           className="flex h-16 flex-1 items-center justify-center gap-2 rounded-2xl border-2 border-success/55 bg-success/10 text-success backdrop-blur-sm"
           style={{ boxShadow: "0 0 20px hsl(168 76% 42% / 0.18), inset 0 0 10px hsl(168 76% 42% / 0.06)" }}

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { lockStaffSession } from "@/lib/staffLogout";
 import { LoginForm } from "@/components/stats/LoginForm";
 import { MfaVerifyForm } from "@/components/stats/MfaVerifyForm";
 import { MfaSetupModal } from "@/components/stats/MfaSetupModal";
@@ -126,8 +127,7 @@ const Consulente = () => {
             <MfaVerifyForm
               onVerified={() => { setStep("checking"); resolveRole(); }}
               onCancel={async () => {
-                await supabase.auth.signOut();
-                setStep("login");
+                lockStaffSession(() => setStep("login"));
               }}
             />
           </motion.div>
@@ -141,8 +141,7 @@ const Consulente = () => {
               onClose={async () => {
                 // The modal fires onClose on success too — don't sign out then.
                 if (enrolledRef.current) { enrolledRef.current = false; return; }
-                await supabase.auth.signOut();
-                setStep("login");
+                lockStaffSession(() => setStep("login"));
               }}
             />
           </motion.div>
@@ -161,7 +160,7 @@ const Consulente = () => {
               role from the Roles tab.
             </p>
             <button
-              onClick={async () => { await supabase.auth.signOut(); setStep("login"); }}
+              onClick={async () => { lockStaffSession(() => setStep("login")); }}
               className="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground active:scale-95"
             >
               Sign out
@@ -193,7 +192,7 @@ const Consulente = () => {
           <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <ConsulenteDashboard
               role={role}
-              onLogout={async () => { await supabase.auth.signOut(); setStep("login"); }}
+              onLogout={async () => { lockStaffSession(() => setStep("login")); }}
             />
           </motion.div>
         )}

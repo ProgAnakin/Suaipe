@@ -12,7 +12,7 @@ CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$ SELECT coales
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT (auth.jwt()->>'sub')::uuid $$;
 CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS $$ SELECT auth.jwt()->>'role' $$;
 GRANT USAGE ON SCHEMA auth, public TO anon, authenticated, service_role;
-CREATE TABLE storage.buckets (id text PRIMARY KEY, name text, public boolean);
+CREATE TABLE storage.buckets (id text PRIMARY KEY, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
 CREATE TABLE storage.objects (id uuid PRIMARY KEY, bucket_id text, name text);
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;

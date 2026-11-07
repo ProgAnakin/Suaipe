@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { lockStaffSession } from "@/lib/staffLogout";
 import { ADMIN_IDLE_TIMEOUT_MS } from "@/config/timings";
 
 const IDLE_EVENTS = ["mousedown", "touchstart", "keydown", "scroll"] as const;
@@ -14,10 +14,7 @@ export function useIdleLogout(onLogout: () => void) {
   useEffect(() => {
     const reset = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(async () => {
-        await supabase.auth.signOut();
-        onLogout();
-      }, ADMIN_IDLE_TIMEOUT_MS);
+      timerRef.current = setTimeout(() => lockStaffSession(onLogout), ADMIN_IDLE_TIMEOUT_MS);
     };
 
     reset();

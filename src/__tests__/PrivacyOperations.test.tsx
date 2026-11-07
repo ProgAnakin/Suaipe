@@ -19,7 +19,7 @@ beforeEach(()=>{
 describe('Privacy operator workflow',()=>{
   it('does not imply deletion of external copies after local erasure',async()=>{
     render(<PrivacyOperationsTab/>);await screen.findByText('brevo: synthetic@example.com');
-    fireEvent.change(screen.getByLabelText('Verified customer deletion request'),{target:{value:'synthetic@example.com'}});
+    fireEvent.change(screen.getByLabelText('Verified customer email'),{target:{value:'synthetic@example.com'}});
     await act(async()=>{fireEvent.click(screen.getByText('Delete local sessions'));});
     await waitFor(()=>expect(mocks.rpc).toHaveBeenCalledWith('erase_customer_data',{p_email:'synthetic@example.com'}));
     expect(mocks.rpc.mock.calls.some(c=>c[0]==='complete_external_erasure')).toBe(false);
@@ -28,7 +28,7 @@ describe('Privacy operator workflow',()=>{
   it('allows cancellation before local deletion',async()=>{
     vi.mocked(window.confirm).mockReturnValue(false);
     render(<PrivacyOperationsTab/>);await screen.findByText('brevo: synthetic@example.com');
-    fireEvent.change(screen.getByLabelText('Verified customer deletion request'),{target:{value:'synthetic@example.com'}});
+    fireEvent.change(screen.getByLabelText('Verified customer email'),{target:{value:'synthetic@example.com'}});
     await act(async()=>{fireEvent.click(screen.getByText('Delete local sessions'));});
     expect(mocks.rpc.mock.calls.some(c=>c[0]==='erase_customer_data')).toBe(false);
   });
@@ -41,5 +41,21 @@ describe('Privacy operator workflow',()=>{
     mocks.error=true;render(<PrivacyOperationsTab/>);
     expect(await screen.findByRole('alert')).toHaveTextContent('Unable to load');
     expect(screen.queryByText('brevo: synthetic@example.com')).not.toBeInTheDocument();
+  });
+  it('keeps correction separate from deletion and uses the verified exact address',async()=>{
+    render(<PrivacyOperationsTab/>);await screen.findByText('brevo: synthetic@example.com');
+    fireEvent.change(screen.getByLabelText('Verified customer email'),{target:{value:'synthetic@example.com'}});
+    fireEvent.change(screen.getByLabelText('Corrected first name'),{target:{value:'Corrected'}});
+    fireEvent.change(screen.getByLabelText('Corrected last name'),{target:{value:'Visitor'}});
+    await act(async()=>fireEvent.click(screen.getByText('Apply verified name correction')));
+    expect(mocks.rpc).toHaveBeenCalledWith('correct_customer_names',{p_email:'synthetic@example.com',p_nome:'Corrected',p_cognome:'Visitor'});
+    expect(mocks.rpc.mock.calls.some(c=>c[0]==='erase_customer_data')).toBe(false);
+  });
+  it('allows cancellation before a subject export without fetching customer records',async()=>{
+    vi.mocked(window.confirm).mockReturnValue(false);
+    render(<PrivacyOperationsTab/>);await screen.findByText('brevo: synthetic@example.com');
+    fireEvent.change(screen.getByLabelText('Verified customer email'),{target:{value:'synthetic@example.com'}});
+    await act(async()=>fireEvent.click(screen.getByText('Export verified customer records')));
+    expect(mocks.rpc.mock.calls.some(c=>c[0]==='get_customer_records')).toBe(false);
   });
 });

@@ -1,5 +1,7 @@
 # Resultado das correções — Suaipe 2.1.0 candidata
 
+> Registro da rodada de 06/11. Consulte a [continuação de 07/11](../2026-11-07/README.md) para o estado atual, novos testes e escopo de portfólio.
+
 06/11/2026. Branch `fix/security-and-release-hardening`. Base auditada: `8acdb61`; auditoria histórica: `6651114`. O commit que contém este relatório reúne a implementação e estas evidências. **Validação local concluída dentro do escopo abaixo; implantação hospedada não confirmada.**
 
 ## O que mudou, em linguagem simples

@@ -1,3 +1,4 @@
+import { sendToSheets } from '../_shared/googleSheets.ts';
 import { spreadsheetText, safeTemplateHtml } from "../_shared/contentSafety.ts";
 import { readBoundedJson } from "../_shared/request.ts";
 // Supabase Edge Function — triggered by Database Webhook on quiz_sessions INSERT
@@ -842,7 +843,7 @@ serve(async (req) => {
     console.log("[on-session-created] email sent:", brevoData.messageId, "session:", record.id);
 
     // Await the relay so the runtime cannot discard it after returning.
-    if (SHEETS_WEBHOOK) {
+    if (SHEETS_WEBHOOK && record.marketing_opt_in === true && !record.marketing_withdrawn_at) {
       const sheetsPayload = {
         data:     new Date().toLocaleString("it-IT"),
         nome:     String(record.nome    ?? ""),
@@ -852,12 +853,7 @@ serve(async (req) => {
         match:    `${Number(record.match_percent ?? 0)}%`,
         store_id: String(record.store_id ?? ""),
       };
-      await fetch(SHEETS_WEBHOOK, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(Object.fromEntries(Object.entries(sheetsPayload).map(([key,value]) => [key,spreadsheetText(value)]))),
-        signal: AbortSignal.timeout(15_000),
-      }).then((response) => { if (!response.ok) console.error("[on-session-created] sheets relay status", response.status); })
+      await sendToSheets(SHEETS_WEBHOOK, Object.fromEntries(Object.entries(sheetsPayload).map(([key,value]) => [key,spreadsheetText(value)])))
         .catch(() => console.error("[on-session-created] sheets relay failed", record.id));
     }
 

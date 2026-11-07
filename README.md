@@ -8,7 +8,7 @@
 
 [![CI](https://github.com/ProgAnakin/Suaipe/actions/workflows/ci.yml/badge.svg)](https://github.com/ProgAnakin/Suaipe/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-2.1.0-3b82f6)](./CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/tests-192%20unit-22d3ee)](./src/__tests__)
+[![Tests](https://img.shields.io/badge/tests-234%20unit-22d3ee)](./src/__tests__)
 [![Languages](https://img.shields.io/badge/i18n-5%20languages-22d3ee)](./src/i18n/translations.ts)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
@@ -17,9 +17,9 @@
 
 *Customers swipe through 8 personalised questions — Tinder-style — and receive an instant product recommendation with a tailored discount and a personalised video from a consultant.*
 
-### 🌐 [**Project deployment → suaipe.vercel.app**](https://suaipe.vercel.app)
+### 🌐 Portfolio demonstration
 
-*The version and demo isolation at this existing address have not been verified in this review. See [release validation](docs/releases/2.1.0/README.md); a preview URL must come from Vercel.*
+*The current candidate uses synthetic data. A hosted URL will be listed after provider and `/release.json` verification. See [current release validation](docs/releases/2026-11-07/README.md).*
 
 *Best experienced on iPad (1024×1366) in landscape · Works on any modern browser*
 
@@ -29,11 +29,11 @@
 
 ## Overview
 
-**Suaipe** turns idle in-store iPads into a conversion-driving touchpoint. A customer answers eight quick swipe questions, a matching algorithm recommends one product, generates a unique discount code, and delivers a personalised follow-up email in the customer's language. The whole experience runs in under two minutes.
+**Suaipe** turns idle in-store iPads into a conversion-driving touchpoint. A customer answers eight quick swipe questions, a matching algorithm recommends one product, generates a unique discount code, and delivers a personalised follow-up email in the customer's language. The flow is designed for a short in-store visit.
 
 **Built for:** physical retail with a curated catalog — tech, beauty, gifts, sporting goods, fragrance — where customers know roughly what they want but get overwhelmed by choice.
 
-**Status:** 2.1.0 release candidate on `fix/security-and-release-hardening`. Local validation is recorded below; hosted rollout remains to be verified. The project supports four configured stores.
+**Status:** 2.1.0 release candidate on `fix/security-and-release-hardening`. Local validation is recorded below; hosted rollout remains to be verified. The current store configurations are demonstration examples. Intended audience: Europe, especially Italy, Portugal, Spain and France.
 
 ### What it delivers
 
@@ -48,7 +48,7 @@
 
 ## 📸 Demo
 
-> Product screenshots; they do not establish the version currently deployed or validate operation in four stores.
+> Current browser captures with synthetic data, including a separate authenticated staff fixture. Public demo staff routes remain disabled. [Capture provenance](docs/screenshots/README.md). These are not production metrics.
 
 <table align="center">
   <tr>
@@ -164,7 +164,7 @@ flowchart LR
 
 ### Consultant training zone (`/consulente`)
 - 🎓 **Read-only product knowledge base** for sales consultants
-- 📝 **Per-product guides** — description, two selling insights and the manager's advice, authored by hand in `/manager` (no AI, no external API)
+- 📝 **Per-product guides** — description, two selling insights and the manager's advice, authored in `/manager` (no generative AI calls in the product runtime)
 - 👁️ **Customer-facing description mirror** — shows the exact text the customer reads on their match result
 - 🌍 **IT / EN toggle** with Italian fallback
 
@@ -200,7 +200,7 @@ Suaipe is designed for tech retail and other curated catalogs; suitability for a
 | **Webhooks** | DB webhooks gated by valid `store_id` allowlist · unknown stores silently dropped |
 | **Accessibility** | Kiosk-targeted tap targets (≥ 64 px on the PIN keypad and quiz buttons) · `focus-visible:ring-2` rings on interactive elements · `prefers-reduced-motion` respected via Framer Motion `MotionConfig` · informational copy bumped above the `/65` opacity threshold for in-store lighting |
 | **Internationalisation** | 5 fully translated languages, including the transactional emails sent to customers |
-| **Testing** | 192 unit tests (Vitest) · 18 browser scenarios defined (WebKit, including isolated demo; see release validation) · typecheck + lint + build on every push via GitHub Actions |
+| **Testing** | 234 unit tests (Vitest) · 21 browser scenarios defined (18 functional Chromium checks passed; 3 WebKit visual cases pending) · typecheck + lint + build on every push via GitHub Actions |
 | **Observability** | Optional minimized Sentry errors without replay/tracing; optional private sourcemap upload/removal · authenticated hourly health check and daily retention workflow, requiring operator configuration |
 | **Performance** | Manual chunk splitting · lazy-loaded admin routes · image auto-resize ≤ 1024px JPEG q=80 · PWA precaching · debounced search |
 | **iPad / Kiosk** | `interactive-widget=resizes-content` prevents URL bar on keyboard · `visualViewport` API for keyboard-aware layouts · iOS splash screens · wake lock · `100dvh` everywhere |
@@ -346,7 +346,7 @@ VITE_DEMO_MODE=true
 
 ## 📦 Deployment
 
-With the Vercel Git integration configured, a push can request a frontend deployment. Preview builds default to synthetic demo mode. A push does not deploy SQL or Edge Functions and does not prove provider success. Follow [DEPLOY-2.1.0.md](docs/DEPLOY-2.1.0.md) for the coordinated rollout and `/release.json` verification. Security headers, CSP, HSTS and SPA routing are declared in `vercel.json`; verify their hosted responses.
+With the Vercel Git integration configured, a push can request a frontend deployment. All builds, including Production, default to synthetic demo mode. Real collection additionally requires `VITE_ALLOW_REAL_CUSTOMER_DATA=true`. A push does not deploy SQL or Edge Functions and does not prove provider success. Follow [DEPLOY-2.1.0.md](docs/DEPLOY-2.1.0.md) for the coordinated rollout and `/release.json` verification. Security headers, CSP, HSTS and SPA routing are declared in `vercel.json`; verify their hosted responses.
 
 The CI workflow runs typecheck, lint, test and build on every push to `main`, every PR, and every `claude/*` / `feat/*` / `fix/*` branch.
 
@@ -399,14 +399,14 @@ The design can use entry-level service plans, but actual eligibility, quotas, ru
 - **App-layer PII encryption (optional, deferred by choice).** Customer `email`/`nome`/`cognome` are currently protected by access control (role-scoped RLS) + platform at-rest encryption rather than application-layer AES, because encrypting them would break the dashboard's partial-match search. A future release could encrypt them at rest with a server-side decrypt RPC (key in Supabase Vault) and switch email/name lookups to exact-match HMAC — accepted trade-off: no more partial search on those fields.
 - **Hosted authorization verification.** The current migrations enforce MFA on sensitive SQL/Storage operations. Exercise these policies with real roles, tokens and uploads in staging; local SQL stand-ins do not certify the hosted service.
 
-### Observability (free tier today, paid tier later)
+### Optional observability
 
 - **Structured logging for Edge Functions.** Logflare or Better Stack drain (~€10/mo) so failures in `verify-pin` / `on-session-created` / `relay-to-sheets` get queryable, retained beyond Supabase's rolling window.
 - **Lighthouse CI + bundle-size budgets.** Fail PRs that regress LCP or grow a chunk past its budget. Deferred until the catalog actually grows — premature on a 4-store pilot.
 
 ### Resilience (paid tiers)
 
-- **Automated daily database backups.** Backup and point-in-time recovery availability depends on the Supabase plan and configured add-ons; verify the current plan and test restores. Deferred until the project goes beyond pilot stage.
+- **Automated daily database backups.** Backup and point-in-time recovery availability depends on the Supabase plan and configured add-ons; verify the current plan and test restores. Real recovery validation is required before customer-data operation.
 - **Public status page.** A read-only health endpoint (Vercel + Supabase + Brevo) so store staff can self-diagnose outages without calling support.
 
 ### Developer experience
@@ -443,4 +443,4 @@ Proprietary — © Costanzo Annichini. All rights reserved.
 
 These changes require a coordinated database, Edge Function and frontend rollout. See [the 2.1.0 deployment guide](docs/DEPLOY-2.1.0.md) and [AI/maintainer handoff](docs/AI-HANDOFF.md) before deploying this branch.
 
-For the release's current contracts and verification limits, read [AI-HANDOFF.md](docs/AI-HANDOFF.md). Vercel previews default to a synthetic demo; real deployment also requires SQL/Edge updates and scheduled privacy maintenance. Third-party components retain their own licenses; acknowledgements are in [public/third-party-notices.txt](public/third-party-notices.txt).
+For the release's current contracts and verification limits, read [AI-HANDOFF.md](docs/AI-HANDOFF.md), the [317-control register](docs/readiness/README.md) and [latest results](docs/releases/2026-11-07/README.md). All builds default to a synthetic portfolio demo; real deployment also requires SQL/Edge updates and scheduled privacy maintenance. Third-party components retain their own licenses; acknowledgements are in [public/third-party-notices.txt](public/third-party-notices.txt).

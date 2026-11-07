@@ -1,0 +1,116 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@rollup/plugin-node-resolve": {
+      "name": "@rollup/plugin-node-resolve",
+      "severity": "low",
+      "isDirect": false,
+      "via": [
+        "deepmerge"
+      ],
+      "effects": [
+        "workbox-build"
+      ],
+      "range": ">=8.0.0",
+      "nodes": [
+        "node_modules/@rollup/plugin-node-resolve"
+      ],
+      "fixAvailable": {
+        "name": "vite-plugin-pwa",
+        "version": "0.2.1",
+        "isSemVerMajor": true
+      }
+    },
+    "deepmerge": {
+      "name": "deepmerge",
+      "severity": "low",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1243505,
+          "name": "deepmerge",
+          "dependency": "deepmerge",
+          "title": "deepmerge mergeObject() allows prototype poisoning of returned objects",
+          "url": "https://github.com/advisories/GHSA-gcqx-w48m-w2h4",
+          "severity": "low",
+          "cwe": [
+            "CWE-1321"
+          ],
+          "cvss": {
+            "score": 5.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+          },
+          "range": ">=4.2.0 <=4.3.1"
+        }
+      ],
+      "effects": [
+        "@rollup/plugin-node-resolve"
+      ],
+      "range": ">=4.2.0",
+      "nodes": [
+        "node_modules/deepmerge"
+      ],
+      "fixAvailable": {
+        "name": "vite-plugin-pwa",
+        "version": "0.2.1",
+        "isSemVerMajor": true
+      }
+    },
+    "vite-plugin-pwa": {
+      "name": "vite-plugin-pwa",
+      "severity": "low",
+      "isDirect": true,
+      "via": [
+        "workbox-build"
+      ],
+      "effects": [],
+      "range": ">=0.3.0",
+      "nodes": [
+        "node_modules/vite-plugin-pwa"
+      ],
+      "fixAvailable": {
+        "name": "vite-plugin-pwa",
+        "version": "0.2.1",
+        "isSemVerMajor": true
+      }
+    },
+    "workbox-build": {
+      "name": "workbox-build",
+      "severity": "low",
+      "isDirect": false,
+      "via": [
+        "@rollup/plugin-node-resolve"
+      ],
+      "effects": [
+        "vite-plugin-pwa"
+      ],
+      "range": ">=6.0.0-alpha.0",
+      "nodes": [
+        "node_modules/workbox-build"
+      ],
+      "fixAvailable": {
+        "name": "vite-plugin-pwa",
+        "version": "0.2.1",
+        "isSemVerMajor": true
+      }
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 4,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 4
+    },
+    "dependencies": {
+      "prod": 248,
+      "dev": 565,
+      "optional": 71,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 813
+    }
+  }
+}
