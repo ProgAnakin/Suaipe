@@ -49,7 +49,7 @@ export const useDashboardData = ({ dateFrom, dateTo, filterStore, dateRangeInval
       if (dateTo)   q = q.lte("created_at", endOfLocalDayISO(dateTo));
       if (filterStore) q = q.eq("store_id", filterStore);
       return q;
-    }, { maxRows: MAX_SESSIONS });
+    }, { maxRows: MAX_SESSIONS, key: (r) => r.id });
     if (error) setHasError(true);
     else { setSessions(rows); setTruncated(cut); }
 

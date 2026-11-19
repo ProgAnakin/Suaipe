@@ -45,3 +45,36 @@ describe("fetchAllPages", () => {
     expect(out.rows).toHaveLength(1000);
   });
 });
+
+describe("fetchAllPages — rows inserted while the read is under way", () => {
+  it("a lead inserted between two pages is not counted twice when a key is given", async () => {
+    // newest first: 2500 rows, ids 2499 … 0. After the first page one more lead arrives (id 2500) and sits on top,
+    // so the whole list moves one place down: the last row of page 1 is again the first row of page 2.
+    let live = Array.from({ length: 2500 }, (_, i) => ({ id: 2499 - i }));
+    let calls = 0;
+    const out = await fetchAllPages(
+      (from, to) => {
+        const result = { data: live.slice(from, to + 1), error: null };
+        if (++calls === 1) live = [{ id: 2500 }, ...live];
+        return Promise.resolve(result);
+      },
+      { key: (r) => String(r.id) },
+    );
+    const ids = out.rows.map((r) => r.id);
+    expect(new Set(ids).size).toBe(ids.length); // no repeated row
+    expect(ids).toHaveLength(2500); // and every row that existed when the read began is there
+    expect(Math.min(...ids)).toBe(0);
+    expect(Math.max(...ids)).toBe(2499);
+  });
+
+  it("without a key the rows are returned as they come (the old behaviour)", async () => {
+    let live = Array.from({ length: 2500 }, (_, i) => ({ id: 2499 - i }));
+    let calls = 0;
+    const out = await fetchAllPages((from, to) => {
+      const result = { data: live.slice(from, to + 1), error: null };
+      if (++calls === 1) live = [{ id: 2500 }, ...live];
+      return Promise.resolve(result);
+    });
+    expect(out.rows.length).toBeGreaterThan(2500); // proves the scenario really repeats a row without the key
+  });
+});

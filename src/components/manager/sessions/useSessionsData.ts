@@ -84,7 +84,7 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
         .range(from, to);
       if (!isGlobal) q = q.eq("store_id", storeId);
       return q;
-    });
+    }, { key: (r) => r.id });
     if (error) { console.error("[suaipe] KPI fetch failed:", error.message); return; } // keep the last good numbers
     setKpiData(rows);
   }, [storeId, isGlobal]);
@@ -207,7 +207,7 @@ export function useSessionsData({ storeId, isGlobal }: UseSessionsDataOpts) {
         .range(from, to);
       if (!isGlobal) q = q.eq("store_id", storeId);
       return q;
-    });
+    }, { key: (r) => r.id });
     if (error) {
       setExporting(false);
       toast.error(`Export failed: ${error.message}`);
