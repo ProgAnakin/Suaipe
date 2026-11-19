@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+# The workflow token is read-only: no job here pushes, comments or publishes. (update-visual-baselines.yml,
+# which opens a PR, asks for its own write permissions.) Every action is pinned to a commit — a moved tag
+# cannot change what runs in CI; Dependabot's github-actions updates keep the pins current.
+permissions:
+  contents: read
+
 jobs:
   ci:
     name: Typecheck · Lint · Test · Build
@@ -13,9 +19,9 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 20
           cache: npm
@@ -54,9 +60,9 @@ jobs:
     # WebKit), now fixed; the suite is green (8/8).
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 20
           cache: npm
@@ -75,7 +81,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: playwright-report
           path: playwright-report/
@@ -109,9 +115,9 @@ jobs:
       SOAK_VISITS: "5"
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 20
           cache: npm
@@ -127,7 +133,7 @@ jobs:
 
       - name: Upload Playwright report on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: playwright-resilience-${{ matrix.spec }}-${{ strategy.job-index }}
           path: playwright-report/
@@ -152,7 +158,7 @@ jobs:
           --health-retries 10
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Apply every migration to an empty database and attack it as each role
         env:
