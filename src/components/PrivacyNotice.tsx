@@ -19,7 +19,7 @@ import type { Lang } from "@/i18n/translations";
 const CONTROLLER = (import.meta.env.VITE_PRIVACY_CONTROLLER as string | undefined)?.trim() || "Suaipe";
 const CONTACT_EMAIL = (import.meta.env.VITE_PRIVACY_EMAIL as string | undefined)?.trim() || "privacy@suaipe.app";
 
-interface Section { h: string; p: string; }
+interface Section { h: string; p: string; /** the paragraph that names the processors: deployment-dependent recipients are added to it */ recipients?: true; }
 interface NoticeContent { title: string; intro: string; sections: Section[]; }
 
 const CONTENT: Record<Lang, NoticeContent> = {
@@ -33,7 +33,7 @@ const CONTENT: Record<Lang, NoticeContent> = {
       { h: "Finalità", p: "Inviarti via email il prodotto consigliato, il relativo codice sconto e le informazioni associate. I dati non vengono usati per altre finalità di marketing senza un ulteriore consenso." },
       { h: "Base giuridica", p: "Il trattamento si basa sul tuo consenso esplicito, prestato spuntando l'apposita casella prima di iniziare." },
       { h: "Conservazione", p: "I dati vengono conservati per il tempo necessario alla finalità indicata e periodicamente eliminati. Puoi richiederne la cancellazione in qualsiasi momento." },
-      { h: "Responsabili esterni", p: "I dati sono ospitati su Supabase (infrastruttura) e l'email è inviata tramite Brevo (invio email transazionali), che agiscono come responsabili del trattamento." },
+      { h: "Responsabili esterni", recipients: true, p: "I dati sono ospitati su Supabase (infrastruttura) e l'email è inviata tramite Brevo (invio email transazionali), che agiscono come responsabili del trattamento." },
       { h: "I tuoi diritti", p: `Puoi richiedere l'accesso, la rettifica, la cancellazione dei tuoi dati e revocare il consenso in qualsiasi momento scrivendo a ${CONTACT_EMAIL}.` },
     ],
   },
@@ -47,7 +47,7 @@ const CONTENT: Record<Lang, NoticeContent> = {
       { h: "Purpose", p: "To email you the recommended product, its discount code and the related information. The data is not used for other marketing purposes without further consent." },
       { h: "Legal basis", p: "Processing is based on your explicit consent, given by ticking the box before you start." },
       { h: "Retention", p: "Data is kept only as long as needed for the stated purpose and is purged periodically. You may request deletion at any time." },
-      { h: "Processors", p: "Data is hosted on Supabase (infrastructure) and email is sent via Brevo (transactional email); both act as data processors." },
+      { h: "Processors", recipients: true, p: "Data is hosted on Supabase (infrastructure) and email is sent via Brevo (transactional email); both act as data processors." },
       { h: "Your rights", p: `You may request access, rectification or deletion of your data, and withdraw consent at any time, by writing to ${CONTACT_EMAIL}.` },
     ],
   },
@@ -61,7 +61,7 @@ const CONTENT: Record<Lang, NoticeContent> = {
       { h: "Finalidade", p: "Enviar-lhe por email o produto recomendado, o respetivo código de desconto e as informações associadas. Os dados não são usados para outras finalidades de marketing sem um consentimento adicional." },
       { h: "Base jurídica", p: "O tratamento baseia-se no seu consentimento explícito, dado ao marcar a caixa antes de começar." },
       { h: "Conservação", p: "Os dados são conservados pelo tempo necessário à finalidade indicada e periodicamente eliminados. Pode solicitar a sua eliminação a qualquer momento." },
-      { h: "Subcontratantes", p: "Os dados são alojados na Supabase (infraestrutura) e o email é enviado através da Brevo (email transacional); ambas atuam como subcontratantes." },
+      { h: "Subcontratantes", recipients: true, p: "Os dados são alojados na Supabase (infraestrutura) e o email é enviado através da Brevo (email transacional); ambas atuam como subcontratantes." },
       { h: "Os seus direitos", p: `Pode solicitar o acesso, retificação ou eliminação dos seus dados, e retirar o consentimento a qualquer momento, escrevendo para ${CONTACT_EMAIL}.` },
     ],
   },
@@ -75,7 +75,7 @@ const CONTENT: Record<Lang, NoticeContent> = {
       { h: "Finalidad", p: "Enviarle por email el producto recomendado, el código de descuento correspondiente y la información asociada. Los datos no se utilizan para otras finalidades de marketing sin un consentimiento adicional." },
       { h: "Base jurídica", p: "El tratamiento se basa en su consentimiento explícito, otorgado al marcar la casilla antes de comenzar." },
       { h: "Conservación", p: "Los datos se conservan durante el tiempo necesario para la finalidad indicada y se eliminan periódicamente. Puede solicitar su eliminación en cualquier momento." },
-      { h: "Encargados del tratamiento", p: "Los datos están alojados en Supabase (infraestructura) y el email se envía a través de Brevo (email transaccional); ambas actúan como encargadas del tratamiento." },
+      { h: "Encargados del tratamiento", recipients: true, p: "Los datos están alojados en Supabase (infraestructura) y el email se envía a través de Brevo (email transaccional); ambas actúan como encargadas del tratamiento." },
       { h: "Sus derechos", p: `Puede solicitar el acceso, la rectificación o la eliminación de sus datos, y retirar el consentimiento en cualquier momento, escribiendo a ${CONTACT_EMAIL}.` },
     ],
   },
@@ -89,11 +89,44 @@ const CONTENT: Record<Lang, NoticeContent> = {
       { h: "Finalité", p: "Vous envoyer par email le produit recommandé, le code de réduction correspondant et les informations associées. Les données ne sont pas utilisées à d'autres fins marketing sans un consentement supplémentaire." },
       { h: "Base juridique", p: "Le traitement repose sur votre consentement explicite, donné en cochant la case avant de commencer." },
       { h: "Conservation", p: "Les données sont conservées pendant le temps nécessaire à la finalité indiquée et purgées périodiquement. Vous pouvez en demander la suppression à tout moment." },
-      { h: "Sous-traitants", p: "Les données sont hébergées sur Supabase (infrastructure) et l'email est envoyé via Brevo (email transactionnel) ; ils agissent en tant que sous-traitants." },
+      { h: "Sous-traitants", recipients: true, p: "Les données sont hébergées sur Supabase (infrastructure) et l'email est envoyé via Brevo (email transactionnel) ; ils agissent en tant que sous-traitants." },
       { h: "Vos droits", p: `Vous pouvez demander l'accès, la rectification ou la suppression de vos données, et retirer votre consentement à tout moment, en écrivant à ${CONTACT_EMAIL}.` },
     ],
   },
 };
+
+// Recipients that depend on how a deployment is configured. The customer must be told about every one of them:
+//  - Sentry is named when this build reports errors to it (VITE_SENTRY_DSN is set);
+//  - the Google Sheets customer list is named unless the deployment has no such relay (VITE_PRIVACY_SHEETS=false);
+//    the relay is server-side (an Edge Function secret) — keep the two in step, see docs/deployment.md.
+const SHEETS_ON = (import.meta.env.VITE_PRIVACY_SHEETS as string | undefined)?.trim().toLowerCase() !== "false";
+const SENTRY_ON = !!(import.meta.env.VITE_SENTRY_DSN as string | undefined)?.trim();
+
+const RECIPIENTS: Record<Lang, { sheets: string; sentry: string }> = {
+  it: {
+    sheets: " Una copia del tuo record (nome, email, prodotto consigliato e codice sconto) è conservata anche in un elenco clienti su Google Sheets.",
+    sentry: " Gli errori tecnici dell'app sono segnalati a Sentry (monitoraggio degli errori); le segnalazioni sono concepite per non contenere i tuoi dati personali.",
+  },
+  en: {
+    sheets: " A copy of your record (name, email, recommended product and discount code) is also kept in a customer list on Google Sheets.",
+    sentry: " Technical errors of the app are reported to Sentry (error monitoring); the reports are designed not to contain your personal data.",
+  },
+  pt: {
+    sheets: " Uma cópia do seu registo (nome, email, produto recomendado e código de desconto) é também conservada numa lista de clientes no Google Sheets.",
+    sentry: " Os erros técnicos da aplicação são comunicados à Sentry (monitorização de erros); os relatórios foram concebidos para não conter os seus dados pessoais.",
+  },
+  es: {
+    sheets: " Una copia de su registro (nombre, email, producto recomendado y código de descuento) también se conserva en una lista de clientes en Google Sheets.",
+    sentry: " Los errores técnicos de la aplicación se comunican a Sentry (monitorización de errores); los informes están diseñados para no contener sus datos personales.",
+  },
+  fr: {
+    sheets: " Une copie de votre fiche (nom, email, produit recommandé et code de réduction) est également conservée dans une liste de clients sur Google Sheets.",
+    sentry: " Les erreurs techniques de l'application sont signalées à Sentry (suivi des erreurs) ; les rapports sont conçus pour ne pas contenir vos données personnelles.",
+  },
+};
+
+const recipientsText = (lang: Lang) =>
+  (SHEETS_ON ? RECIPIENTS[lang].sheets : "") + (SENTRY_ON ? RECIPIENTS[lang].sentry : "");
 
 export const PrivacyNotice = () => {
   const { lang } = useLang();
@@ -107,7 +140,7 @@ export const PrivacyNotice = () => {
         {c.sections.map((s) => (
           <div key={s.h}>
             <h2 className="text-sm font-semibold text-foreground">{s.h}</h2>
-            <p className="text-sm leading-relaxed text-muted-foreground">{s.p}</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">{s.recipients ? s.p + recipientsText(lang in CONTENT ? lang : "en") : s.p}</p>
           </div>
         ))}
       </div>

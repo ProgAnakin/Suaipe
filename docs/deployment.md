@@ -100,11 +100,12 @@ Import the repository; production is the `main` branch. Environment variables:
 | variable | value |
 |---|---|
 | `VITE_SUPABASE_URL` | the project URL |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | the **anon / publishable** key — never the service-role key |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | the **anon / publishable** key — never the service-role key (the build **fails** on a service-role JWT, a `sb_secret_…` key or an `sbp_…` token) |
 | `VITE_STORES` | step 4 |
 | `VITE_SITE_URL` | your production origin |
 | `VITE_PRIVACY_CONTROLLER`, `VITE_PRIVACY_EMAIL` | **the company that operates the kiosks** and a contact it reads — they are printed in the GDPR notice the customer accepts. Have the notice reviewed by your legal adviser / DPO before launch |
-| `VITE_SENTRY_DSN`, `SENTRY_*` | optional, see `.env.example` |
+| `VITE_PRIVACY_SHEETS` | leave unset while you use the Google Sheets relay (`GOOGLE_SHEETS_WEBHOOK_URL`, step 5): the notice then tells the customer that a copy of the record is kept there. Set it to `false` only if the relay is off — keep the two in step |
+| `VITE_SENTRY_DSN`, `SENTRY_*` | optional, see `.env.example`. With a DSN the app reports **errors only**, scrubbed of e-mail addresses, query strings and user data (no tracing, no session replay unless `VITE_SENTRY_REPLAY=true`); the privacy notice then names Sentry as a recipient |
 
 `vercel.json` already carries the security headers, the CSP and the SPA routing. If your Supabase project is
 served from a custom domain (not `*.supabase.co`), add that domain to `connect-src`, `img-src` and `media-src`

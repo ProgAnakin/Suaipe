@@ -42,6 +42,20 @@ describe("PrivacyNotice", () => {
     });
   }
 
+  for (const lang of LANGS) {
+    it(`${lang}: names the Google Sheets customer list by default, and drops it when the deployment has no such relay`, async () => {
+      expect(await noticeText(lang)).toContain("Google Sheets");
+      vi.stubEnv("VITE_PRIVACY_SHEETS", "false");
+      expect(await noticeText(lang)).not.toContain("Google Sheets");
+    });
+
+    it(`${lang}: names Sentry only when this build reports errors to it`, async () => {
+      expect(await noticeText(lang)).not.toContain("Sentry");
+      vi.stubEnv("VITE_SENTRY_DSN", "https://key@example.ingest.sentry.io/1");
+      expect(await noticeText(lang)).toContain("Sentry");
+    });
+  }
+
   it("a blank setting falls back to the defaults instead of printing nothing", async () => {
     vi.stubEnv("VITE_PRIVACY_CONTROLLER", "   ");
     vi.stubEnv("VITE_PRIVACY_EMAIL", "");
