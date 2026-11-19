@@ -222,7 +222,14 @@ export const useProductCatalog = (storeId: string) => {
       return;
     }
     setUploadingImageId(productId);
-    const file = await resizeImage(rawFile);
+    let file: File;
+    try {
+      file = await resizeImage(rawFile);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "The image could not be processed.");
+      setUploadingImageId(null);
+      return;
+    }
     const path = `${storeId}/${productId}.jpg`;
 
     const { error: uploadError } = await supabase.storage

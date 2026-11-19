@@ -217,8 +217,15 @@ export function ProductCatalogTab() {
       return;
     }
     setUploadingImage(true);
-    // #8 — auto-resize before upload
-    const file = await resizeImage(rawFile);
+    // #8 — auto-resize before upload (rejects a file that is not a sound image — it is never uploaded as it is)
+    let file: File;
+    try {
+      file = await resizeImage(rawFile);
+    } catch (e) {
+      setFormError(e instanceof Error ? e.message : "The image could not be processed.");
+      setUploadingImage(false);
+      return;
+    }
     const targetId = form.id || `new-${Date.now()}`;
     const path = `custom/${targetId}.jpg`;
     const { error } = await supabase.storage

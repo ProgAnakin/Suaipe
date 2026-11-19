@@ -251,6 +251,11 @@ UPDATE qa.results SET expected = 'some of the 150 refused', ok = (actual::int > 
 SELECT qa.check('e-mail template defaults carry no personal name (a buyer starts neutral)', '0',
   (SELECT count(*)::text FROM public.email_template WHERE footer_store_name ~* 'annichini' OR sender_name ~* 'annichini'));
 
+-- 10. the public image bucket only takes small, plain raster images ------------------------------------------------------
+SELECT qa.check('the image bucket caps a file at 5 MiB', '5242880', (SELECT file_size_limit::text FROM storage.buckets WHERE id = 'product-images'));
+SELECT qa.check('…and takes only JPEG, PNG and WebP (no SVG, no HTML)', 'image/jpeg,image/png,image/webp', (SELECT array_to_string(allowed_mime_types, ',') FROM storage.buckets WHERE id = 'product-images'));
+SELECT qa.check('…and is still publicly readable (the kiosk loads images by their public URL)', 'true', (SELECT public::text FROM storage.buckets WHERE id = 'product-images'));
+
 -- report ---------------------------------------------------------------------------------------------------------
 \o
 \pset format aligned

@@ -326,7 +326,14 @@ export function QuizCardsTab() {
     }
     setUploadingImage(true);
     setFormError(null);
-    const file = await resizeImagePng(rawFile, CARD_IMAGE_PX);
+    let file: File;
+    try {
+      file = await resizeImagePng(rawFile, CARD_IMAGE_PX);
+    } catch (e) {
+      setFormError(e instanceof Error ? e.message : "The image could not be processed.");
+      setUploadingImage(false);
+      return;
+    }
     const targetId = editingId ?? "new";
     const path = `quiz-cards/${targetId}-${Date.now()}.png`;
     const { error } = await supabase.storage
