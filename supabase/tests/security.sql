@@ -265,6 +265,37 @@ SELECT qa.check('guides: a role-less authenticated user reads no guide file eith
 SELECT qa.check('guides: a consulente cannot write a guide', 'ok rows=0', qa.as_user('authenticated', :C::uuid, $q$UPDATE public.product_guides SET product_name = 'x'$q$));
 SELECT qa.check('no API role may create objects in the public schema', 'false', (SELECT bool_or(has_schema_privilege(r, 'public', 'CREATE'))::text FROM unnest(ARRAY['anon', 'authenticated']) AS r));
 
+-- 12. the public surface cannot be turned against the people behind it -------------------------------------------------
+-- the funnel's clock is the database's
+SELECT qa.check('funnel events: a visitor cannot back-date an event', 'ok rows=1',
+  qa.as_user('anon', NULL, $q$INSERT INTO public.quiz_funnel_events(funnel_key,event_type,store_id,created_at) VALUES ('a0000000-0000-4000-8000-0000000000bb','claimed','milano', now() - interval '40 days')$q$));
+SELECT qa.check('…the row carries the time the database saw', 'true',
+  (SELECT (created_at > now() - interval '1 minute')::text FROM public.quiz_funnel_events WHERE funnel_key = 'a0000000-0000-4000-8000-0000000000bb'));
+
+-- fabricated login failures lock out only the address they come from
+CREATE FUNCTION qa.login_locked(p_email text, p_headers text) RETURNS text LANGUAGE plpgsql AS $$
+DECLARE res text;
+BEGIN
+  PERFORM set_config('request.jwt.claims', '{"role":"anon"}', true);
+  PERFORM set_config('request.headers', p_headers, true);
+  SET LOCAL ROLE anon;
+  SELECT (public.check_login_rate_limit(p_email) ->> 'locked') INTO res;
+  RESET ROLE;
+  PERFORM set_config('request.headers', '', true);
+  RETURN res;
+END $$;
+
+SELECT qa.check('login lock: five fabricated failures from the attacker are accepted', 'ok rows=1',
+  qa.as_user('anon', NULL, $q$SELECT public.record_login_attempt('victim@example.com', false)$q$, '{"x-real-ip":"198.51.100.7"}'));
+SELECT qa.as_user('anon', NULL, $q$SELECT public.record_login_attempt('victim@example.com', false)$q$, '{"x-real-ip":"198.51.100.7"}') FROM generate_series(1, 4);
+SELECT qa.check('login lock: …and lock the ATTACKER''s address out', 'true', qa.login_locked('victim@example.com', '{"x-real-ip":"198.51.100.7"}'));
+SELECT qa.check('login lock: …but not the victim, who signs in from another address', 'false', qa.login_locked('victim@example.com', '{"x-real-ip":"203.0.113.9"}'));
+SELECT qa.check('login lock: …and a caller sees nothing of the attempts of others (no activity oracle)', 'false', qa.login_locked('victim@example.com', '{"cf-connecting-ip":"192.0.2.44"}'));
+SELECT qa.check('login lock: only a hash of the address is stored', 'true',
+  (SELECT (count(*) > 0 AND bool_and(caller ~ '^[0-9a-f]{16}$'))::text FROM public.login_attempts WHERE email = 'victim@example.com' AND caller <> ''));
+SELECT qa.check('login lock: anon cannot read or write the attempts table directly', 'ok rows=0', qa.as_user('anon', NULL, $q$SELECT * FROM public.login_attempts$q$));
+SELECT qa.check('login lock: the helper that derives the caller is not callable by anon', 'false', (SELECT has_function_privilege('anon', 'public.login_attempt_caller()', 'EXECUTE')::text));
+
 -- report ---------------------------------------------------------------------------------------------------------
 \o
 \pset format aligned

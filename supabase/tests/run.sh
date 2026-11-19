@@ -44,7 +44,15 @@ build_db() {
 
 # a suite keeps going after an individual failure and records every outcome in qa.results
 run_suite() {
-  psql -X -q -d "$1" -v verbose="${VERBOSE:-off}" -f "$HERE/$2" 2>&1 | grep -v -E '^$|NOTICE|DETAIL|^drop cascades' || true
+  # A statement that fails at the psql level (a typo, a type mismatch) records NO result and would silently vanish
+  # from the count: the suite carries on after it (ON_ERROR_STOP is off by design), so it is caught here instead.
+  local out
+  out="$(psql -X -q -d "$1" -v verbose="${VERBOSE:-off}" -f "$HERE/$2" 2>&1 | grep -v -E '^$|NOTICE|DETAIL|^drop cascades' || true)"
+  printf '%s\n' "$out"
+  if printf '%s\n' "$out" | grep -q -E '(^|:)[0-9]*:? *ERROR:'; then
+    echo "✗ $2: a statement failed to run (see the ERROR above) — its check recorded nothing" >&2
+    exit 1
+  fi
 }
 failures() { psql -X -At -d "$1" -c 'SELECT count(*) FROM qa.results WHERE NOT ok'; }
 
