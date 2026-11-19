@@ -1,8 +1,9 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
+import { assertPublicSupabaseKey } from "./src/lib/publicKey";
 
 // Sourcemap upload only runs when all three env vars are set (Vercel build).
 // Local builds skip the upload step silently — no token needed for `npm run build`.
@@ -11,6 +12,15 @@ const sentryEnabled = !!(
   process.env.SENTRY_ORG &&
   process.env.SENTRY_PROJECT
 );
+
+// A service-role / secret key pasted into the hosting dashboard's VITE_SUPABASE_PUBLISHABLE_KEY would be inlined into
+// the bundle and served to every browser: stop the build (and the dev server) before anything is shipped.
+const publicKeyGuard: Plugin = {
+  name: "suaipe-public-key-guard",
+  config(_config, { mode }) {
+    assertPublicSupabaseKey(loadEnv(mode, process.cwd(), "VITE_").VITE_SUPABASE_PUBLISHABLE_KEY);
+  },
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
@@ -22,6 +32,7 @@ export default defineConfig(() => ({
     },
   },
   plugins: [
+    publicKeyGuard,
     react(),
     VitePWA({
       registerType: "autoUpdate",

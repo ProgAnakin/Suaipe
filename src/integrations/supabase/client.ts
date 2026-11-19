@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { assertPublicSupabaseKey } from '@/lib/publicKey';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -14,16 +15,8 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 }
 
 // Block accidental use of the service-role key in client code.
-// Service-role keys bypass RLS and must NEVER reach the browser.
-if (
-  SUPABASE_PUBLISHABLE_KEY.startsWith('sbp_') ||
-  SUPABASE_PUBLISHABLE_KEY.length > 300
-) {
-  throw new Error(
-    '[suaipe] CRITICAL — a service-role key was detected in VITE_SUPABASE_PUBLISHABLE_KEY. '
-    + 'Only the anon/publishable key (eyJ…) is safe for the browser.',
-  );
-}
+// Service-role keys bypass RLS and must NEVER reach the browser (the same check runs when the app is built).
+assertPublicSupabaseKey(SUPABASE_PUBLISHABLE_KEY);
 
 // ── Client ───────────────────────────────────────────────────────────────────
 // sessionStorage clears when the tab closes — limits exposure on shared kiosks.
