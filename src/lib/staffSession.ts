@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, AUTH_STORAGE_KEY } from "@/integrations/supabase/client";
 
 /**
  * The kiosk page never runs with a staff session in the browser.
@@ -10,14 +10,27 @@ import { supabase } from "@/integrations/supabase/client";
  * as the public (anon) role.
  *
  * Scope "local": ends THIS browser's session (on the server too) and removes it here; the same person's other
- * devices stay signed in. A no-op when nobody is signed in, and it never throws — offline, or with storage
- * blocked, the idle logout and the session's own expiry still apply.
+ * devices stay signed in. A no-op when nobody is signed in, and it never throws.
+ *
+ * supabase-js keeps the session when the sign-out REQUEST fails (offline, a dropped connection, navigating away
+ * mid-request): it returns the error and leaves the storage as it was. A kiosk's wifi is exactly where that
+ * happens, so the browser then forgets the session by itself — the server-side session simply expires on its own.
  */
 export async function endStaffSession(): Promise<void> {
   try {
     const { data } = await supabase.auth.getSession();
-    if (data.session) await supabase.auth.signOut({ scope: "local" });
+    if (!data.session) return;
+    const { error } = await supabase.auth.signOut({ scope: "local" });
+    if (error) forgetSessionLocally();
   } catch {
-    /* nothing more can be done from here */
+    forgetSessionLocally();
+  }
+}
+
+function forgetSessionLocally(): void {
+  try {
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+  } catch {
+    /* storage blocked: nothing was stored there either */
   }
 }

@@ -19,10 +19,18 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 assertPublicSupabaseKey(SUPABASE_PUBLISHABLE_KEY);
 
 // ── Client ───────────────────────────────────────────────────────────────────
+/**
+ * Where the signed-in session is kept. This is supabase-js's own default (`sb-<project ref>-auth-token`), stated
+ * explicitly so the kiosk can forget a session even when the sign-out request cannot reach the server
+ * (src/lib/staffSession.ts) — and so the two can never drift apart.
+ */
+export const AUTH_STORAGE_KEY = `sb-${new URL(SUPABASE_URL).hostname.split('.')[0]}-auth-token`;
+
 // sessionStorage clears when the tab closes — limits exposure on shared kiosks.
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     storage: sessionStorage,
+    storageKey: AUTH_STORAGE_KEY,
     persistSession: true,
     autoRefreshToken: true,
   },

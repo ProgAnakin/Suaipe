@@ -27,8 +27,7 @@ function expected(rows: Row[], now = Date.now()) {
 
 async function openManager(page: Page, backend: MockBackend, role: "manager" | "consulente_responsabile" = "manager", store: string | null = null) {
   await signInAs(page, backend, role, store);
-  const booted = await boot(page, { backend, storeId: store ?? "milano" });
-  await page.goto("/manager", { waitUntil: "domcontentloaded" });
+  const booted = await boot(page, { backend, storeId: store ?? "milano", path: "/manager" });
   await expect(page.getByRole("button", { name: /Sessions & Codes/ })).toBeVisible({ timeout: T(20_000) });
   return booted;
 }
@@ -46,6 +45,15 @@ test.describe("the kiosk and staff sessions", () => {
     await boot(page, { backend });             // …and the kiosk page opens in it
     await backend.waitFor("/auth/v1/logout", { method: "POST", timeout: T(15_000) });
     expect(backend.calls("/auth/v1/logout", "POST")[0].query).toContain("scope=local");
+    await expect.poll(() => page.evaluate(() => sessionStorage.getItem("sb-placeholder-auth-token")), { timeout: T(10_000) }).toBeNull();
+  });
+
+  test("…and when the sign-out request cannot reach the server (a dropped connection) the browser still forgets the session", async ({ page }) => {
+    const backend = new MockBackend(seedTables());
+    backend.fail("/auth/v1/logout", { kind: "abort" });
+    await signInAs(page, backend, "manager");
+    await boot(page, { backend });
+    await backend.waitFor("/auth/v1/logout", { method: "POST", timeout: T(15_000) });
     await expect.poll(() => page.evaluate(() => sessionStorage.getItem("sb-placeholder-auth-token")), { timeout: T(10_000) }).toBeNull();
   });
 
@@ -174,8 +182,7 @@ test.describe("stats", () => {
     ];
     backend.tables.quiz_funnel_events = [...events("milano", 5, 4, 3), ...events("lisboa", 5, 4, 1)];
     await signInAs(page, backend, "manager");
-    const { errors } = await boot(page, { backend });
-    await page.goto("/stats", { waitUntil: "domcontentloaded" });
+    const { errors } = await boot(page, { backend, path: "/stats" });
 
     await expect(page.getByText("TOTAL SESSIONS")).toBeVisible({ timeout: T(20_000) });
     await expect(page.getByText(String(N), { exact: true }).first()).toBeVisible();
@@ -195,8 +202,7 @@ test.describe("stats", () => {
   test("a store that has 1,200 sessions is charted completely (50 000-row cap not reached, no warning)", async ({ page }) => {
     const backend = withSessions(sampleSessions(1200));
     await signInAs(page, backend, "manager");
-    await boot(page, { backend });
-    await page.goto("/stats", { waitUntil: "domcontentloaded" });
+    await boot(page, { backend, path: "/stats" });
     await expect(page.getByText("TOTAL SESSIONS")).toBeVisible({ timeout: T(20_000) });
     await expect(page.getByText("1200", { exact: true }).first()).toBeVisible();
     await expect(page.getByText(/More sessions exist than can be charted/)).toHaveCount(0);
@@ -235,8 +241,7 @@ test.describe("every staff area survives hostile and missing data", () => {
     const backend = withSessions(sampleSessions(50));
     backend.fail(/\/rest\/v1\/quiz_(sessions|funnel_events)/, { kind: "status", status: 500 });
     await signInAs(page, backend, "manager");
-    await boot(page, { backend });
-    await page.goto("/stats", { waitUntil: "domcontentloaded" });
+    await boot(page, { backend, path: "/stats" });
     await expect(page.getByText(/Unable to load data/)).toBeVisible({ timeout: T(20_000) });
     await expect(page.getByTestId("error-boundary")).toHaveCount(0);
   });

@@ -18,6 +18,8 @@ export interface BootOptions {
   lang?: Lang;
   /** extra localStorage entries present before the app first runs */
   storage?: Record<string, string>;
+  /** the page to open (default `/`, the kiosk). Staff pages open directly: the kiosk page ends any staff session it finds. */
+  path?: string;
 }
 
 export interface Booted {
@@ -85,7 +87,7 @@ export async function boot(page: Page, opts: BootOptions = {}): Promise<Booted> 
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
   page.on("console", (m) => { if (m.type() === "error") errors.push(`console: ${m.text()}`); });
 
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.goto(opts.path ?? "/", { waitUntil: "domcontentloaded" });
   return { backend, errors, t: translations[lang] };
 }
 
