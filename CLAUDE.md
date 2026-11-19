@@ -25,13 +25,16 @@ Storage + Realtime) · Brevo (email) · Google Sheets (CRM relay) · Sentry · P
 
 `splash`(attract) → `welcome`(language + nome/cognome/email + GDPR consent) →
 `[loading_quiz]` → `quiz`(8 swipes) → `result`(product + match% + claim) →
-`success`. Inactivity reset (45s quiz / 90s result). Restart wipes the previous
-visitor's cooldown marker.
+`success`. Inactivity reset (45 s on the quiz, 90 s on the result **and the welcome form** — a customer's name and
+address must not stay typed into an unattended iPad; then a 10 s countdown). Restart wipes the previous
+visitor's cooldown marker and the claim identity.
 
 - **Claim** = INSERT into `quiz_sessions` (with product snapshot + `consent_given_at`),
   3× retry w/ backoff, each attempt abandoned after 12 s. The row carries one
   client-generated `id` per visit and `23505` (unique violation) counts as success, so a
-  retry after a *lost* response cannot store/e-mail the lead twice. A DB webhook then
+  retry after a *lost* response cannot store/e-mail the lead twice. The id is tied to the normalised e-mail
+  (`src/lib/claimIdentity.ts`): a visitor who corrects the address gets a NEW id — otherwise the second claim would hit the
+  first row and be reported as stored with the wrong address. A DB webhook then
   fires `on-session-created` to send the email.
 - Hard guard: no (or an unknown) `store_id` configured → START is refused on the welcome
   screen and the claim is aborted (protects per-store analytics).
@@ -61,6 +64,8 @@ unit tests — don't change behaviour without updating `src/__tests__/getMatched
 - **`/consulente`** — login + TOTP + role. Read-only product training guides (IT/EN).
 - MFA is enforced in the **UI**, and in the **database** behind a switch that ships OFF
   (`app_config.require_mfa`, migration `20261011000003`; `docs/server-hardening.md` §A, `docs/deployment.md` step 8).
+- Opening the kiosk page (`/`) **always ends any staff session** left in that browser (`src/lib/staffSession.ts`, scope `local`):
+  a Back button or an abandoned login step must not hand the next customer a signed-in tab.
 - Staff entry on the kiosk: **6-tap the logo** or tap the **store badge** →
   `AdminPinOverlay` (PIN → store selection + nav to /stats, /consulente + kiosk toggle).
 
@@ -150,6 +155,18 @@ Roles: `manager` / `consulente_responsabile` / `consulente`. RPCs are
     `src/lib/validators.ts`; `src/__tests__/discountCode.test.ts` fails when they drift.
     There is no Deno in this repo's dev setup, so edge-function changes are untested
     until deployed — keep them small and re-read them.
+17. **Uploads fail closed.** `src/lib/imageProcessing.ts` rejects (never falls back to the original) a file that is empty,
+    over 5 MB, of another type than it claims (headers of PNG/GIF/JPEG/WebP are read), a pixel bomb (> 64 MP), slow to decode
+    or not re-encodable; callers show the message. The `product-images` bucket enforces 5 MiB + JPEG/PNG/WebP itself
+    (migration `20261119000001`).
+18. **The browser may hold only the public Supabase key.** `src/lib/publicKey.ts` refuses a service-role JWT, `sb_secret_…`
+    or `sbp_…` at start-up AND at build time (a Vite plugin in `vite.config.ts`).
+19. **Sentry is errors-only and scrubbed** (`src/lib/sentryScrub.ts`): no tracing, no replay unless `VITE_SENTRY_REPLAY=true`, no
+    user data, URLs without query/fragment, e-mail addresses redacted. The GDPR notice names Sentry (when a DSN is set) and the
+    Google Sheets copy (unless `VITE_PRIVACY_SHEETS=false`) — keep them in step with what is really enabled.
+20. **The public surface cannot be turned against people.** Funnel events are stamped with the database clock; login-attempt
+    counters are per (address, caller) — never count them per address alone (anyone with the anon key could lock a staff
+    member out); training guides need a `store_roles` row; no API role has CREATE on `public`.
 
 ## Dev commands
 
@@ -157,11 +174,11 @@ Roles: `manager` / `consulente_responsabile` / `consulente`. RPCs are
 npm run dev         # Vite dev server (http://localhost:8080)
 npm run typecheck   # tsc --noEmit (tsconfig.app.json)
 npm run lint        # eslint (4 known react-refresh warnings, 0 errors)
-npm test            # vitest (208 unit tests)
-npm run test:e2e    # Playwright — all projects (82 browser tests, in-memory backend)
+npm test            # vitest (268 unit tests)
+npm run test:e2e    # Playwright — all projects (86 browser tests, in-memory backend)
 npm run test:e2e:smoke       # only the ipad-landscape smoke project (what CI requires)
 npm run test:e2e:resilience  # kiosk resilience / layout / chaos + staff areas
-npm run test:sql    # migrations from zero + 147 checks (84 attacks, run with the 2nd factor off and on; 63 aal1/aal2) on a DISPOSABLE PostgreSQL
+npm run test:sql    # migrations from zero + 166 checks (103 attacks, run with the 2nd factor off and on; 63 aal1/aal2) on a DISPOSABLE PostgreSQL
 npm run docs:screenshots     # regenerate docs/screenshots from the running app (neutral sample data)
 npm run build       # production build (needs VITE_SUPABASE_URL + VITE_SUPABASE_PUBLISHABLE_KEY)
 ```
@@ -190,7 +207,7 @@ src/data/             products.ts (algorithm + fallback), questions.ts, quiz-car
 src/hooks/            kiosk hooks (wake lock, inactivity, kiosk mode, bg music, sound, …)
 src/i18n/             translations.ts (5 langs) + LanguageContext
 src/lib/              validators, csv, fetchAllPages, postgrestFilter, dayRange, withTimeout, imageProcessing,
-                      startupCache, verifyStaffPin, haptic, clientId
+                      startupCache, verifyStaffPin, haptic, clientId, claimIdentity, publicKey, sentryScrub, staffSession
 supabase/functions/   on-session-created, verify-pin, relay-to-sheets, _shared/ (tested reference code)
 supabase/migrations/  versioned SQL (RLS, RPCs, schema) — apply manually; must apply to an EMPTY database
 supabase/tests/       run.sh + security.sql + supabase-shim.sql — the database attack suite

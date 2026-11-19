@@ -86,7 +86,7 @@ Suaipe was built defensively from day one. The following protections are part of
 
 ### Build & CI
 - Typecheck, lint, test, build and a production `npm audit` run on every push, PR, and feature branch
-- A database job applies every migration to an empty PostgreSQL and attacks the result as anonymous, role-less, `consulente`, `consulente_responsabile` and `manager` users (84 checks, `supabase/tests/`)
+- A database job applies every migration to an empty PostgreSQL and attacks the result as anonymous, role-less, `consulente`, `consulente_responsabile` and `manager` users (103 checks, `supabase/tests/`)
 - Browser suites drive the real kiosk and the staff areas against a backend that misbehaves (`e2e/`)
 - The account of the pre-sale test pass is in [`docs/qa/QA-REPORT.md`](./docs/qa/QA-REPORT.md)
 - Bundle is code-split — admin routes lazy-loaded so secrets paths never reach the kiosk bundle

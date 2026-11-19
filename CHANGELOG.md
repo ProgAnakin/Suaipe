@@ -19,6 +19,9 @@ iPad size in every language. What broke is fixed below; the full account is in
    `20261011000002_funnel_events_scope.sql` and the switch-off-by-default `20261011000003_mfa_gate_in_database.sql`)
    to the live database now** (`supabase db push`). Until it is applied, anyone holding the public anon key can delete every
    lead, forge discount codes and guess the staff PIN without limit.
+   Then the three small ones of the external-review round, in name order: `20261119000001_storage_bucket_limits.sql`,
+   `20261119000002_guides_need_a_staff_role.sql`, `20261119000003_funnel_time_and_login_lock_per_caller.sql` — all
+   additive and idempotent; the previous front end keeps working with them. No Edge Function changed in that round.
 2. **Redeploy the three Edge Functions:** `supabase functions deploy on-session-created verify-pin relay-to-sheets`.
 3. Authentication → Providers → Email: turn **off** "Allow new users to sign up".
 4. Check the secrets listed in [`docs/deployment.md`](docs/deployment.md) (`WEBHOOK_SECRET` is required;
@@ -42,6 +45,20 @@ iPad size in every language. What broke is fixed below; the full account is in
   the same for values that begin with `= + - @`.
 - The service worker no longer caches customer or staff REST responses — only the four public
   catalogue tables.
+- **Review of the external audit branch (`fix/security-and-release-hardening`)** — every finding was re-checked against this
+  branch (`docs/qa/REVISAO-BRANCH-GPT.md`); what was valid is fixed:
+  - the build and the app refuse a service-role JWT, a `sb_secret_…` key or an `sbp_…` token in
+    `VITE_SUPABASE_PUBLISHABLE_KEY` (it would be inlined into the bundle);
+  - opening the kiosk page signs out any staff session left in the browser (Back button, an abandoned login step);
+  - funnel events carry the database clock — anyone with the anon key could insert a `claimed` event dated 40 days ago;
+  - fabricated login failures no longer lock a staff member out of the sign-in form: attempts are counted per
+    (address, caller), the caller being a hash of the address the gateway saw;
+  - the training guides need a `store_roles` row (they were readable by any authenticated user), and no API role may
+    CREATE in the `public` schema;
+  - the public image bucket accepts only JPEG/PNG/WebP up to 5 MiB, server-side;
+  - the error monitor (Sentry) reports errors only, scrubbed of e-mail addresses, query strings and user data; replay and
+    tracing are off unless `VITE_SENTRY_REPLAY=true`;
+  - CI: a read-only workflow token and every action pinned to a verified commit.
 - Production dependencies: `npm audit --omit=dev` is down to 2 moderate `react-router` advisories
   (open redirect and SSR hydration — the app has no user-controlled navigation targets and no SSR).
 
@@ -55,6 +72,15 @@ iPad size in every language. What broke is fixed below; the full account is in
 - **Kiosk — a lost response stored (and e-mailed) the lead twice.** The claim carries one
   client-generated id per visit; a unique violation counts as success. Each attempt is abandoned
   after 12 s, so a request that never answers no longer freezes the result screen.
+- **Kiosk — a corrected e-mail address was reported as stored but kept the wrong one.** The claim id is per visit and a
+  unique violation counts as success, so claiming again with a corrected address hit the first row. The id is now tied to the
+  normalised address.
+- **Kiosk — an abandoned welcome form kept a customer's name and address on screen for the next person.** The 90 s
+  walk-away reset now watches the welcome screen too.
+- **Manager — an image that could not be decoded was uploaded as it was**, under a `.jpg` name. Uploads now fail closed:
+  type, size, real file header, pixel bomb, decode time and re-encoding are checked and the form says what is wrong.
+- **Stats / Manager — a lead that arrived while a multi-page read was under way was counted twice** in the totals and in
+  the CSV.
 - **Kiosk — START could spin forever.** The cooldown pre-check times out after 6 s; a kiosk with no
   store says so when START is pressed, not after the quiz.
 - **Kiosk — the result and success screens clipped on an iPad Pro 11" / iPad mini in landscape**
@@ -85,20 +111,26 @@ iPad size in every language. What broke is fixed below; the full account is in
   changes nothing; `UPDATE public.app_config SET value = 'on' …` enforces it once every staff account has an
   authenticator (`docs/deployment.md` step 8). Without it, a staff *password* alone could read every lead through the
   REST API.
-- **Test suites:** 208 unit tests · 82 browser tests (kiosk resilience, layout in 5 languages × 8
-  screens, seeded chaos and a soak run, staff areas against 2 500 leads) · 147 database checks that
-  attack the schema as every role (84 of them run again with the second factor enforced). `npm run test:e2e`, `test:e2e:smoke`, `test:e2e:resilience`,
+- **Test suites:** 268 unit tests · 86 browser tests (kiosk resilience, layout in 5 languages × 8
+  screens, seeded chaos and a soak run, staff areas against 2 500 leads) · 166 database checks that
+  attack the schema as every role (103 of them run again with the second factor enforced). `npm run test:e2e`, `test:e2e:smoke`, `test:e2e:resilience`,
   `test:sql`; CI runs them (the resilience job is advisory). See `supabase/tests/README.md`.
 - `VITE_STORES` — define your own stores at build time (one line of JSON) instead of editing code.
 - `VITE_PRIVACY_CONTROLLER` / `VITE_PRIVACY_EMAIL` — the GDPR notice names the company that operates the kiosks and a
   contact it reads (it said "Suaipe" / `privacy@suaipe.app` in five hard-coded translations); `EMAIL_REPLY_TO` for the
   e-mail's Reply-To (it was hard-coded to the product's own domain).
+- `VITE_PRIVACY_SHEETS` — the GDPR notice names the Google Sheets customer list (and Sentry, when a DSN is set) in all five
+  languages; set it to `false` only when the Sheets relay is off.
+- `docs/qa/REVISAO-BRANCH-GPT.md` — the review of the external audit branch: finding by finding, what was adopted, what was
+  not and why, and the prioritised backlog.
 - `docs/deployment.md` — the go-live checklist; `npm run docs:screenshots` regenerates the screenshots
   from the running app with neutral sample data.
 
 ### Changed
 - README rewritten for the Suaipe brand; the old WebiMatch screenshots are gone — `docs/screenshots/`
   and `public/screenshots/` hold the current app. `public/manifest.json` points at them.
+- Sentry no longer records sessions or performance (see above); `.env.example` and `docs/deployment.md` say so.
+- The database test runner now fails when a statement of a suite errors out, instead of letting its check vanish from the count.
 - Capacitor app id/name and the default e-mail footer no longer carry the previous brand or a personal name.
 - `tailwindcss-animate` and `@capacitor/cli` moved to `devDependencies`.
 

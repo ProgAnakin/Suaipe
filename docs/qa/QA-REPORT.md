@@ -16,11 +16,11 @@ has to do.
 | Gate | Result |
 |---|---|
 | `npm run typecheck` · `npm run lint` | clean (lint: 0 errors, 4 known `react-refresh` warnings) |
-| `npm test` | **208** unit tests, 26 files |
+| `npm test` | **268** unit tests, 30 files |
 | `npm run build` | passes |
 | `npm audit --omit=dev --audit-level=high` | passes — 2 *moderate* `react-router` advisories remain ([residual risks](#residual-risks-not-fixed)) |
-| Database attack suite (`npm run test:sql`) | **84** attack checks (run twice: second factor off, then on) + **63** second-factor checks; 58 migrations applied to an **empty** PostgreSQL first |
-| Browser suites (`npm run test:e2e`, Chromium, iPad viewport) | **82** tests green in ~10 min |
+| Database attack suite (`npm run test:sql`) | **103** attack checks (run twice: second factor off, then on) + **63** second-factor checks; 61 migrations applied to an **empty** PostgreSQL first |
+| Browser suites (`npm run test:e2e`, Chromium, iPad viewport) | **86** tests green in ~17 min |
 | WebKit (the iPad engine) | the smoke project is a required CI job and green; the whole browser suite (70 further scenarios) was also green on Playwright's WebKit on the last CI run — an advisory job, with *Reduce Motion* on and timeouts ×3 — and the main flows were checked by hand on a real WebKit engine, see [WebKit](#webkit-the-engine-the-ipads-use) |
 
 What these numbers mean: the app has been exercised far beyond a happy path, and every hole found is closed
@@ -97,6 +97,28 @@ What these numbers mean: the app has been exercised far beyond a happy path, and
 | A6 | The YouTube video in /consulente was blocked by the CSP (`frame-src` missing) | `frame-src` for `youtube-nocookie.com`, pinned by `csp.test.ts` |
 | A7 | `ResetPassword` was in Italian although the staff UI is English-only (ADR 006); the Manager header said "Catalog" on every tab; the "No match" tile was an unexplained funnel number | fixed |
 
+## The external review round
+
+A second reviewer (an AI assistant) audited a diverging branch, `fix/security-and-release-hardening`, and listed 17 findings
+(R01–R17). Each one was re-checked against **this** branch — read, and where it was a behaviour, reproduced on a scratch
+database — and what was valid was fixed. The full finding-by-finding account, the proposals that were deliberately **not**
+adopted (and the safe way to adopt them later) and the prioritised backlog are in
+[`REVISAO-BRANCH-GPT.md`](REVISAO-BRANCH-GPT.md) (Portuguese).
+
+| # | Finding | Fix | Pinned by |
+|---|---|---|---|
+| E1 | **A corrected e-mail address was reported as stored but kept the wrong one**: the claim id is per visit and a unique violation counts as success, so a second claim with a corrected address hit the first row | the id is tied to the normalised address | `claimIdentity.test.ts` |
+| E2 | **An abandoned welcome form kept a customer's name and address on screen**: the walk-away reset ignored that screen | the welcome screen is watched too (90 s + 10 s countdown) | `kiosk-resilience` (fails without the change) |
+| E3 | **A staff session left in the browser** (Back button, an abandoned login step) was inherited by the next customer | opening the kiosk page ends it — also when the sign-out request cannot reach the server (supabase-js keeps the session then) | `staffSession.test.ts` · `admin-areas` |
+| E4 | **An image that could not be decoded was uploaded as it was**, under a `.jpg` name | fail-closed uploads (type, size, real header, pixel bomb, decode time) and the bucket enforces 5 MiB + JPEG/PNG/WebP itself | `imageProcessing.test.ts` · `security.sql` · `20261119000001` |
+| E5 | A service-role / secret key pasted into `VITE_SUPABASE_PUBLISHABLE_KEY` would be inlined into the bundle | the build and the app refuse it | `publicKey.test.ts` (and a failing build, checked by hand) |
+| E6 | **Funnel events could be back-dated** by anyone holding the anon key | the database clock stamps every event | `security.sql` · `20261119000003` |
+| E7 | **Anyone could lock a staff member out of the sign-in form** with five fabricated failures, and read which addresses had recent failures | attempts are counted per (address, caller) | `security.sql` · `20261119000003` |
+| E8 | The training guides were readable by any authenticated user; nothing said no API role may CREATE in `public` | a `store_roles` row is required; `REVOKE CREATE` | `security.sql` · `20261119000002` |
+| E9 | The privacy notice named Supabase and Brevo but not the Google Sheets copy or Sentry, and Sentry recorded sessions and traces | the notice names them (5 languages); Sentry reports errors only, scrubbed | `privacyNotice.test.tsx` · `sentryScrub.test.ts` |
+| E10 | A lead inserted during a multi-page read was counted twice in the totals and the CSV | rows are de-duplicated by id | `fetchAllPages.test.ts` |
+| E11 | The database test runner ignored a statement that failed to run — its check recorded nothing and vanished from the count | the runner fails on it | found while writing the checks above |
+
 ## WebKit, the engine the iPads use
 
 The Playwright suites in the build sandbox run on Chromium (Playwright's WebKit cannot be downloaded there), so
@@ -170,17 +192,31 @@ Stated plainly, so the buyer does not discover them:
 11. **`docs/socialpreview.png` carries the author's byline** ("built solo by …") and a row of tech chips — it is the
     repository's social-preview image. `public/og-image.png` (the site's link preview) is clean. Replace the first
     with your own artwork before publishing the repository.
+12. **One lead can still produce two e-mails under concurrency.** The e-mail function checks "already sent?" and then calls
+    Brevo; two simultaneous deliveries of the same webhook both pass, and one of the two e-mails carries a code the database no
+    longer holds. The atomic reservation (a service-only RPC and an e-mail status) is designed in
+    [`REVISAO-BRANCH-GPT.md`](REVISAO-BRANCH-GPT.md) §6 and not built: it changes an Edge Function that cannot be run in this repo.
+13. **A visitor can still add funnel events of today** (they can no longer back-date them): the conversion rate is an analytics
+    figure, not an accounting one. Deriving `claimed` from the lead itself is on the backlog.
+14. **The staff PIN counter of the Edge Function lives in memory** (per instance, reset by a cold start); the database fallback and
+    the global ceiling bound the damage, a persistent counter is on the backlog. Use six digits or more.
+15. **The brand font is loaded from Google Fonts** (the visitor's address reaches Google; offline, the font must already be cached).
+    Self-hosting it moves the pixels of the three visual-regression baselines, which only the CI's WebKit can regenerate — do it in
+    a pull request of its own and drop the two Google hosts from the CSP.
 
 ## Operator actions, in this order
 
 1. `supabase db push` — applies `20261011000001_security_hardening.sql`, `20261011000002_funnel_events_scope.sql`
-   and `20261011000003_mfa_gate_in_database.sql` (that last one changes nothing until step 7). Safe on a live
-   database (idempotent, rewrites no rows).
+   and `20261011000003_mfa_gate_in_database.sql` (that last one changes nothing until step 7), then the three of the
+   external-review round: `20261119000001_storage_bucket_limits.sql`, `20261119000002_guides_need_a_staff_role.sql` and
+   `20261119000003_funnel_time_and_login_lock_per_caller.sql`. Safe on a live database (idempotent, additive, rewrites no
+   rows); the previous front end keeps working with them.
 2. `supabase functions deploy on-session-created verify-pin relay-to-sheets`.
 3. Authentication → Providers → Email: turn **off** "Allow new users to sign up".
 4. Secrets: `WEBHOOK_SECRET` (**required** — without it no e-mail is ever sent), `STAFF_PIN` of six digits or
    more, `ALLOWED_ORIGIN`, `SITE_URL`, `EMAIL_SENDER` on a verified Brevo domain. Leave `WHITELIST_EMAILS` empty.
-5. Storage: create the **public** `product-images` bucket (the migrations add its policies, not the bucket).
+5. Storage: the **public** `product-images` bucket — migration `20261119000001` creates it if it is missing and gives it
+   its limits (5 MiB; JPEG, PNG, WebP); the earlier migrations add its policies.
 6. Run the verification checks in [`../server-hardening.md`](../server-hardening.md), then one full visit with
    your own address: the e-mail should arrive within a minute and the lead should appear in /manager.
 7. When every staff account has an authenticator: `UPDATE public.app_config SET value = 'on' WHERE key = 'require_mfa';`

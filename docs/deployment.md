@@ -24,8 +24,10 @@ supabase link --project-ref <your-project-ref>
 supabase db push             # applies supabase/migrations/*.sql in filename order
 ```
 
-All 58 migrations apply to an empty database (CI proves it on every push). The last three are the pre-sale
-hardening. `20261011000001_security_hardening.sql` and `20261011000002_funnel_events_scope.sql` are **not
+All 61 migrations apply to an empty database (CI proves it on every push). The three of `20261011…` are the pre-sale
+hardening; the three of `20261119…` close smaller holes found by the external review (the image bucket's limits, the
+guides' role check, the funnel clock and the per-caller login throttle) — additive, optional for a running kiosk, but
+apply them too. `20261011000001_security_hardening.sql` and `20261011000002_funnel_events_scope.sql` are **not
 optional**: before them, anyone holding the public anon key could delete leads, forge discounts and guess the
 staff PIN without limit, and any signed-in account could read every store's funnel. `20261011000003` adds the
 second-factor switch of step 8 — it changes nothing until you turn it on. If you are updating an existing
