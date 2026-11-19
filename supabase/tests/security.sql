@@ -256,6 +256,15 @@ SELECT qa.check('the image bucket caps a file at 5 MiB', '5242880', (SELECT file
 SELECT qa.check('…and takes only JPEG, PNG and WebP (no SVG, no HTML)', 'image/jpeg,image/png,image/webp', (SELECT array_to_string(allowed_mime_types, ',') FROM storage.buckets WHERE id = 'product-images'));
 SELECT qa.check('…and is still publicly readable (the kiosk loads images by their public URL)', 'true', (SELECT public::text FROM storage.buckets WHERE id = 'product-images'));
 
+-- 11. training guides are for staff (a store_roles row), not for "any authenticated user"; no API role creates objects ------
+SELECT qa.check('guides: the seeded catalogue has guides to protect (the next checks are not vacuous)', 'true', (SELECT (count(*) > 0)::text FROM public.product_guides));
+SELECT qa.check('guides: anon reads none', 'ok rows=0', qa.as_user('anon', NULL, $q$SELECT * FROM public.product_guides$q$));
+SELECT qa.check('guides: a role-less authenticated user reads none', 'ok rows=0', qa.as_user('authenticated', :X::uuid, $q$SELECT * FROM public.product_guides$q$));
+SELECT qa.check('guides: a consulente reads them all', 'ok rows=' || (SELECT count(*) FROM public.product_guides), qa.as_user('authenticated', :C::uuid, $q$SELECT * FROM public.product_guides$q$));
+SELECT qa.check('guides: a role-less authenticated user reads no guide file either', 'ok rows=0', qa.as_user('authenticated', :X::uuid, $q$SELECT * FROM public.product_guide_files$q$));
+SELECT qa.check('guides: a consulente cannot write a guide', 'ok rows=0', qa.as_user('authenticated', :C::uuid, $q$UPDATE public.product_guides SET product_name = 'x'$q$));
+SELECT qa.check('no API role may create objects in the public schema', 'false', (SELECT bool_or(has_schema_privilege(r, 'public', 'CREATE'))::text FROM unnest(ARRAY['anon', 'authenticated']) AS r));
+
 -- report ---------------------------------------------------------------------------------------------------------
 \o
 \pset format aligned
