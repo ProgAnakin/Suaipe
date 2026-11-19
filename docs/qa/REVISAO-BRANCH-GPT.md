@@ -145,7 +145,7 @@ Chromium com viewport de iPad (nesta máquina não há WebKit: ele só roda no C
   localmente nesse caso, e os testes das áreas de equipe abrem a página direto. A terceira (`reload` na tela de resultado) foi `ERR_CONNECTION_REFUSED`
   — o servidor de pré-visualização indisponível naquele instante — e passou na repetição.
 - **Repetição dos 15 testes afetados** (áreas de equipe, sessões e reinícios): 15/15 passaram.
-- **Corrida completa final (86 testes, build com todas as mudanças):** o resultado é registrado no commit seguinte a este.
+- **Corrida completa final (86 testes, build com todas as mudanças): 86 passaram, 0 falharam (10 min).**
 - **CI (WebKit, o motor do iPad):** o job SQL do commit publicado passou (as três migrações novas aplicam do zero no PostgreSQL 16 do CI e as verificações passam); os demais jobs
   estavam em execução quando isto foi escrito — conferir a aba *Actions* da branch.
 
