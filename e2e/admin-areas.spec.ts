@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import fs from "node:fs";
 import { MockBackend, seedTables, type Row } from "./support/mock-backend";
-import { appErrors, boot, BROKEN_TEXT, T } from "./support/kiosk";
+import { appErrors, attractCta, boot, BROKEN_TEXT, T } from "./support/kiosk";
 import { sampleSessions, signInAs } from "./support/staff";
 
 // The staff areas against a backend with MORE data than one request can carry (PostgREST answers
@@ -38,6 +38,23 @@ const withSessions = (rows: Row[]) => {
   tables.quiz_sessions = rows;
   return new MockBackend(tables);
 };
+
+test.describe("the kiosk and staff sessions", () => {
+  test("opening the kiosk ends a staff session left in the browser (Back button, abandoned login step)", async ({ page }) => {
+    const backend = new MockBackend(seedTables());
+    await signInAs(page, backend, "manager"); // the tab's storage holds a signed-in manager
+    await boot(page, { backend });             // …and the kiosk page opens in it
+    await backend.waitFor("/auth/v1/logout", { method: "POST", timeout: T(15_000) });
+    expect(backend.calls("/auth/v1/logout", "POST")[0].query).toContain("scope=local");
+    await expect.poll(() => page.evaluate(() => sessionStorage.getItem("sb-placeholder-auth-token")), { timeout: T(10_000) }).toBeNull();
+  });
+
+  test("a kiosk with nobody signed in makes no sign-out call at all", async ({ page }) => {
+    const { backend, t } = await boot(page);
+    await expect(attractCta(page, t)).toBeVisible({ timeout: T(15_000) });
+    expect(backend.calls("/auth/v1/logout")).toHaveLength(0);
+  });
+});
 
 test.describe("manager · sessions", () => {
   test("every total is exact beyond 1000 rows, and the status buttons agree with the lists they open", async ({ page }) => {

@@ -28,6 +28,7 @@ import type { QuizCard } from "@/data/quiz-cards";
 import { buildTagMap, MAX_ACTIVE_QUIZ_CARDS } from "@/data/quiz-cards";
 import { readCache, writeCache } from "@/lib/startupCache";
 import { claimIdentityFor, type ClaimIdentity } from "@/lib/claimIdentity";
+import { endStaffSession } from "@/lib/staffSession";
 import { toAbsoluteAssetUrl } from "@/lib/validators";
 import { withTimeout } from "@/lib/withTimeout";
 
@@ -473,6 +474,10 @@ const Index = () => {
     else if (Date.now() - lastLoadAtRef.current >= STARTUP_REFRESH_MIN_GAP_MS) void refreshStartupData();
     setScreen("splash");
   };
+
+  // The kiosk never runs with a staff session in this browser — one left behind by a Back button or a login step
+  // would be inherited by the next customer (see endStaffSession).
+  useEffect(() => { void endStaffSession(); }, []);
 
   useWakeLock();
   // Lock the document to a fixed, no-scroll viewport while the kiosk route
