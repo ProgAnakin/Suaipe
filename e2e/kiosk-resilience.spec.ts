@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { AVAILABLE_TAGS } from "../src/data/products";
 import { questions } from "../src/data/questions";
+import { RESULT_INACTIVITY_TIMEOUT_MS } from "../src/config/timings";
 import { MockBackend, seedTables } from "./support/mock-backend";
 import { STORE_ID, VISITOR, appErrors, boot, claimButton, installTimeSkew, skewTime, type Booted, consentBox, emailInput, fillWelcome, firstNameInput, noButton, playToResult, restartButton, screenText, startButton, startGame, tapToStart, yesButton, attractCta, BROKEN_TEXT, answerAll, T } from "./support/kiosk";
 
@@ -21,6 +22,31 @@ const backendWithDbOnlyProduct = () => {
   tables.custom_products = [DB_ONLY];
   return new MockBackend(tables);
 };
+
+/**
+ * The kiosk's "nobody is here" window is 90 s and its countdown ticks once a second — too slow to wait for in a
+ * test, and Playwright's fake clock also freezes framer-motion's exit animations (the overlay would stay on screen
+ * at "1 s" forever). So the two timers of that feature are shortened instead, and only once the test says so (the
+ * form must be typed at normal speed): a 90 s `setTimeout` becomes 1.5 s, a 1 s `setInterval` 100 ms.
+ */
+async function speedUpInactivity(page: Page) {
+  await page.addInitScript(({ windowMs, tickMs }) => {
+    const w = window as unknown as { __fastInactivity?: boolean };
+    const st = window.setTimeout.bind(window);
+    const si = window.setInterval.bind(window);
+    window.setTimeout = ((fn: TimerHandler, ms?: number, ...a: unknown[]) =>
+      st(fn, w.__fastInactivity && ms === windowMs ? 1_500 : ms, ...a)) as typeof window.setTimeout;
+    window.setInterval = ((fn: TimerHandler, ms?: number, ...a: unknown[]) =>
+      si(fn, w.__fastInactivity && ms === tickMs ? 100 : ms, ...a)) as typeof window.setInterval;
+  }, { windowMs: RESULT_INACTIVITY_TIMEOUT_MS, tickMs: 1_000 });
+}
+
+/** Switch the shortened timers on and re-arm the walk-away window (a touch restarts it — now at the short length). */
+const startInactivityNow = (page: Page) =>
+  page.evaluate(() => {
+    (window as unknown as { __fastInactivity?: boolean }).__fastInactivity = true;
+    window.dispatchEvent(new MouseEvent("mousedown"));
+  });
 
 test.describe("journey", () => {
   test("a full visit stores exactly one well-formed lead and leaves nothing of the visitor behind", async ({ page }) => {
@@ -55,6 +81,20 @@ test.describe("journey", () => {
     expect(leftovers).not.toMatch(/marco|rossi|example\.com/i);
 
     expect(appErrors(errors)).toEqual([]);
+  });
+
+  test("an abandoned welcome form is cleared: the next customer does not read the previous one's name and address", async ({ page }) => {
+    await speedUpInactivity(page);
+    const { t } = await boot(page);
+    await tapToStart(page, t);
+    await fillWelcome(page, t); // name, address and consent typed — then nobody touches the iPad
+    await startInactivityNow(page);
+    await expect(page.getByRole("dialog", { name: t.inactivity.title })).toBeVisible({ timeout: T(10_000) });
+    await expect(attractCta(page, t)).toBeVisible({ timeout: T(20_000) }); // the countdown ran out: back to the attract loop
+    await tapToStart(page, t);
+    await expect(firstNameInput(page, t)).toHaveValue("");
+    await expect(emailInput(page, t)).toHaveValue("");
+    await expect(consentBox(page)).not.toBeChecked();
   });
 
   test("a second visitor after a restart gets a new funnel key", async ({ page }) => {

@@ -27,6 +27,7 @@ import { SITE_URL } from "@/config/siteUrl";
 import type { QuizCard } from "@/data/quiz-cards";
 import { buildTagMap, MAX_ACTIVE_QUIZ_CARDS } from "@/data/quiz-cards";
 import { readCache, writeCache } from "@/lib/startupCache";
+import { claimIdentityFor, type ClaimIdentity } from "@/lib/claimIdentity";
 import { toAbsoluteAssetUrl } from "@/lib/validators";
 import { withTimeout } from "@/lib/withTimeout";
 
@@ -196,8 +197,9 @@ const Index = () => {
   const pendingSnapshotRef = useRef<StartupSnapshot | null>(null);
   const lastLoadAtRef = useRef(0);
   const loadingRef = useRef(false);
-  /** one id per visit: lets the database refuse a claim that is retried after a lost answer */
-  const claimIdRef = useRef<string | null>(null);
+  /** one identity per visit AND address: lets the database refuse a claim that is retried after a lost
+   *  answer — and never mistakes a claim for a corrected address for that retry (see claimIdentity.ts) */
+  const claimRef = useRef<ClaimIdentity | null>(null);
 
   const applySnapshot = useCallback((snap: StartupSnapshot) => {
     snapshotRef.current = snap;
@@ -394,13 +396,13 @@ const Index = () => {
     setClaimError(false);
     setClaiming(true);
 
-    // One id per visit. If an attempt gets through but its answer is lost on the way back, the
-    // retry below carries the SAME id and the database refuses the duplicate (23505) instead of
-    // storing — and e-mailing — the lead twice.
-    claimIdRef.current ??= crypto.randomUUID();
+    // One id per visit and address. If an attempt gets through but its answer is lost on the way back,
+    // the retry below carries the SAME id and the database refuses the duplicate (23505) instead of
+    // storing — and e-mailing — the lead twice. A corrected address gets a NEW id: it is another claim.
+    claimRef.current = claimIdentityFor(claimRef.current, user.email);
 
     const payload = {
-      id: claimIdRef.current,
+      id: claimRef.current.id,
       email: user.email,
       answers: quizAnswers,
       matched_product_id: matchedProduct.id,
@@ -463,7 +465,7 @@ const Index = () => {
     setQuizAnswers({});
     setInactivitySecondsLeft(null);
     setClaimError(false);
-    claimIdRef.current = null;
+    claimRef.current = null;
     setFunnelKey(crypto.randomUUID());
     // The next customer gets the freshest catalogue: data that arrived mid-visit goes live now,
     // otherwise re-read it (unless it was read a moment ago).
@@ -480,9 +482,12 @@ const Index = () => {
   useBgMusic(screen === "splash",                                          "attract");
   useBgMusic(screen === "welcome",                                         "welcome");
   useBgMusic(screen === "quiz" || screen === "result",                     "quiz");
+  // Every screen but the attract loop watches for walk-aways — the welcome form included: a customer's name
+  // and address typed into it must not stay on an unattended iPad for the next person to read. Reading the
+  // privacy notice or typing slowly is allowed the longer (result-screen) window.
   const { dismiss } = useInactivityReset({
-    enabled: screen !== "welcome" && screen !== "splash" && screen !== "loading_quiz",
-    timeout: screen === "result" ? RESULT_INACTIVITY_TIMEOUT_MS : undefined,
+    enabled: screen !== "splash",
+    timeout: screen === "result" || screen === "welcome" ? RESULT_INACTIVITY_TIMEOUT_MS : undefined,
     onWarn:    (seconds) => setInactivitySecondsLeft(seconds),
     onReset:   handleRestart,
     onDismiss: () => setInactivitySecondsLeft(null),
