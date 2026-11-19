@@ -146,8 +146,10 @@ Chromium com viewport de iPad (nesta máquina não há WebKit: ele só roda no C
   — o servidor de pré-visualização indisponível naquele instante — e passou na repetição.
 - **Repetição dos 15 testes afetados** (áreas de equipe, sessões e reinícios): 15/15 passaram.
 - **Corrida completa final (86 testes, build com todas as mudanças): 86 passaram, 0 falharam (10 min).**
-- **CI (WebKit, o motor do iPad):** o job SQL do commit publicado passou (as três migrações novas aplicam do zero no PostgreSQL 16 do CI e as verificações passam); os demais jobs
-  estavam em execução quando isto foi escrito — conferir a aba *Actions* da branch.
+- **CI (WebKit, o motor do iPad), no mesmo código:** os 3 jobs obrigatórios (lint + testes + build, SQL do zero, Playwright E2E) e os 5 de resiliência
+  (admin-areas, kiosk-resilience 1/2 e 2/2, kiosk-chaos, kiosk-layout) passaram no commit `2636c24`. Uma execução anterior do mesmo código teve o `Playwright E2E`
+  **cancelado** no passo *Install Playwright browsers* (o limite de 15 min estourou na instalação do navegador — falha de infraestrutura, nenhum teste chegou a rodar);
+  a execução seguinte passou.
 
 ## 10. O que fazer com a branch do GPT
 
